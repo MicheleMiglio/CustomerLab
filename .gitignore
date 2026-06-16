@@ -1,0 +1,11 @@
+# Cartelle generate dalla compilazione
+[Bb]in/
+[Oo]bj/
+
+# File e cartelle di Visual Studio
+.vs/
+*.user
+*.suo
+
+# File di sistema Windows
+Thumbs.db

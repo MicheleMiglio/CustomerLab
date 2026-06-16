@@ -9,3 +9,6 @@
 
 # File di sistema Windows
 Thumbs.db
+
+# Database locale (dati, non codice)
+*.db

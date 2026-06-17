@@ -9,7 +9,10 @@ namespace CLab.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=clab.db");
+            string percorsoDb = System.IO.Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, "clab.db");
+
+            optionsBuilder.UseSqlite($"Data Source={percorsoDb}");
         }
     }
 }

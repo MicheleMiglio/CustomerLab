@@ -1,12 +1,30 @@
 ﻿<Window x:Class="CLab.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:CLab"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="CLab - Anagrafica Clienti" Height="500" Width="900">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <TextBlock Grid.Row="0" 
+                   Text="Anagrafica Clienti" 
+                   FontSize="24" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,15"/>
+
+        <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding Clienti}" 
+                  AutoGenerateColumns="False" 
+                  IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Ragione Sociale" Binding="{Binding RagioneSociale}" Width="*"/>
+                <DataGridTextColumn Header="P.IVA" Binding="{Binding PartitaIva}" Width="150"/>
+                <DataGridTextColumn Header="Telefono" Binding="{Binding Telefono}" Width="150"/>
+                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="200"/>
+                <DataGridCheckBoxColumn Header="Attivo" Binding="{Binding Attivo}" Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Window>

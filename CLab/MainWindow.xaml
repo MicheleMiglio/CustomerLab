@@ -1,30 +1,53 @@
 ﻿<Window x:Class="CLab.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="CLab - Anagrafica Clienti" Height="500" Width="900">
+        Title="CLab - Anagrafica Clienti" Height="550" Width="1100">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Row="0" 
+        <TextBlock Grid.Row="0" Grid.Column="0"
                    Text="Anagrafica Clienti" 
                    FontSize="24" 
                    FontWeight="Bold" 
                    Margin="0,0,0,15"/>
 
-        <DataGrid Grid.Row="1" 
+        <!-- Colonna sinistra: tabella -->
+        <DataGrid Grid.Row="1" Grid.Column="0"
                   ItemsSource="{Binding Clienti}" 
+                  SelectedItem="{Binding ClienteSelezionato}"
                   AutoGenerateColumns="False" 
-                  IsReadOnly="True">
+                  IsReadOnly="True"
+                  SelectionMode="Single">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Ragione Sociale" Binding="{Binding RagioneSociale}" Width="*"/>
-                <DataGridTextColumn Header="P.IVA" Binding="{Binding PartitaIva}" Width="150"/>
-                <DataGridTextColumn Header="Telefono" Binding="{Binding Telefono}" Width="150"/>
-                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="200"/>
-                <DataGridCheckBoxColumn Header="Attivo" Binding="{Binding Attivo}" Width="80"/>
+                <DataGridTextColumn Header="P.IVA" Binding="{Binding PartitaIva}" Width="120"/>
+                <DataGridCheckBoxColumn Header="Attivo" Binding="{Binding Attivo}" Width="60"/>
             </DataGrid.Columns>
         </DataGrid>
+
+        <!-- Colonna destra: form -->
+        <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2">
+            <TextBlock Text="Dettaglio Cliente" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+
+            <TextBlock Text="Ragione Sociale *" Margin="0,0,0,3"/>
+            <TextBox Text="{Binding FormRagioneSociale, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+            <TextBlock Text="Partita IVA" Margin="0,0,0,3"/>
+            <TextBox Text="{Binding FormPartitaIva, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+            <CheckBox Content="Cliente Attivo" IsChecked="{Binding FormAttivo}" Margin="0,0,0,20"/>
+
+            <Button Content="Nuovo" Command="{Binding NuovoCommand}" Margin="0,0,0,8" Padding="0,8"/>
+            <Button Content="Salva" Command="{Binding SalvaCommand}" Margin="0,0,0,8" Padding="0,8"/>
+            <Button Content="Elimina" Command="{Binding EliminaCommand}" Padding="0,8"/>
+        </StackPanel>
     </Grid>
 </Window>

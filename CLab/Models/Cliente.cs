@@ -1,4 +1,6 @@
-﻿namespace CLab.Models
+﻿using System.Collections.Generic;
+
+namespace CLab.Models
 {
     public class Cliente
     {
@@ -6,9 +8,9 @@
         public string RagioneSociale { get; set; } = string.Empty;
         public string? PartitaIva { get; set; }
         public string? CodiceFiscale { get; set; }
-        public string? Telefono { get; set; }
-        public string? Email { get; set; }
         public string? Note { get; set; }
         public bool Attivo { get; set; } = true;
+
+        public List<Contatti> Contatti { get; set; } = new List<Contatti>();
     }
 }

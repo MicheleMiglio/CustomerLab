@@ -1,7 +1,25 @@
 ﻿<Window x:Class="CLab.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+        xmlns:local="clr-namespace:CLab.Models"
         Title="CLab - Anagrafica Clienti" Height="550" Width="1100">
+    <Window.Resources>
+        <ObjectDataProvider x:Key="TipiContatto" 
+                         MethodName="GetValues" 
+                         ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:TipoContatto"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <ObjectDataProvider x:Key="StatiCliente" 
+                     MethodName="GetValues" 
+                     ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:StatoCliente"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </Window.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -29,7 +47,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Ragione Sociale" Binding="{Binding RagioneSociale}" Width="*"/>
                 <DataGridTextColumn Header="P.IVA" Binding="{Binding PartitaIva}" Width="120"/>
-                <DataGridCheckBoxColumn Header="Attivo" Binding="{Binding Attivo}" Width="60"/>
+                <DataGridTextColumn Header="Stato" Binding="{Binding Stato}" Width="80"/>
             </DataGrid.Columns>
         </DataGrid>
 
@@ -43,7 +61,47 @@
             <TextBlock Text="Partita IVA" Margin="0,0,0,3"/>
             <TextBox Text="{Binding FormPartitaIva, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
-            <CheckBox Content="Cliente Attivo" IsChecked="{Binding FormAttivo}" Margin="0,0,0,20"/>
+            <TextBlock Text="Stato Cliente" Margin="0,0,0,3" FontSize="11" Foreground="Gray"/>
+            <ComboBox ItemsSource="{Binding Source={StaticResource StatiCliente}}"
+          SelectedItem="{Binding FormStato}"
+          Margin="0,0,0,10"/>
+
+            <TextBlock Text="Referente" Margin="0,0,0,3" FontSize="11" Foreground="Gray"/>
+            <TextBox Text="{Binding FormReferente, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15"/>
+
+            <Separator Margin="0,10,0,10"/>
+            <TextBlock Text="Contatti" FontSize="14" FontWeight="Bold" Margin="0,0,0,8"/>
+
+            <ListBox ItemsSource="{Binding ContattiCliente}" 
+         SelectedItem="{Binding ContattoSelezionato}"
+         Height="100" Margin="0,0,0,8">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Tipo}" FontWeight="Bold" Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding Valore}" Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding Etichetta}" Foreground="Gray"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Button Content="Rimuovi Contatto Selezionato" Command="{Binding RimuoviContattoCommand}" Margin="0,0,0,10" Padding="0,5"/>
+
+            <TextBlock Text="Tipo" Margin="0,0,0,3" FontSize="11" Foreground="Gray"/>
+            <ComboBox ItemsSource="{Binding Source={StaticResource TipiContatto}}"
+          SelectedItem="{Binding NuovoContattoTipo}"
+          Margin="0,0,0,5"/>
+
+            <TextBlock Text="Numero / Indirizzo" Margin="0,0,0,3" FontSize="11" Foreground="Gray"/>
+            <TextBox Text="{Binding NuovoContattoValore, UpdateSourceTrigger=PropertyChanged}" 
+         Margin="0,0,0,5"/>
+
+            <TextBlock Text="Etichetta (es. Ufficio, Cellulare) - opzionale" Margin="0,0,0,3" FontSize="11" Foreground="Gray"/>
+            <TextBox Text="{Binding NuovoContattoEtichetta, UpdateSourceTrigger=PropertyChanged}" 
+         Margin="0,0,0,5"/>
+            
+            <Button Content="Aggiungi Contatto" Command="{Binding AggiungiContattoCommand}" Margin="0,0,0,15" Padding="0,5"/>
 
             <Button Content="Nuovo" Command="{Binding NuovoCommand}" Margin="0,0,0,8" Padding="0,8"/>
             <Button Content="Salva" Command="{Binding SalvaCommand}" Margin="0,0,0,8" Padding="0,8"/>

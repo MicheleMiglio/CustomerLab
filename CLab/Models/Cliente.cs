@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
 
 namespace CLab.Models
 {
@@ -20,5 +20,11 @@ namespace CLab.Models
         public StatoCliente Stato { get; set; } = StatoCliente.Attivo;
 
         public List<Contatti> Contatti { get; set; } = new List<Contatti>();
+
+        public string TelefonoPrincipale =>
+            Contatti.FirstOrDefault(c => c.Tipo == TipoContatto.Telefono && c.Principale)?.Valore ?? "—";
+
+        public string EmailPrincipale =>
+            Contatti.FirstOrDefault(c => c.Tipo == TipoContatto.Email && c.Principale)?.Valore ?? "—";
     }
 }

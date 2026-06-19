@@ -1,8 +1,7 @@
 ﻿using CLab.Data;
-using CLab.Migrations;
 using CLab.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 
 namespace CLab.ViewModels
@@ -23,35 +22,54 @@ namespace CLab.ViewModels
             }
         }
 
-        // Contatti del cliente in form
-        public ObservableCollection<Contatti> ContattiCliente { get; set; } = new ObservableCollection<Contatti>();
-
-        private TipoContatto _nuovoContattoTipo = TipoContatto.Telefono;
-        public TipoContatto NuovoContattoTipo
+        private bool _overlayAperto;
+        public bool OverlayAperto
         {
-            get => _nuovoContattoTipo;
-            set { _nuovoContattoTipo = value; OnPropertyChanged(); }
+            get => _overlayAperto;
+            set { _overlayAperto = value; OnPropertyChanged(); }
         }
 
-        private string _nuovoContattoValore = string.Empty;
-        public string NuovoContattoValore
+        private bool _modalitaModifica;
+        public bool ModalitaModifica
         {
-            get => _nuovoContattoValore;
-            set { _nuovoContattoValore = value; OnPropertyChanged(); }
+            get => _modalitaModifica;
+            set { _modalitaModifica = value; OnPropertyChanged(); }
         }
 
-        private string? _nuovoContattoEtichetta;
-        public string? NuovoContattoEtichetta
+        // --- TELEFONI ---
+        public ObservableCollection<Contatti> TelefoniCliente { get; set; } = new ObservableCollection<Contatti>();
+
+        private int _telefonoInModificaId = 0;
+        private string _nuovoTelefonoValore = string.Empty;
+        public string NuovoTelefonoValore
         {
-            get => _nuovoContattoEtichetta;
-            set { _nuovoContattoEtichetta = value; OnPropertyChanged(); }
+            get => _nuovoTelefonoValore;
+            set { _nuovoTelefonoValore = value; OnPropertyChanged(); }
         }
 
-        private Contatti? _contattoSelezionato;
-        public Contatti? ContattoSelezionato
+        private string? _nuovoTelefonoEtichetta;
+        public string? NuovoTelefonoEtichetta
         {
-            get => _contattoSelezionato;
-            set { _contattoSelezionato = value; OnPropertyChanged(); }
+            get => _nuovoTelefonoEtichetta;
+            set { _nuovoTelefonoEtichetta = value; OnPropertyChanged(); }
+        }
+
+        // --- EMAIL ---
+        public ObservableCollection<Contatti> EmailCliente { get; set; } = new ObservableCollection<Contatti>();
+
+        private int _emailInModificaId = 0;
+        private string _nuovaEmailValore = string.Empty;
+        public string NuovaEmailValore
+        {
+            get => _nuovaEmailValore;
+            set { _nuovaEmailValore = value; OnPropertyChanged(); }
+        }
+
+        private string? _nuovaEmailEtichetta;
+        public string? NuovaEmailEtichetta
+        {
+            get => _nuovaEmailEtichetta;
+            set { _nuovaEmailEtichetta = value; OnPropertyChanged(); }
         }
 
         // Campi del form
@@ -87,9 +105,18 @@ namespace CLab.ViewModels
         // Comandi
         public RelayCommand NuovoCommand { get; }
         public RelayCommand SalvaCommand { get; }
-        public RelayCommand EliminaCommand { get; }
-        public RelayCommand AggiungiContattoCommand { get; }
-        public RelayCommand RimuoviContattoCommand { get; }
+        public RelayCommand SalvaTelefonoCommand { get; }
+        public RelayCommand<Contatti> SelezionaTelefonoCommand { get; }
+        public RelayCommand<Contatti> RimuoviTelefonoCommand { get; }
+        public RelayCommand<Contatti> ImpostaTelefonoPrincipaleCommand { get; }
+        public RelayCommand SalvaEmailCommand { get; }
+        public RelayCommand<Contatti> SelezionaEmailCommand { get; }
+        public RelayCommand<Contatti> RimuoviEmailCommand { get; }
+        public RelayCommand<Contatti> ImpostaEmailPrincipaleCommand { get; }
+        public RelayCommand<Cliente> ApriDettaglioCommand { get; }
+        public RelayCommand<Cliente> EliminaClienteCommand { get; }
+        public RelayCommand ChiudiOverlayCommand { get; }
+        public RelayCommand AttivaModificaCommand { get; }
 
         public ClientiViewModel()
         {
@@ -98,16 +125,26 @@ namespace CLab.ViewModels
 
             NuovoCommand = new RelayCommand(Nuovo);
             SalvaCommand = new RelayCommand(Salva);
-            EliminaCommand = new RelayCommand(Elimina, () => ClienteSelezionato != null);
-            AggiungiContattoCommand = new RelayCommand(AggiungiContatto, () => !string.IsNullOrWhiteSpace(NuovoContattoValore));
-            RimuoviContattoCommand = new RelayCommand(RimuoviContatto, () => ContattoSelezionato != null);
+            SalvaTelefonoCommand = new RelayCommand(SalvaTelefono, () => !string.IsNullOrWhiteSpace(NuovoTelefonoValore));
+            SelezionaTelefonoCommand = new RelayCommand<Contatti>(SelezionaTelefono);
+            RimuoviTelefonoCommand = new RelayCommand<Contatti>(RimuoviTelefono);
+            ImpostaTelefonoPrincipaleCommand = new RelayCommand<Contatti>(ImpostaTelefonoPrincipale);
+
+            SalvaEmailCommand = new RelayCommand(SalvaEmail, () => !string.IsNullOrWhiteSpace(NuovaEmailValore));
+            SelezionaEmailCommand = new RelayCommand<Contatti>(SelezionaEmail);
+            RimuoviEmailCommand = new RelayCommand<Contatti>(RimuoviEmail);
+            ImpostaEmailPrincipaleCommand = new RelayCommand<Contatti>(ImpostaEmailPrincipale);
+            ApriDettaglioCommand = new RelayCommand<Cliente>(ApriDettaglio);
+            EliminaClienteCommand = new RelayCommand<Cliente>(EliminaCliente);
+            ChiudiOverlayCommand = new RelayCommand(ChiudiOverlay);
+            AttivaModificaCommand = new RelayCommand(() => ModalitaModifica = true);
         }
 
         private void CaricaClienti()
         {
             using (var db = new ClabDbContext())
             {
-                var lista = db.Clienti.ToList();
+                var lista = db.Clienti.Include(c => c.Contatti).ToList();
                 Clienti.Clear();
                 foreach (var c in lista)
                 {
@@ -118,7 +155,10 @@ namespace CLab.ViewModels
 
         private void CaricaNelForm(Cliente? cliente)
         {
-            ContattiCliente.Clear();
+            TelefoniCliente.Clear();
+            EmailCliente.Clear();
+            AnnullaModificaTelefono();
+            AnnullaModificaEmail();
 
             if (cliente == null)
             {
@@ -141,7 +181,10 @@ namespace CLab.ViewModels
                     var contatti = db.Contatti.Where(c => c.ClienteId == cliente.Id).ToList();
                     foreach (var contatto in contatti)
                     {
-                        ContattiCliente.Add(contatto);
+                        if (contatto.Tipo == TipoContatto.Telefono)
+                            TelefoniCliente.Add(contatto);
+                        else
+                            EmailCliente.Add(contatto);
                     }
                 }
             }
@@ -151,6 +194,8 @@ namespace CLab.ViewModels
         {
             ClienteSelezionato = null;
             CaricaNelForm(null);
+            ModalitaModifica = true;
+            OverlayAperto = true;
         }
 
         private void Salva()
@@ -159,6 +204,12 @@ namespace CLab.ViewModels
             {
                 MessageBox.Show("La Ragione Sociale è obbligatoria.", "Attenzione",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!ValidaPartitaIvaCodiceFiscale(FormPartitaIva, out string erroreIva))
+            {
+                MessageBox.Show(erroreIva, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -196,7 +247,7 @@ namespace CLab.ViewModels
                     db.Contatti.RemoveRange(vecchiContatti);
                 }
 
-                foreach (var contatto in ContattiCliente)
+                foreach (var contatto in TelefoniCliente.Concat(EmailCliente))
                 {
                     db.Contatti.Add(new Contatti
                     {
@@ -212,15 +263,237 @@ namespace CLab.ViewModels
             }
 
             CaricaClienti();
-            Nuovo();
+            ClienteSelezionato = null;
+            CaricaNelForm(null);
+            ChiudiOverlay();
         }
 
-        private void Elimina()
+        private bool ValidaPartitaIvaCodiceFiscale(string? valore, out string errore)
         {
-            if (ClienteSelezionato == null) return;
+            errore = string.Empty;
+            if (string.IsNullOrWhiteSpace(valore)) return true; // facoltativo
+
+            string valorePulito = valore.Trim().ToUpper();
+            bool soloNumeri = valorePulito.All(char.IsDigit);
+
+            if (soloNumeri)
+            {
+                if (valorePulito.Length != 11)
+                {
+                    errore = "La Partita IVA deve essere composta da 11 cifre numeriche.";
+                    return false;
+                }
+            }
+            else
+            {
+                if (valorePulito.Length != 16)
+                {
+                    errore = "Il Codice Fiscale deve essere composto da 16 caratteri.";
+                    return false;
+                }
+
+                string patternCF = @"^[A-Z]{6}[0-9]{2}[A-EHLMPR-T][0-9]{2}[A-Z][0-9]{3}[A-Z]$";
+                if (!System.Text.RegularExpressions.Regex.IsMatch(valorePulito, patternCF))
+                {
+                    errore = "Il Codice Fiscale inserito non rispetta il formato previsto (es. RSSMRA80A01F205X).";
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool ValidaEmail(string? valore, out string errore)
+        {
+            errore = string.Empty;
+            if (string.IsNullOrWhiteSpace(valore)) return true;
+
+            string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(valore, pattern))
+            {
+                errore = $"L'indirizzo email '{valore}' non sembra valido.";
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ValidaTelefono(string? valore, out string errore)
+        {
+            errore = string.Empty;
+            if (string.IsNullOrWhiteSpace(valore)) return true;
+
+            string soloCifreSpazi = valore.Replace(" ", "").Replace("+", "");
+            if (!soloCifreSpazi.All(char.IsDigit))
+            {
+                errore = $"Il numero di telefono '{valore}' contiene caratteri non validi (sono ammessi solo numeri, spazi e '+').";
+                return false;
+            }
+
+            return true;
+        }
+
+        private void SalvaTelefono()
+        {
+            if (!ValidaTelefono(NuovoTelefonoValore, out string errore))
+            {
+                MessageBox.Show(errore, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (_telefonoInModificaId == 0)
+            {
+                bool ePrimo = !TelefoniCliente.Any();
+                TelefoniCliente.Add(new Contatti
+                {
+                    Tipo = TipoContatto.Telefono,
+                    Valore = NuovoTelefonoValore,
+                    Etichetta = NuovoTelefonoEtichetta,
+                    Principale = ePrimo
+                });
+            }
+            else
+            {
+                var esistente = TelefoniCliente.FirstOrDefault(t => t.Id == _telefonoInModificaId);
+                if (esistente != null)
+                {
+                    esistente.Valore = NuovoTelefonoValore;
+                    esistente.Etichetta = NuovoTelefonoEtichetta;
+                }
+            }
+
+            AnnullaModificaTelefono();
+        }
+
+        private void SelezionaTelefono(Contatti? telefono)
+        {
+            if (telefono == null) return;
+            _telefonoInModificaId = telefono.Id;
+            NuovoTelefonoValore = telefono.Valore;
+            NuovoTelefonoEtichetta = telefono.Etichetta;
+        }
+
+        private void AnnullaModificaTelefono()
+        {
+            _telefonoInModificaId = 0;
+            NuovoTelefonoValore = string.Empty;
+            NuovoTelefonoEtichetta = null;
+        }
+
+        private void RimuoviTelefono(Contatti? telefono)
+        {
+            if (telefono == null) return;
+            bool eraPrincipale = telefono.Principale;
+            TelefoniCliente.Remove(telefono);
+
+            if (eraPrincipale && TelefoniCliente.Any())
+            {
+                TelefoniCliente.First().Principale = true;
+            }
+
+            if (_telefonoInModificaId == telefono.Id)
+            {
+                AnnullaModificaTelefono();
+            }
+        }
+
+        private void ImpostaTelefonoPrincipale(Contatti? telefono)
+        {
+            if (telefono == null) return;
+            foreach (var t in TelefoniCliente)
+            {
+                t.Principale = (t == telefono);
+            }
+        }
+
+        private void SalvaEmail()
+        {
+            if (!ValidaEmail(NuovaEmailValore, out string errore))
+            {
+                MessageBox.Show(errore, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (_emailInModificaId == 0)
+            {
+                bool ePrima = !EmailCliente.Any();
+                EmailCliente.Add(new Contatti
+                {
+                    Tipo = TipoContatto.Email,
+                    Valore = NuovaEmailValore,
+                    Etichetta = NuovaEmailEtichetta,
+                    Principale = ePrima
+                });
+            }
+            else
+            {
+                var esistente = EmailCliente.FirstOrDefault(e => e.Id == _emailInModificaId);
+                if (esistente != null)
+                {
+                    esistente.Valore = NuovaEmailValore;
+                    esistente.Etichetta = NuovaEmailEtichetta;
+                }
+            }
+
+            AnnullaModificaEmail();
+        }
+
+        private void SelezionaEmail(Contatti? email)
+        {
+            if (email == null) return;
+            _emailInModificaId = email.Id;
+            NuovaEmailValore = email.Valore;
+            NuovaEmailEtichetta = email.Etichetta;
+        }
+
+        private void AnnullaModificaEmail()
+        {
+            _emailInModificaId = 0;
+            NuovaEmailValore = string.Empty;
+            NuovaEmailEtichetta = null;
+        }
+
+        private void RimuoviEmail(Contatti? email)
+        {
+            if (email == null) return;
+            bool eraPrincipale = email.Principale;
+            EmailCliente.Remove(email);
+
+            if (eraPrincipale && EmailCliente.Any())
+            {
+                EmailCliente.First().Principale = true;
+            }
+
+            if (_emailInModificaId == email.Id)
+            {
+                AnnullaModificaEmail();
+            }
+        }
+
+        private void ImpostaEmailPrincipale(Contatti? email)
+        {
+            if (email == null) return;
+            foreach (var e in EmailCliente)
+            {
+                e.Principale = (e == email);
+            }
+        }
+
+        private void ApriDettaglio(Cliente? cliente)
+        {
+            if (cliente == null) return;
+            ClienteSelezionato = cliente;
+            CaricaNelForm(cliente);
+            ModalitaModifica = false;
+            OverlayAperto = true;
+        }
+
+        private void EliminaCliente(Cliente? cliente)
+        {
+            if (cliente == null) return;
 
             var risultato = MessageBox.Show(
-                $"Eliminare il cliente '{ClienteSelezionato.RagioneSociale}'?",
+                $"Eliminare il cliente '{cliente.RagioneSociale}'?",
                 "Conferma eliminazione",
                 MessageBoxButton.YesNo, MessageBoxImage.Question);
 
@@ -228,7 +501,7 @@ namespace CLab.ViewModels
 
             using (var db = new ClabDbContext())
             {
-                var daEliminare = db.Clienti.Find(ClienteSelezionato.Id);
+                var daEliminare = db.Clienti.Find(cliente.Id);
                 if (daEliminare != null)
                 {
                     db.Clienti.Remove(daEliminare);
@@ -237,30 +510,12 @@ namespace CLab.ViewModels
             }
 
             CaricaClienti();
-            Nuovo();
         }
 
-        private void AggiungiContatto()
+        private void ChiudiOverlay()
         {
-            var contatto = new Contatti
-            {
-                Tipo = NuovoContattoTipo,
-                Valore = NuovoContattoValore,
-                Etichetta = NuovoContattoEtichetta
-            };
-
-            ContattiCliente.Add(contatto);
-
-            NuovoContattoValore = string.Empty;
-            NuovoContattoEtichetta = null;
-        }
-
-        private void RimuoviContatto()
-        {
-            if (ContattoSelezionato != null)
-            {
-                ContattiCliente.Remove(ContattoSelezionato);
-            }
+            OverlayAperto = false;
+            ModalitaModifica = false;
         }
     }
 }

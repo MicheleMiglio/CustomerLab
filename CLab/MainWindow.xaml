@@ -3,109 +3,330 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         xmlns:local="clr-namespace:CLab.Models"
-        Title="CLab - Anagrafica Clienti" Height="550" Width="1100">
+        xmlns:converters="clr-namespace:CLab.Converters"
+        Title="CLab - Anagrafica Clienti" Height="650" Width="1100">
+
     <Window.Resources>
         <ObjectDataProvider x:Key="TipiContatto" 
-                         MethodName="GetValues" 
-                         ObjectType="{x:Type sys:Enum}">
+                             MethodName="GetValues" 
+                             ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="local:TipoContatto"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+
         <ObjectDataProvider x:Key="StatiCliente" 
-                     MethodName="GetValues" 
-                     ObjectType="{x:Type sys:Enum}">
+                             MethodName="GetValues" 
+                             ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="local:StatoCliente"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+
+        <Style x:Key="StatoPallino" TargetType="Ellipse">
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Height" Value="12"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Stato}" Value="Attivo">
+                    <Setter Property="Fill" Value="Green"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Stato}" Value="StandBy">
+                    <Setter Property="Fill" Value="Orange"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Stato}" Value="Cessato">
+                    <Setter Property="Fill" Value="Red"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:PrincipaleColoreConverter x:Key="PrincipaleColore"/>
     </Window.Resources>
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/>
-            <ColumnDefinition Width="20"/>
-            <ColumnDefinition Width="1*"/>
-        </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Row="0" Grid.Column="0"
-                   Text="Anagrafica Clienti" 
-                   FontSize="24" 
-                   FontWeight="Bold" 
-                   Margin="0,0,0,15"/>
+    <Grid>
+        <!-- VISTA PRINCIPALE: tabella + bottone aggiungi -->
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- Colonna sinistra: tabella -->
-        <DataGrid Grid.Row="1" Grid.Column="0"
-                  ItemsSource="{Binding Clienti}" 
-                  SelectedItem="{Binding ClienteSelezionato}"
-                  AutoGenerateColumns="False" 
-                  IsReadOnly="True"
-                  SelectionMode="Single">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Ragione Sociale" Binding="{Binding RagioneSociale}" Width="*"/>
-                <DataGridTextColumn Header="P.IVA" Binding="{Binding PartitaIva}" Width="120"/>
-                <DataGridTextColumn Header="Stato" Binding="{Binding Stato}" Width="80"/>
-            </DataGrid.Columns>
-        </DataGrid>
+            <Grid Grid.Row="0" Margin="0,0,0,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Anagrafica Clienti" FontSize="24" FontWeight="Bold"/>
+                <Button Grid.Column="1" Content="+ Nuovo Cliente" Command="{Binding NuovoCommand}" Padding="12,6"/>
+            </Grid>
 
-        <!-- Colonna destra: form -->
-        <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2">
-            <TextBlock Text="Dettaglio Cliente" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+            <DataGrid Grid.Row="1"
+                      ItemsSource="{Binding Clienti}" 
+                      AutoGenerateColumns="False" 
+                      IsReadOnly="True"
+                      SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Ragione Sociale" Binding="{Binding RagioneSociale}" Width="*"/>
+                    <DataGridTextColumn Header="P.IVA / C.F." Binding="{Binding PartitaIva}" Width="*"/>
+                    <DataGridTextColumn Header="Referente" Binding="{Binding Referente}" Width="*"/>
+                    <DataGridTextColumn Header="Telefono Principale" Binding="{Binding TelefonoPrincipale}" Width="*"/>
+                    <DataGridTextColumn Header="Email Principale" Binding="{Binding EmailPrincipale}" Width="*"/>
 
-            <TextBlock Text="Ragione Sociale *" Margin="0,0,0,3"/>
-            <TextBox Text="{Binding FormRagioneSociale, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                    <DataGridTemplateColumn Header="Stato" Width="60">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid ToolTipService.ShowDuration="60000" ToolTipService.InitialShowDelay="200">
+                                    <Grid.ToolTip>
+                                        <TextBlock Text="{Binding Stato}"/>
+                                    </Grid.ToolTip>
+                                    <Ellipse Style="{StaticResource StatoPallino}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
 
-            <TextBlock Text="Partita IVA" Margin="0,0,0,3"/>
-            <TextBox Text="{Binding FormPartitaIva, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                    <DataGridTemplateColumn Header="Azioni" Width="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Apri" 
+                                            Command="{Binding DataContext.ApriDettaglioCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="0,0,5,0" Padding="6,2"/>
+                                    <Button Content="Elimina" 
+                                            Command="{Binding DataContext.EliminaClienteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Padding="6,2"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
 
-            <TextBlock Text="Stato Cliente" Margin="0,0,0,3" FontSize="11" Foreground="Gray"/>
-            <ComboBox ItemsSource="{Binding Source={StaticResource StatiCliente}}"
-          SelectedItem="{Binding FormStato}"
-          Margin="0,0,0,10"/>
+        <!-- OVERLAY: visibile solo quando OverlayAperto = true -->
+        <!-- OVERLAY: visibile solo quando OverlayAperto = true -->
+        <Grid Background="#80000000" 
+      Visibility="{Binding OverlayAperto, Converter={StaticResource BoolToVisibility}}">
+            <Border Background="White" 
+            BorderBrush="Gray" BorderThickness="1"
+            CornerRadius="6"
+            Width="420" MaxHeight="800"
+            HorizontalAlignment="Center" VerticalAlignment="Center"
+            Padding="20">
+                <StackPanel>
 
-            <TextBlock Text="Referente" Margin="0,0,0,3" FontSize="11" Foreground="Gray"/>
-            <TextBox Text="{Binding FormReferente, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15"/>
-
-            <Separator Margin="0,10,0,10"/>
-            <TextBlock Text="Contatti" FontSize="14" FontWeight="Bold" Margin="0,0,0,8"/>
-
-            <ListBox ItemsSource="{Binding ContattiCliente}" 
-         SelectedItem="{Binding ContattoSelezionato}"
-         Height="100" Margin="0,0,0,8">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Tipo}" FontWeight="Bold" Margin="0,0,5,0"/>
-                            <TextBlock Text="{Binding Valore}" Margin="0,0,5,0"/>
-                            <TextBlock Text="{Binding Etichetta}" Foreground="Gray"/>
+                    <!-- Intestazione overlay con titolo e bottoni azione -->
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding FormRagioneSociale}" FontSize="18" FontWeight="Bold"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Content="Modifica" Command="{Binding AttivaModificaCommand}" 
+                            Margin="0,0,5,0" Padding="8,4"
+                            Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                            <Button Content="X" Command="{Binding ChiudiOverlayCommand}" Padding="8,4"/>
                         </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                    </Grid>
 
-            <Button Content="Rimuovi Contatto Selezionato" Command="{Binding RimuoviContattoCommand}" Margin="0,0,0,10" Padding="0,5"/>
+                    <!-- VISTA SOLA LETTURA -->
+                    <StackPanel Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                        <TextBlock Text="Partita IVA / Codice Fiscale" FontSize="11" Foreground="Gray"/>
+                        <TextBlock Text="{Binding FormPartitaIva}" Margin="0,0,0,10"/>
 
-            <TextBlock Text="Tipo" Margin="0,0,0,3" FontSize="11" Foreground="Gray"/>
-            <ComboBox ItemsSource="{Binding Source={StaticResource TipiContatto}}"
-          SelectedItem="{Binding NuovoContattoTipo}"
-          Margin="0,0,0,5"/>
+                        <TextBlock Text="Referente" FontSize="11" Foreground="Gray"/>
+                        <TextBlock Text="{Binding FormReferente}" Margin="0,0,0,10"/>
 
-            <TextBlock Text="Numero / Indirizzo" Margin="0,0,0,3" FontSize="11" Foreground="Gray"/>
-            <TextBox Text="{Binding NuovoContattoValore, UpdateSourceTrigger=PropertyChanged}" 
-         Margin="0,0,0,5"/>
+                        <TextBlock Text="Telefoni" FontWeight="Bold" Margin="0,5,0,5"/>
+                        <ItemsControl ItemsSource="{Binding TelefoniCliente}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                        <TextBlock Text="★" Foreground="Gold" Margin="0,0,5,0"
+                           Visibility="{Binding Principale, Converter={StaticResource BoolToVisibility}}"/>
+                                        <TextBlock Text="{Binding Valore}" Margin="0,0,5,0"/>
+                                        <TextBlock Text="{Binding Etichetta, StringFormat='({0})'}" Foreground="Gray"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
 
-            <TextBlock Text="Etichetta (es. Ufficio, Cellulare) - opzionale" Margin="0,0,0,3" FontSize="11" Foreground="Gray"/>
-            <TextBox Text="{Binding NuovoContattoEtichetta, UpdateSourceTrigger=PropertyChanged}" 
-         Margin="0,0,0,5"/>
-            
-            <Button Content="Aggiungi Contatto" Command="{Binding AggiungiContattoCommand}" Margin="0,0,0,15" Padding="0,5"/>
+                        <TextBlock Text="Email" FontWeight="Bold" Margin="10,8,0,5"/>
+                        <ItemsControl ItemsSource="{Binding EmailCliente}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                        <TextBlock Text="★" Foreground="Gold" Margin="0,0,5,0"
+                           Visibility="{Binding Principale, Converter={StaticResource BoolToVisibility}}"/>
+                                        <TextBlock Text="{Binding Valore}" Margin="0,0,5,0"/>
+                                        <TextBlock Text="{Binding Etichetta, StringFormat='({0})'}" Foreground="Gray"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
 
-            <Button Content="Nuovo" Command="{Binding NuovoCommand}" Margin="0,0,0,8" Padding="0,8"/>
-            <Button Content="Salva" Command="{Binding SalvaCommand}" Margin="0,0,0,8" Padding="0,8"/>
-            <Button Content="Elimina" Command="{Binding EliminaCommand}" Padding="0,8"/>
-        </StackPanel>
+                    <!-- VISTA MODIFICA -->
+                    <StackPanel Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Ragione Sociale *" FontSize="11" Foreground="Gray"/>
+                        <TextBox Text="{Binding FormRagioneSociale, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+
+                        <TextBlock Text="Partita IVA / Codice Fiscale" FontSize="11" Foreground="Gray"/>
+                        <TextBox Text="{Binding FormPartitaIva, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+
+                        <TextBlock Text="Referente" FontSize="11" Foreground="Gray"/>
+                        <TextBox Text="{Binding FormReferente, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+
+                        <TextBlock Text="Stato" FontSize="11" Foreground="Gray"/>
+                        <ComboBox ItemsSource="{Binding Source={StaticResource StatiCliente}}"
+                          SelectedItem="{Binding FormStato}" Margin="0,0,0,12"/>
+
+                        <!-- TELEFONI -->
+                        <TextBlock Text="Telefoni" FontWeight="Bold" Margin="0,5,0,8"/>
+                        <ItemsControl ItemsSource="{Binding TelefoniCliente}" Margin="0,0,0,8">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" 
+                    Padding="8,5" Margin="0,0,0,4" Background="#F5F5F5">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Button Grid.Column="0" Content="★" 
+                            Foreground="{Binding Principale, Converter={StaticResource PrincipaleColore}}"
+                            Command="{Binding DataContext.ImpostaTelefonoPrincipaleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding}"
+                            Background="Transparent" BorderThickness="0" Margin="0,0,8,0"
+                            ToolTip="Imposta come principale"/>
+
+                                            <StackPanel Grid.Column="1" Cursor="Hand"
+                                Tag="{Binding}"
+                                MouseLeftButtonUp="ContattoTelefono_Click">
+                                                <TextBlock Text="{Binding Valore}"/>
+                                                <TextBlock Text="{Binding Etichetta}" FontSize="11" Foreground="Gray"/>
+                                            </StackPanel>
+
+                                            <Button Grid.Column="2" Content="🗑" 
+                            Command="{Binding DataContext.RimuoviTelefonoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding}"
+                            Background="Transparent" BorderThickness="0"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Nuovo numero" FontSize="11" Foreground="Gray" Margin="0,0,0,2"/>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+             Text="{Binding NuovoTelefonoValore, UpdateSourceTrigger=PropertyChanged}" 
+             Margin="0,0,0,4"/>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,5,0">
+                                    <TextBlock Text="Etichetta (es. Ufficio, Cellulare)" FontSize="10" Foreground="Gray" Margin="0,0,0,2"/>
+                                    <TextBox Text="{Binding NuovoTelefonoEtichetta, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <Button Grid.Row="1" Grid.Column="1" Content="Salva Telefono" 
+            Command="{Binding SalvaTelefonoCommand}" Padding="8,5" VerticalAlignment="Bottom"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- EMAIL -->
+                        <TextBlock Text="Email" FontWeight="Bold" Margin="0,5,0,8"/>
+                        <ItemsControl ItemsSource="{Binding EmailCliente}" Margin="0,0,0,8">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" 
+                    Padding="8,5" Margin="0,0,0,4" Background="#F5F5F5">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Button Grid.Column="0" Content="★" 
+                            Foreground="{Binding Principale, Converter={StaticResource PrincipaleColore}}"
+                            Command="{Binding DataContext.ImpostaEmailPrincipaleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding}"
+                            Background="Transparent" BorderThickness="0" Margin="0,0,8,0"
+                            ToolTip="Imposta come principale"/>
+
+                                            <StackPanel Grid.Column="1" Cursor="Hand"
+                                Tag="{Binding}"
+                                MouseLeftButtonUp="ContattoEmail_Click">
+                                                <TextBlock Text="{Binding Valore}"/>
+                                                <TextBlock Text="{Binding Etichetta}" FontSize="11" Foreground="Gray"/>
+                                            </StackPanel>
+
+                                            <Button Grid.Column="2" Content="🗑" 
+                            Command="{Binding DataContext.RimuoviEmailCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding}"
+                            Background="Transparent" BorderThickness="0"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Nuovo indirizzo" FontSize="11" Foreground="Gray" Margin="0,0,0,2"/>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+             Text="{Binding NuovaEmailValore, UpdateSourceTrigger=PropertyChanged}" 
+             Margin="0,0,0,4"/>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,5,0">
+                                    <TextBlock Text="Etichetta (es. Personale, Lavoro)" FontSize="10" Foreground="Gray" Margin="0,0,0,2"/>
+                                    <TextBox Text="{Binding NuovaEmailEtichetta, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <Button Grid.Row="1" Grid.Column="1" Content="Salva Email" 
+            Command="{Binding SalvaEmailCommand}" Padding="8,5" VerticalAlignment="Bottom"/>
+                            </Grid>
+                        </Grid>
+
+                        <Button Content="Salva" Command="{Binding SalvaCommand}" Padding="0,8"/>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

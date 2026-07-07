@@ -1,102 +1,605 @@
-﻿<Window x:Class="CLab.MainWindow"
+﻿<mah:MetroWindow x:Class="CLab.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         xmlns:local="clr-namespace:CLab.Models"
         xmlns:converters="clr-namespace:CLab.Converters"
-        Title="CLab - Anagrafica Clienti" Height="650" Width="1100">
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        Title="" Height="720" Width="1200"
+        GlowBrush="{DynamicResource BrushPrimaryDark}"
+        BorderThickness="1"
+        WindowTitleBrush="#8A95A3"
+        NonActiveWindowTitleBrush="#8A95A3"
+        Background="#F7F8FA">
 
     <Window.Resources>
-        <ObjectDataProvider x:Key="TipiContatto" 
-                             MethodName="GetValues" 
-                             ObjectType="{x:Type sys:Enum}">
+        <ObjectDataProvider x:Key="TipiContatto" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="local:TipoContatto"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
-
-        <ObjectDataProvider x:Key="StatiCliente" 
-                             MethodName="GetValues" 
-                             ObjectType="{x:Type sys:Enum}">
+        <ObjectDataProvider x:Key="StatiCliente" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="local:StatoCliente"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
-        <Style x:Key="StatoPallino" TargetType="Ellipse">
-            <Setter Property="Width" Value="12"/>
-            <Setter Property="Height" Value="12"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Stato}" Value="Attivo">
-                    <Setter Property="Fill" Value="Green"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Stato}" Value="StandBy">
-                    <Setter Property="Fill" Value="Orange"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Stato}" Value="Cessato">
-                    <Setter Property="Fill" Value="Red"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
         <converters:PrincipaleColoreConverter x:Key="PrincipaleColore"/>
+        <converters:StatoBadgeConverter       x:Key="StatoBadge"/>
+        <converters:StatoBadgeForeConverter   x:Key="StatoBadgeFore"/>
+        <converters:StatoBadgeBackConverter   x:Key="StatoBadgeBack"/>
+
+        <!-- Label campo -->
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="9"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#8A95A3"/>
+            <Setter Property="Margin"     Value="0,0,0,4"/>
+        </Style>
+
+        <!-- Valore campo read-only -->
+        <Style x:Key="FieldValue" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="13"/>
+            <Setter Property="Foreground" Value="#0D1B2E"/>
+        </Style>
+
+        <!-- Titolo sezione -->
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="9"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#8A95A3"/>
+            <Setter Property="Margin"     Value="0,0,0,10"/>
+        </Style>
+
+        <!-- Bottone primario navy -->
+        <Style x:Key="BtnPrimary" TargetType="Button">
+            <Setter Property="Background"      Value="#0A1628"/>
+            <Setter Property="Foreground"      Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="16,9"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#162240"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Bottone outline -->
+        <Style x:Key="BtnOutline" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="Foreground"      Value="#4A5568"/>
+            <Setter Property="BorderBrush"     Value="#E1E6EE"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding"         Value="16,9"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#4A5568"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Bottone icona neutro -->
+        <Style x:Key="BtnIcon" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="6"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#EBF3FD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Bottone icona rosso -->
+        <Style x:Key="BtnIconRed" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="6"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#FEE2E2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Bottone icona su sfondo scuro -->
+        <Style x:Key="BtnIconDark" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="6"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#22FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Bottone outline oro -->
+        <Style x:Key="BtnOutlineGold" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="Foreground"      Value="#C9A84C"/>
+            <Setter Property="BorderBrush"     Value="#C9A84C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding"         Value="12,5"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="FontSize"        Value="11"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="15" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#1AC9A84C"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- TextBox implicita (si applica a tutte le TextBox) -->
+        <Style TargetType="TextBox">
+            <Setter Property="Height"          Value="34"/>
+            <Setter Property="Padding"         Value="5,0"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="Foreground"      Value="#0D1B2E"/>
+            <Setter Property="BorderBrush"     Value="#E1E6EE"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="bd"
+                                Background="White"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#C9A84C"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ComboBox implicita -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Height"          Value="34"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="Foreground"      Value="#0D1B2E"/>
+            <Setter Property="BorderBrush"     Value="#E1E6EE"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background"      Value="White"/>
+            <Setter Property="Padding"         Value="10,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="5">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="30"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ContentPresenter Grid.Column="0"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center"
+                                              IsHitTestVisible="False"/>
+                                    <Path Grid.Column="1" Data="M 0 0 L 4 4 L 8 0 Z"
+                                  Fill="#8A95A3" HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  IsHitTestVisible="False"/>
+                                </Grid>
+                            </Border>
+                            <!-- ToggleButton invisibile: gestisce apertura/chiusura -->
+                            <ToggleButton Focusable="False"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  ClickMode="Press"
+                                  IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent"/>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup x:Name="PART_Popup"
+                           AllowsTransparency="True"
+                           IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                           Placement="Bottom"
+                           PopupAnimation="Slide">
+                                <Border Background="White"
+                                BorderBrush="#E1E6EE" BorderThickness="1"
+                                CornerRadius="5"
+                                MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="12" ShadowDepth="2"
+                                                  Opacity="0.1" Color="#0A1628"/>
+                                    </Border.Effect>
+                                    <ScrollViewer MaxHeight="200">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsDropDownOpen" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#C9A84C"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Resources>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="Padding"    Value="10,8"/>
+                    <Setter Property="FontSize"   Value="13"/>
+                    <Setter Property="Foreground" Value="#0D1B2E"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ComboBoxItem">
+                                <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="#FDFAF4"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="#FBF5E6"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Style.Resources>
+        </Style>
+
+        <!-- Badge stato -->
+        <Style x:Key="StatoBadgeStyle" TargetType="Border">
+            <Setter Property="CornerRadius"        Value="10"/>
+            <Setter Property="Padding"             Value="8,3"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment"   Value="Center"/>
+        </Style>
+
     </Window.Resources>
 
     <Grid>
-        <!-- VISTA PRINCIPALE: tabella + bottone aggiungi -->
-        <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0"
+                Background="#0A1628" Padding="28,0"
+                Height="64"
+                BorderBrush="#C9A84C" BorderThickness="0,0,0,2">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="Clienti" FontSize="17" FontWeight="SemiBold" Foreground="White"/>
+                    <TextBlock Text="GESTIONE ANAGRAFICHE E CONTATTI"
+                               FontSize="10" FontWeight="Bold" Foreground="#7A95B8" Margin="0,3,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1" Command="{Binding NuovoCommand}"
+                        Width="34" Height="34" Cursor="Hand"
+                        ToolTip="Nuovo cliente" VerticalAlignment="Center">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="cerchio" Width="34" Height="34" CornerRadius="17"
+                                    Background="Transparent" BorderBrush="#C9A84C" BorderThickness="1.5">
+                                <iconPacks:PackIconBootstrapIcons x:Name="icona"
+                                    Kind="Plus" Width="14" Height="14" Foreground="#C9A84C"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="cerchio" Property="Background" Value="#1AC9A84C"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- AREA TABELLA -->
+        <Grid Grid.Row="1" Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Margin="0,0,0,15">
+            <!-- Toolbar ricerca -->
+            <Grid Grid.Row="0" Margin="28,16,28,12">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Anagrafica Clienti" FontSize="24" FontWeight="Bold"/>
-                <Button Grid.Column="1" Content="+ Nuovo Cliente" Command="{Binding NuovoCommand}" Padding="12,6"/>
+                <Border Grid.Column="0" Background="White"
+                        BorderBrush="#E1E6EE" BorderThickness="1"
+                        CornerRadius="6" Height="34">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <iconPacks:PackIconBootstrapIcons Grid.Column="0"
+                            Kind="Search" Width="13" Height="13" Foreground="#8A95A3"
+                            Margin="10,0,6,0"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding FiltroTesto, UpdateSourceTrigger=PropertyChanged}"
+                                 BorderThickness="0" Background="Transparent"
+                                 FontSize="13" Foreground="#0D1B2E"
+                                 VerticalContentAlignment="Center" Height="32"
+                                 mah:TextBoxHelper.Watermark="Cerca cliente, P.IVA, referente…"/>
+                    </Grid>
+                </Border>
+                <TextBlock Grid.Column="2"
+                           Text="{Binding ContatoreTesto}"
+                           FontSize="11" Foreground="#8A95A3" VerticalAlignment="Center"/>
             </Grid>
 
-            <DataGrid Grid.Row="1"
-                      ItemsSource="{Binding Clienti}" 
-                      AutoGenerateColumns="False" 
-                      IsReadOnly="True"
-                      SelectionMode="Single">
+            <!-- DataGrid -->
+            <DataGrid Grid.Row="1" x:Name="gridClienti"
+                      ItemsSource="{Binding ClientiFiltrati}"
+                      AutoGenerateColumns="False" IsReadOnly="True"
+                      SelectionMode="Single"
+                      BorderThickness="1" BorderBrush="#E1E6EE"
+                      RowHeight="52" HeadersVisibility="Column"
+                      GridLinesVisibility="None"
+                      Background="White" RowBackground="White"
+                      AlternatingRowBackground="#F7F8FA"
+                      Margin="28,0,28,24"
+                      MouseDoubleClick="gridClienti_MouseDoubleClick">
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background"      Value="#F1F5F9"/>
+                        <Setter Property="Foreground"      Value="#8A95A3"/>
+                        <Setter Property="FontSize"        Value="10"/>
+                        <Setter Property="FontWeight"      Value="Bold"/>
+                        <Setter Property="Padding"         Value="14,10"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="BorderBrush"     Value="#E1E6EE"/>
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Padding"         Value="0"/>
+                        <Setter Property="VerticalAlignment" Value="Stretch"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="DataGridCell">
+                                    <Border Padding="{TemplateBinding Padding}"
+                                            Background="{TemplateBinding Background}">
+                                        <ContentPresenter VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="#0D1B2E"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.CellStyle>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Cursor"     Value="Hand"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FDFAF4"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#FBF5E6"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Ragione Sociale" Binding="{Binding RagioneSociale}" Width="*"/>
-                    <DataGridTextColumn Header="P.IVA / C.F." Binding="{Binding PartitaIva}" Width="*"/>
-                    <DataGridTextColumn Header="Referente" Binding="{Binding Referente}" Width="*"/>
-                    <DataGridTextColumn Header="Telefono Principale" Binding="{Binding TelefonoPrincipale}" Width="*"/>
-                    <DataGridTextColumn Header="Email Principale" Binding="{Binding EmailPrincipale}" Width="*"/>
-
-                    <DataGridTemplateColumn Header="Stato" Width="60">
+                    <DataGridTemplateColumn Header="RAGIONE SOCIALE" Width="*" SortMemberPath="RagioneSociale">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Grid ToolTipService.ShowDuration="60000" ToolTipService.InitialShowDelay="200">
-                                    <Grid.ToolTip>
-                                        <TextBlock Text="{Binding Stato}"/>
-                                    </Grid.ToolTip>
-                                    <Ellipse Style="{StaticResource StatoPallino}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" x:Name="barraDx"
+                                            Background="Transparent" VerticalAlignment="Stretch"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding RagioneSociale}"
+                                               FontSize="13" FontWeight="Medium" Foreground="#0D1B2E"
+                                               VerticalAlignment="Center" Padding="14,0,0,0"/>
                                 </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-
-                    <DataGridTemplateColumn Header="Azioni" Width="100">
+                    <DataGridTextColumn Header="P.IVA / C.F." Binding="{Binding PartitaIva}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize"   Value="12"/>
+                                <Setter Property="Foreground" Value="#4A5568"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding"    Value="14,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="REFERENTE" Binding="{Binding Referente}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize"   Value="12"/>
+                                <Setter Property="Foreground" Value="#4A5568"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding"    Value="14,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="TELEFONO" Binding="{Binding TelefonoPrincipale}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize"   Value="12"/>
+                                <Setter Property="Foreground" Value="#4A5568"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding"    Value="14,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="EMAIL" Binding="{Binding EmailPrincipale}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize"   Value="12"/>
+                                <Setter Property="Foreground" Value="#4A5568"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding"    Value="14,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="CONTABILITÀ" Binding="{Binding TipoContabilita}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize"   Value="12"/>
+                                <Setter Property="Foreground" Value="#4A5568"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding"    Value="14,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Header="STATO" Width="*" SortMemberPath="Stato">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Content="Apri" 
+                                <Border Style="{StaticResource StatoBadgeStyle}"
+                                        Background="{Binding Stato, Converter={StaticResource StatoBadgeBack}}"
+                                        Margin="14,0">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Ellipse Width="6" Height="6" Margin="0,0,5,0"
+                                                 Fill="{Binding Stato, Converter={StaticResource StatoBadgeFore}}"/>
+                                        <TextBlock Text="{Binding Stato, Converter={StaticResource StatoBadge}}"
+                                                   FontSize="11" FontWeight="Medium"
+                                                   Foreground="{Binding Stato, Converter={StaticResource StatoBadgeFore}}"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="" Width="80">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Button Style="{StaticResource BtnIcon}"
                                             Command="{Binding DataContext.ApriDettaglioCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                            CommandParameter="{Binding}"
-                                            Margin="0,0,5,0" Padding="6,2"/>
-                                    <Button Content="Elimina" 
+                                            CommandParameter="{Binding}" ToolTip="Dettaglio">
+                                        <iconPacks:PackIconBootstrapIcons Kind="Eye"
+                                            Width="14" Height="14" Foreground="#185FA5"/>
+                                    </Button>
+                                    <Button Style="{StaticResource BtnIconRed}" Margin="3,0,0,0"
                                             Command="{Binding DataContext.EliminaClienteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                            CommandParameter="{Binding}"
-                                            Padding="6,2"/>
+                                            CommandParameter="{Binding}" ToolTip="Elimina">
+                                        <iconPacks:PackIconBootstrapIcons Kind="Trash"
+                                            Width="14" Height="14" Foreground="#EF4444"/>
+                                    </Button>
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -105,228 +608,454 @@
             </DataGrid>
         </Grid>
 
-        <!-- OVERLAY: visibile solo quando OverlayAperto = true -->
-        <!-- OVERLAY: visibile solo quando OverlayAperto = true -->
-        <Grid Background="#80000000" 
-      Visibility="{Binding OverlayAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border Background="White" 
-            BorderBrush="Gray" BorderThickness="1"
-            CornerRadius="6"
-            Width="420" MaxHeight="800"
-            HorizontalAlignment="Center" VerticalAlignment="Center"
-            Padding="20">
-                <StackPanel>
+        <!-- OVERLAY SCURO -->
+        <Border Grid.Row="1"
+        Grid.Column="0"
+        x:Name="OverlayScuro"
+        Visibility="Collapsed"
+        Cursor="Arrow">
+            <Border.Background>
+                <SolidColorBrush Color="#0A1628" Opacity="0.35"/>
+            </Border.Background>
+            <Border.InputBindings>
+                <MouseBinding MouseAction="LeftClick" Command="{Binding ChiudiOverlayCommand}"/>
+            </Border.InputBindings>
+        </Border>
 
-                    <!-- Intestazione overlay con titolo e bottoni azione -->
-                    <Grid Margin="0,0,0,15">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding FormRagioneSociale}" FontSize="18" FontWeight="Bold"/>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Content="Modifica" Command="{Binding AttivaModificaCommand}" 
-                            Margin="0,0,5,0" Padding="8,4"
-                            Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
-                            <Button Content="X" Command="{Binding ChiudiOverlayCommand}" Padding="8,4"/>
-                        </StackPanel>
-                    </Grid>
+        <!-- PANNELLO LATERALE -->
+        <Border Grid.Row="1"
+        x:Name="PannelloLaterale"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Stretch"
+        Visibility="Collapsed"
+        Width="400"
+        Background="White"
+        BorderBrush="#E1E6EE"
+        BorderThickness="1,0,0,0"
+        RenderTransformOrigin="1,0.5">
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="PannelloTranslate" X="400"/>
+            </Border.RenderTransform>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="0"
+                                  Direction="180" Opacity="0.12" Color="#0A1628"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                    <!-- VISTA SOLA LETTURA -->
-                    <StackPanel Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
-                        <TextBlock Text="Partita IVA / Codice Fiscale" FontSize="11" Foreground="Gray"/>
-                        <TextBlock Text="{Binding FormPartitaIva}" Margin="0,0,0,10"/>
-
-                        <TextBlock Text="Referente" FontSize="11" Foreground="Gray"/>
-                        <TextBlock Text="{Binding FormReferente}" Margin="0,0,0,10"/>
-
-                        <TextBlock Text="Telefoni" FontWeight="Bold" Margin="0,5,0,5"/>
-                        <ItemsControl ItemsSource="{Binding TelefoniCliente}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
-                                        <TextBlock Text="★" Foreground="Gold" Margin="0,0,5,0"
-                           Visibility="{Binding Principale, Converter={StaticResource BoolToVisibility}}"/>
-                                        <TextBlock Text="{Binding Valore}" Margin="0,0,5,0"/>
-                                        <TextBlock Text="{Binding Etichetta, StringFormat='({0})'}" Foreground="Gray"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <TextBlock Text="Email" FontWeight="Bold" Margin="10,8,0,5"/>
-                        <ItemsControl ItemsSource="{Binding EmailCliente}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
-                                        <TextBlock Text="★" Foreground="Gold" Margin="0,0,5,0"
-                           Visibility="{Binding Principale, Converter={StaticResource BoolToVisibility}}"/>
-                                        <TextBlock Text="{Binding Valore}" Margin="0,0,5,0"/>
-                                        <TextBlock Text="{Binding Etichetta, StringFormat='({0})'}" Foreground="Gray"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-
-                    <!-- VISTA MODIFICA -->
-                    <StackPanel Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="Ragione Sociale *" FontSize="11" Foreground="Gray"/>
-                        <TextBox Text="{Binding FormRagioneSociale, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-
-                        <TextBlock Text="Partita IVA / Codice Fiscale" FontSize="11" Foreground="Gray"/>
-                        <TextBox Text="{Binding FormPartitaIva, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-
-                        <TextBlock Text="Referente" FontSize="11" Foreground="Gray"/>
-                        <TextBox Text="{Binding FormReferente, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
-
-                        <TextBlock Text="Stato" FontSize="11" Foreground="Gray"/>
-                        <ComboBox ItemsSource="{Binding Source={StaticResource StatiCliente}}"
-                          SelectedItem="{Binding FormStato}" Margin="0,0,0,12"/>
-
-                        <!-- TELEFONI -->
-                        <TextBlock Text="Telefoni" FontWeight="Bold" Margin="0,5,0,8"/>
-                        <ItemsControl ItemsSource="{Binding TelefoniCliente}" Margin="0,0,0,8">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" 
-                    Padding="8,5" Margin="0,0,0,4" Background="#F5F5F5">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <Button Grid.Column="0" Content="★" 
-                            Foreground="{Binding Principale, Converter={StaticResource PrincipaleColore}}"
-                            Command="{Binding DataContext.ImpostaTelefonoPrincipaleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                            CommandParameter="{Binding}"
-                            Background="Transparent" BorderThickness="0" Margin="0,0,8,0"
-                            ToolTip="Imposta come principale"/>
-
-                                            <StackPanel Grid.Column="1" Cursor="Hand"
-                                Tag="{Binding}"
-                                MouseLeftButtonUp="ContattoTelefono_Click">
-                                                <TextBlock Text="{Binding Valore}"/>
-                                                <TextBlock Text="{Binding Etichetta}" FontSize="11" Foreground="Gray"/>
-                                            </StackPanel>
-
-                                            <Button Grid.Column="2" Content="🗑" 
-                            Command="{Binding DataContext.RimuoviTelefonoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                            CommandParameter="{Binding}"
-                            Background="Transparent" BorderThickness="0"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <Grid Margin="0,0,0,12">
+                <!-- Header pannello -->
+                <Border Grid.Row="0" Background="#0A1628"
+                        BorderBrush="#C9A84C" BorderThickness="0,0,0,2"
+                        Padding="22,18">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition/>
-                                <RowDefinition/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Text="Nuovo numero" FontSize="11" Foreground="Gray" Margin="0,0,0,2"/>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{Binding FormRagioneSociale}"
+                                           FontSize="15" FontWeight="SemiBold" Foreground="White"/>
+                                <TextBlock Text="{Binding PannelloSottoTitolo}"
+                                           FontSize="10" FontWeight="Bold"
+                                           Foreground="#7A95B8" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Style="{StaticResource BtnIconDark}"
+                                    Command="{Binding ChiudiOverlayCommand}"
+                                    ToolTip="Chiudi" VerticalAlignment="Top">
+                                <iconPacks:PackIconBootstrapIcons Kind="XLg"
+                                    Width="14" Height="14" Foreground="#7A95B8"/>
+                            </Button>
+                        </Grid>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,14,0,0">
+                            <Button Style="{StaticResource BtnOutlineGold}"
+                                    Command="{Binding AttivaModificaCommand}"
+                                    Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconBootstrapIcons Kind="Pencil"
+                                        Width="11" Height="11" Foreground="#C9A84C"
+                                        Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Modifica" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Corpo scrollabile -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="22,20,22,4">
+                    <StackPanel>
+
+                        <!-- VISTA SOLA LETTURA -->
+                        <StackPanel Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,16">
+                                    <TextBlock Text="P.IVA / C.F." Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Text="{Binding FormPartitaIva}" Style="{StaticResource FieldValue}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,16">
+                                    <TextBlock Text="CONTABILITÀ" Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Text="{Binding FormTipoContabilita}" Style="{StaticResource FieldValue}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,16">
+                                    <TextBlock Text="REFERENTE" Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Text="{Binding FormReferente}" Style="{StaticResource FieldValue}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,16">
+                                    <TextBlock Text="INTERMEDIARIO" Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Text="{Binding FormIntermediario}" Style="{StaticResource FieldValue}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,16">
+                                    <TextBlock Text="STATO" Style="{StaticResource FieldLabel}"/>
+                                    <Border Style="{StaticResource StatoBadgeStyle}"
+                                            Background="{Binding FormStato, Converter={StaticResource StatoBadgeBack}}">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Ellipse Width="6" Height="6" Margin="0,0,5,0"
+                                                     Fill="{Binding FormStato, Converter={StaticResource StatoBadgeFore}}"/>
+                                            <TextBlock Text="{Binding FormStato, Converter={StaticResource StatoBadge}}"
+                                                       FontSize="11" FontWeight="Medium"
+                                                       Foreground="{Binding FormStato, Converter={StaticResource StatoBadgeFore}}"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border BorderBrush="#E1E6EE" BorderThickness="0,1,0,0" Margin="0,4,0,16"/>
+
+                            <!-- Telefoni read-only -->
+                            <TextBlock Text="TELEFONI" Style="{StaticResource SectionTitle}"/>
+                            <ItemsControl ItemsSource="{Binding TelefoniCliente}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#FAFBFC" BorderBrush="#E1E6EE" BorderThickness="1"
+                                                CornerRadius="6" Padding="10,9" Margin="0,0,0,6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="32"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Width="28" Height="28"
+                                                        CornerRadius="4" Background="#EBF3FD" HorizontalAlignment="Left">
+                                                    <iconPacks:PackIconBootstrapIcons Kind="Telephone"
+                                                        Width="13" Height="13" Foreground="#185FA5"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <StackPanel Grid.Column="1" Margin="8,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Valore}"
+                                                               FontSize="13" FontWeight="Medium" Foreground="#0D1B2E"/>
+                                                    <TextBlock Text="{Binding Etichetta}"
+                                                               FontSize="10" Foreground="#8A95A3"
+                                                               Visibility="{Binding Etichetta, Converter={StaticResource BoolToVisibility}}"/>
+                                                </StackPanel>
+                                                <iconPacks:PackIconBootstrapIcons Grid.Column="2"
+                                                    Kind="StarFill" Width="11" Height="11" Foreground="#C9A84C"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="{Binding Principale, Converter={StaticResource BoolToVisibility}}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="Nessun telefono" FontSize="12" Foreground="#8A95A3" Margin="0,0,0,4">
+                                <TextBlock.Visibility>
+                                    <Binding Path="TelefoniCliente.Count"
+                                             Converter="{StaticResource BoolToVisibility}"
+                                             ConverterParameter="Inverti"/>
+                                </TextBlock.Visibility>
+                            </TextBlock>
+
+                            <Border BorderBrush="#E1E6EE" BorderThickness="0,1,0,0" Margin="0,12,0,16"/>
+
+                            <!-- Email read-only -->
+                            <TextBlock Text="EMAIL" Style="{StaticResource SectionTitle}"/>
+                            <ItemsControl ItemsSource="{Binding EmailCliente}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#FAFBFC" BorderBrush="#E1E6EE" BorderThickness="1"
+                                                CornerRadius="6" Padding="10,9" Margin="0,0,0,6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="32"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Width="28" Height="28"
+                                                        CornerRadius="4" Background="#F0FDF4" HorizontalAlignment="Left">
+                                                    <iconPacks:PackIconBootstrapIcons Kind="Envelope"
+                                                        Width="13" Height="13" Foreground="#166534"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <StackPanel Grid.Column="1" Margin="8,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Valore}"
+                                                               FontSize="13" FontWeight="Medium" Foreground="#0D1B2E"/>
+                                                    <TextBlock Text="{Binding Etichetta}"
+                                                               FontSize="10" Foreground="#8A95A3"
+                                                               Visibility="{Binding Etichetta, Converter={StaticResource BoolToVisibility}}"/>
+                                                </StackPanel>
+                                                <iconPacks:PackIconBootstrapIcons Grid.Column="2"
+                                                    Kind="StarFill" Width="11" Height="11" Foreground="#C9A84C"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="{Binding Principale, Converter={StaticResource BoolToVisibility}}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="Nessuna email" FontSize="12" Foreground="#8A95A3" Margin="0,0,0,4">
+                                <TextBlock.Visibility>
+                                    <Binding Path="EmailCliente.Count"
+                                             Converter="{StaticResource BoolToVisibility}"
+                                             ConverterParameter="Inverti"/>
+                                </TextBlock.Visibility>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <!-- VISTA MODIFICA -->
+                        <StackPanel Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}}">
+
+                            <TextBlock Text="RAGIONE SOCIALE *" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding FormRagioneSociale, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+
                             <Grid Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                </Grid.RowDefinitions>
-                                <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-             Text="{Binding NuovoTelefonoValore, UpdateSourceTrigger=PropertyChanged}" 
-             Margin="0,0,0,4"/>
-                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,5,0">
-                                    <TextBlock Text="Etichetta (es. Ufficio, Cellulare)" FontSize="10" Foreground="Gray" Margin="0,0,0,2"/>
-                                    <TextBox Text="{Binding NuovoTelefonoEtichetta, UpdateSourceTrigger=PropertyChanged}"/>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="P.IVA / C.F." Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding FormPartitaIva, UpdateSourceTrigger=PropertyChanged}"/>
                                 </StackPanel>
-                                <Button Grid.Row="1" Grid.Column="1" Content="Salva Telefono" 
-            Command="{Binding SalvaTelefonoCommand}" Padding="8,5" VerticalAlignment="Bottom"/>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="TIPO CONTABILITÀ" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox SelectedValue="{Binding FormTipoContabilita}"
+                                              SelectedValuePath="Content"
+                                              Margin="0,0,0,0">
+                                        <ComboBoxItem Content="Ordinaria"/>
+                                        <ComboBoxItem Content="Semplificata"/>
+                                        <ComboBoxItem Content="Professionista"/>
+                                    </ComboBox>
+                                </StackPanel>
                             </Grid>
-                        </Grid>
 
-                        <!-- EMAIL -->
-                        <TextBlock Text="Email" FontWeight="Bold" Margin="0,5,0,8"/>
-                        <ItemsControl ItemsSource="{Binding EmailCliente}" Margin="0,0,0,8">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" 
-                    Padding="8,5" Margin="0,0,0,4" Background="#F5F5F5">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <Button Grid.Column="0" Content="★" 
-                            Foreground="{Binding Principale, Converter={StaticResource PrincipaleColore}}"
-                            Command="{Binding DataContext.ImpostaEmailPrincipaleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                            CommandParameter="{Binding}"
-                            Background="Transparent" BorderThickness="0" Margin="0,0,8,0"
-                            ToolTip="Imposta come principale"/>
-
-                                            <StackPanel Grid.Column="1" Cursor="Hand"
-                                Tag="{Binding}"
-                                MouseLeftButtonUp="ContattoEmail_Click">
-                                                <TextBlock Text="{Binding Valore}"/>
-                                                <TextBlock Text="{Binding Etichetta}" FontSize="11" Foreground="Gray"/>
-                                            </StackPanel>
-
-                                            <Button Grid.Column="2" Content="🗑" 
-                            Command="{Binding DataContext.RimuoviEmailCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                            CommandParameter="{Binding}"
-                            Background="Transparent" BorderThickness="0"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <Grid Margin="0,0,0,15">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition/>
-                                <RowDefinition/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Text="Nuovo indirizzo" FontSize="11" Foreground="Gray" Margin="0,0,0,2"/>
-                            <Grid Margin="0,0,0,15">
+                            <Grid Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                </Grid.RowDefinitions>
-                                <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-             Text="{Binding NuovaEmailValore, UpdateSourceTrigger=PropertyChanged}" 
-             Margin="0,0,0,4"/>
-                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,5,0">
-                                    <TextBlock Text="Etichetta (es. Personale, Lavoro)" FontSize="10" Foreground="Gray" Margin="0,0,0,2"/>
-                                    <TextBox Text="{Binding NuovaEmailEtichetta, UpdateSourceTrigger=PropertyChanged}"/>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="REFERENTE" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding FormReferente, UpdateSourceTrigger=PropertyChanged}"/>
                                 </StackPanel>
-                                <Button Grid.Row="1" Grid.Column="1" Content="Salva Email" 
-            Command="{Binding SalvaEmailCommand}" Padding="8,5" VerticalAlignment="Bottom"/>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="INTERMEDIARIO" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding FormIntermediario, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
                             </Grid>
-                        </Grid>
 
-                        <Button Content="Salva" Command="{Binding SalvaCommand}" Padding="0,8"/>
+                            <TextBlock Text="STATO" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding Source={StaticResource StatiCliente}}"
+                                      SelectedItem="{Binding FormStato}" Margin="0,0,0,16"/>
+
+                            <Border BorderBrush="#E1E6EE" BorderThickness="0,1,0,0" Margin="0,0,0,16"/>
+
+                            <!-- Telefoni modifica -->
+                            <TextBlock Text="TELEFONI" Style="{StaticResource SectionTitle}"/>
+                            <ItemsControl ItemsSource="{Binding TelefoniCliente}" Margin="0,0,0,6">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#FAFBFC" BorderBrush="#E1E6EE" BorderThickness="1"
+                                                CornerRadius="6" Padding="10,8" Margin="0,0,0,5">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="0" Style="{StaticResource BtnIcon}"
+                                                        Command="{Binding DataContext.ImpostaTelefonoPrincipaleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}" Padding="4" ToolTip="Principale"
+                                                        VerticalAlignment="Center">
+                                                    <iconPacks:PackIconBootstrapIcons Kind="StarFill" Width="12" Height="12"
+                                                        Foreground="{Binding Principale, Converter={StaticResource PrincipaleColore}}"/>
+                                                </Button>
+                                                <StackPanel Grid.Column="1" Margin="8,0" VerticalAlignment="Center"
+                                                            Cursor="Hand" Tag="{Binding}"
+                                                            MouseLeftButtonUp="ContattoTelefono_Click">
+                                                    <TextBlock Text="{Binding Etichetta}" FontSize="10" Foreground="#8A95A3"
+                                                               Visibility="{Binding Etichetta, Converter={StaticResource BoolToVisibility}}"/>
+                                                    <TextBlock Text="{Binding Valore}" FontSize="13" Foreground="#0D1B2E"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="2" Style="{StaticResource BtnIcon}"
+                                                        Padding="4" ToolTip="Modifica"
+                                                        Tag="{Binding}" Click="ModificaTelefono_Click"
+                                                        VerticalAlignment="Center">
+                                                    <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="12" Height="12" Foreground="#8A95A3"/>
+                                                </Button>
+                                                <Button Grid.Column="3" Style="{StaticResource BtnIconRed}"
+                                                        Command="{Binding DataContext.RimuoviTelefonoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}" Padding="4" ToolTip="Rimuovi"
+                                                        VerticalAlignment="Center">
+                                                    <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="12" Height="12" Foreground="#EF4444"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Border BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="6"
+                                    Background="#EFF6FF" Padding="10,10" Margin="0,0,0,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="ETICHETTA" Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="NUMERO"    Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Grid.Row="1" Grid.Column="0"
+                                             Text="{Binding NuovoTelefonoValore, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Grid.Row="1" Grid.Column="2"
+                                             Text="{Binding NuovoTelefonoEtichetta, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Button Grid.Row="1" Grid.Column="4"
+                                            Style="{StaticResource BtnPrimary}"
+                                            Command="{Binding SalvaTelefonoCommand}"
+                                            Padding="10,0" Height="34">
+                                        <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="13" Height="13" Foreground="White"/>
+                                    </Button>
+                                </Grid>
+                            </Border>
+
+                            <Border BorderBrush="#E1E6EE" BorderThickness="0,1,0,0" Margin="0,0,0,16"/>
+
+                            <!-- Email modifica -->
+                            <TextBlock Text="EMAIL" Style="{StaticResource SectionTitle}"/>
+                            <ItemsControl ItemsSource="{Binding EmailCliente}" Margin="0,0,0,6">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#FAFBFC" BorderBrush="#E1E6EE" BorderThickness="1"
+                                                CornerRadius="6" Padding="10,8" Margin="0,0,0,5">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="0" Style="{StaticResource BtnIcon}"
+                                                        Command="{Binding DataContext.ImpostaEmailPrincipaleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}" Padding="4" ToolTip="Principale"
+                                                        VerticalAlignment="Center">
+                                                    <iconPacks:PackIconBootstrapIcons Kind="StarFill" Width="12" Height="12"
+                                                        Foreground="{Binding Principale, Converter={StaticResource PrincipaleColore}}"/>
+                                                </Button>
+                                                <StackPanel Grid.Column="1" Margin="8,0" VerticalAlignment="Center"
+                                                            Cursor="Hand" Tag="{Binding}"
+                                                            MouseLeftButtonUp="ContattoEmail_Click">
+                                                    <TextBlock Text="{Binding Etichetta}" FontSize="10" Foreground="#8A95A3"
+                                                               Visibility="{Binding Etichetta, Converter={StaticResource BoolToVisibility}}"/>
+                                                    <TextBlock Text="{Binding Valore}" FontSize="13" Foreground="#0D1B2E"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="2" Style="{StaticResource BtnIcon}"
+                                                        Padding="4" ToolTip="Modifica"
+                                                        Tag="{Binding}" Click="ModificaEmail_Click"
+                                                        VerticalAlignment="Center">
+                                                    <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="12" Height="12" Foreground="#8A95A3"/>
+                                                </Button>
+                                                <Button Grid.Column="3" Style="{StaticResource BtnIconRed}"
+                                                        Command="{Binding DataContext.RimuoviEmailCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}" Padding="4" ToolTip="Rimuovi"
+                                                        VerticalAlignment="Center">
+                                                    <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="12" Height="12" Foreground="#EF4444"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Border BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="6"
+                                    Background="#EFF6FF" Padding="10,10" Margin="0,0,0,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="ETICHETTA"  Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="INDIRIZZO"  Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Grid.Row="1" Grid.Column="0"
+                                             Text="{Binding NuovaEmailEtichetta, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Grid.Row="1" Grid.Column="2"
+                                             Text="{Binding NuovaEmailValore, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Button Grid.Row="1" Grid.Column="4"
+                                            Style="{StaticResource BtnPrimary}"
+                                            Command="{Binding SalvaEmailCommand}"
+                                            Padding="10,0" Height="34">
+                                        <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="13" Height="13" Foreground="White"/>
+                                    </Button>
+                                </Grid>
+                            </Border>
+
+                        </StackPanel>
                     </StackPanel>
+                </ScrollViewer>
 
-                </StackPanel>
-            </Border>
-        </Grid>
+                <!-- Footer Salva / Annulla -->
+                <Border Grid.Row="2" BorderBrush="#E1E6EE" BorderThickness="0,1,0,0"
+                        Padding="22,14"
+                        Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Salva cliente"
+                                Command="{Binding SalvaCommand}"
+                                Style="{StaticResource BtnPrimary}"
+                                HorizontalAlignment="Stretch"/>
+                        <Button Grid.Column="2" Content="Annulla"
+                                Command="{Binding ChiudiOverlayCommand}"
+                                Style="{StaticResource BtnOutline}"/>
+                    </Grid>
+                </Border>
+
+            </Grid>
+        </Border>
+
     </Grid>
-</Window>
+</mah:MetroWindow>

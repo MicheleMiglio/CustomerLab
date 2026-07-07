@@ -17,6 +17,8 @@ namespace CLab.Models
         public string? CodiceFiscale { get; set; }
         public string? Referente { get; set; }
         public string? Note { get; set; }
+        public string? Intermediario { get; set; }
+        public string? TipoContabilita { get; set; }
         public StatoCliente Stato { get; set; } = StatoCliente.Attivo;
 
         public List<Contatti> Contatti { get; set; } = new List<Contatti>();

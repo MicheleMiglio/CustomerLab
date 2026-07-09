@@ -583,13 +583,13 @@
                                 <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <Button Style="{StaticResource BtnIcon}"
-                                        Command="{Binding DataContext.ApriDettaglioCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        Command="{Binding DataContext.ApriDettaglioCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}" ToolTip="Dettaglio">
                                         <iconPacks:PackIconBootstrapIcons Kind="Eye"
                                         Width="14" Height="14" Foreground="#185FA5"/>
                                     </Button>
                                     <Button Style="{StaticResource BtnIconRed}" Margin="3,0,0,0"
-                                        Command="{Binding DataContext.EliminaClienteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        Command="{Binding DataContext.EliminaClienteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}" ToolTip="Elimina">
                                         <iconPacks:PackIconBootstrapIcons Kind="Trash"
                                         Width="14" Height="14" Foreground="#EF4444"/>
@@ -889,7 +889,7 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Button Grid.Column="0" Style="{StaticResource BtnIcon}"
-                                                    Command="{Binding DataContext.ImpostaTelefonoPrincipaleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Command="{Binding DataContext.ImpostaTelefonoPrincipaleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}" Padding="4" ToolTip="Principale"
                                                     VerticalAlignment="Center">
                                                     <iconPacks:PackIconBootstrapIcons Kind="StarFill" Width="12" Height="12"
@@ -909,7 +909,7 @@
                                                     <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="12" Height="12" Foreground="#8A95A3"/>
                                                 </Button>
                                                 <Button Grid.Column="3" Style="{StaticResource BtnIconRed}"
-                                                    Command="{Binding DataContext.RimuoviTelefonoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Command="{Binding DataContext.RimuoviTelefonoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}" Padding="4" ToolTip="Rimuovi"
                                                     VerticalAlignment="Center">
                                                     <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="12" Height="12" Foreground="#EF4444"/>
@@ -965,7 +965,7 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Button Grid.Column="0" Style="{StaticResource BtnIcon}"
-                                                    Command="{Binding DataContext.ImpostaEmailPrincipaleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Command="{Binding DataContext.ImpostaEmailPrincipaleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}" Padding="4" ToolTip="Principale"
                                                     VerticalAlignment="Center">
                                                     <iconPacks:PackIconBootstrapIcons Kind="StarFill" Width="12" Height="12"
@@ -985,7 +985,7 @@
                                                     <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="12" Height="12" Foreground="#8A95A3"/>
                                                 </Button>
                                                 <Button Grid.Column="3" Style="{StaticResource BtnIconRed}"
-                                                    Command="{Binding DataContext.RimuoviEmailCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Command="{Binding DataContext.RimuoviEmailCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}" Padding="4" ToolTip="Rimuovi"
                                                     VerticalAlignment="Center">
                                                     <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="12" Height="12" Foreground="#EF4444"/>

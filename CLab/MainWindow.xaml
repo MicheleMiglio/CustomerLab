@@ -8,7 +8,27 @@
 
     <Grid>
 
-        <views:ClientiView />
+        <Grid.ColumnDefinitions>
+
+            <ColumnDefinition Width="{Binding SidebarWidth}"/>
+
+            <ColumnDefinition Width="*"/>
+
+        </Grid.ColumnDefinitions>
+
+
+        <!-- Sidebar -->
+        <views:SidebarView Grid.Column="0"/>
+
+
+        <!-- Area contenuto -->
+        <Border Grid.Column="1"
+        Background="{StaticResource BrushSfondoChiaro}">
+
+            <ContentControl
+        Content="{Binding VistaCorrente}"/>
+
+        </Border>
 
     </Grid>
 

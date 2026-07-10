@@ -1,0 +1,202 @@
+﻿<UserControl x:Class="CLab.Views.SidebarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:conv="clr-namespace:CLab.Converters">
+
+    <Border Background="{StaticResource BrushSidebarBackground}"
+        BorderBrush="{StaticResource BrushBordo}"
+        BorderThickness="0,0,1,0">
+
+        <Grid ClipToBounds="True">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="95"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="60"/>
+            </Grid.RowDefinitions>
+            <!-- Logo / Nome applicazione -->
+            <Grid Grid.Row="0"
+      Background="{StaticResource BrushPrimaryDark}">
+
+
+                <Grid.RowDefinitions>
+
+                    <RowDefinition Height="*"/>
+
+                    <RowDefinition Height="35"/>
+
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0"
+      VerticalAlignment="Center">
+
+
+                    <!-- Brand esteso -->
+                    <StackPanel
+        Margin="18,10,0,0"
+        Visibility="{Binding SidebarEspansa,
+                     Converter={StaticResource BoolToVisibility}}">
+
+
+                        <TextBlock Text="CLab"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Foreground="White"/>
+
+
+                        <TextBlock Text="Customer Lab"
+                   FontSize="12"
+                   Foreground="#B8C7D8"
+                   Margin="0,2,0,0"/>
+
+
+                    </StackPanel>
+
+
+
+                    <!-- Brand compatto -->
+                    <TextBlock Text="CLab"
+               FontSize="20"
+               FontWeight="SemiBold"
+               Foreground="White"
+               HorizontalAlignment="Center"
+               Visibility="{Binding SidebarEspansa,
+                            Converter={StaticResource BoolToVisibility},
+                            ConverterParameter=Inverti}"/>
+
+
+                </Grid>
+
+                <!-- HAMBURGER -->
+                <Button Grid.Row="1"
+            Style="{StaticResource SidebarToggleButton}"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Command="{Binding ToggleSidebarCommand}">
+
+
+                    <iconPacks:PackIconBootstrapIcons
+            Kind="List"
+            Width="18"
+            Height="18"/>
+
+
+                </Button>
+
+
+            </Grid>
+
+            <!-- Menu principale -->
+            <Border Grid.Row="1"
+        Margin="0,10,0,0">
+                <ItemsControl Grid.Row="1"
+                      ItemsSource="{Binding MenuPrincipale}">
+
+                    <ItemsControl.ItemTemplate>
+
+                        <DataTemplate>
+
+                            <Button Style="{StaticResource SidebarMenuButton}"
+        Command="{Binding Comando}"
+        CommandParameter="{Binding}">
+
+                                <Grid VerticalAlignment="Center">
+
+
+                                    <Grid.ColumnDefinitions>
+
+                                        <ColumnDefinition Width="Auto"/>
+
+                                        <ColumnDefinition Width="*"/>
+
+                                    </Grid.ColumnDefinitions>
+
+
+
+                                    <!-- ICONA -->
+                                    <iconPacks:PackIconBootstrapIcons
+        Grid.Column="0"
+        Kind="{Binding Icona, Converter={StaticResource IconaBootstrapConverter}}"
+        Width="18"
+        Height="18"
+        Margin="2,0,10,0"/>
+
+
+
+                                    <!-- TESTO -->
+                                    <TextBlock Grid.Column="1"
+               Text="{Binding Titolo}"
+               Style="{StaticResource MenuText}"
+               Visibility="{Binding DataContext.SidebarEspansa,
+                            RelativeSource={RelativeSource AncestorType=UserControl},
+                            Converter={StaticResource BoolToVisibility}}"/>
+
+
+                                </Grid>
+
+                            </Button>
+
+                        </DataTemplate>
+
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+            </Border>
+            <!-- Footer -->
+            <ItemsControl Grid.Row="2"
+              ItemsSource="{Binding MenuFooter}">
+
+                <ItemsControl.ItemTemplate>
+
+                    <DataTemplate>
+
+                        <Button Style="{StaticResource SidebarMenuButton}"
+        Command="{Binding Comando}"
+        CommandParameter="{Binding}">
+
+                            <Grid VerticalAlignment="Center">
+
+
+                                <Grid.ColumnDefinitions>
+
+                                    <ColumnDefinition Width="Auto"/>
+
+                                    <ColumnDefinition Width="*"/>
+
+                                </Grid.ColumnDefinitions>
+
+
+
+                                <!-- ICONA -->
+                                <iconPacks:PackIconBootstrapIcons
+        Grid.Column="0"
+        Kind="{Binding Icona, Converter={StaticResource IconaBootstrapConverter}}"
+        Width="18"
+        Height="18"
+        Margin="2,0,10,0"/>
+
+
+
+                                <!-- TESTO -->
+                                <TextBlock Grid.Column="1"
+               Text="{Binding Titolo}"
+               Style="{StaticResource MenuText}"
+               Visibility="{Binding DataContext.SidebarEspansa,
+                            RelativeSource={RelativeSource AncestorType=UserControl},
+                            Converter={StaticResource BoolToVisibility}}"/>
+
+
+                            </Grid>
+
+                        </Button>
+
+                    </DataTemplate>
+
+                </ItemsControl.ItemTemplate>
+
+            </ItemsControl>
+        </Grid>
+    </Border>
+
+</UserControl>

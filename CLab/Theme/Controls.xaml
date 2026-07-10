@@ -1,0 +1,89 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+
+    <!-- ========================= -->
+    <!-- Base Button -->
+    <!-- ========================= -->
+
+    <Style x:Key="BaseButton"
+           TargetType="Button">
+
+        <Setter Property="Height"
+                Value="{StaticResource ButtonHeight}"/>
+
+        <Setter Property="Padding"
+        Value="16,0"/>
+
+        <Setter Property="Background"
+                Value="Transparent"/>
+
+        <Setter Property="BorderThickness"
+                Value="0"/>
+
+        <Setter Property="Cursor"
+                Value="Hand"/>
+
+        <Setter Property="FontSize"
+                Value="{StaticResource FontSizeBody}"/>
+
+    </Style>
+
+
+    <!-- ========================= -->
+    <!-- Primary Button -->
+    <!-- ========================= -->
+
+    <Style x:Key="PrimaryButton"
+           TargetType="Button"
+           BasedOn="{StaticResource BaseButton}">
+
+        <Setter Property="Background"
+                Value="{StaticResource BrushPrimary}"/>
+
+        <Setter Property="Foreground"
+                Value="White"/>
+
+    </Style>
+
+
+    <!-- ========================= -->
+    <!-- Secondary Button -->
+    <!-- ========================= -->
+
+    <Style x:Key="SecondaryButton"
+           TargetType="Button"
+           BasedOn="{StaticResource BaseButton}">
+
+        <Setter Property="Foreground"
+                Value="{StaticResource BrushPrimary}"/>
+
+        <Setter Property="BorderThickness"
+                Value="1"/>
+
+        <Setter Property="BorderBrush"
+                Value="{StaticResource BrushBordo}"/>
+
+    </Style>
+
+
+    <!-- ========================= -->
+    <!-- Sidebar -->
+    <!-- ========================= -->
+
+    <Style x:Key="SidebarToggleButton"
+       TargetType="Button"
+       BasedOn="{StaticResource BaseButton}">
+
+        <Setter Property="Width" Value="36"/>
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+
+    </Style>
+
+
+</ResourceDictionary>

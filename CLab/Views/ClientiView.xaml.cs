@@ -18,8 +18,12 @@ namespace CLab.Views
         {
             InitializeComponent();
 
-            DataContext = new ClientiViewModel();
+            Loaded += ClientiView_Loaded;
+        }
 
+
+        private void ClientiView_Loaded(object sender, RoutedEventArgs e)
+        {
             if (DataContext is ClientiViewModel vm)
             {
                 vm.PropertyChanged += Vm_PropertyChanged;

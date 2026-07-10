@@ -1,4 +1,4 @@
-﻿using System.Windows;
+﻿using CLab.ViewModels;
 
 namespace CLab
 {
@@ -7,6 +7,8 @@ namespace CLab
         public MainWindow()
         {
             InitializeComponent();
+
+            DataContext = new MainViewModel();
         }
     }
 }

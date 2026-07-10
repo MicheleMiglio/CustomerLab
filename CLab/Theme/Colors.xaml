@@ -11,6 +11,12 @@
     <Color x:Key="ColorBordo">#D8DEE5</Color>
     <Color x:Key="ColorSfondoChiaro">#F5F7FA</Color>
 
+    <!-- Sidebar -->
+    <Color x:Key="ColorSidebarBackground">#FFFFFF</Color>
+    <Color x:Key="ColorSidebarHover">#F3F6FA</Color>
+    <Color x:Key="ColorSidebarSelected">#EDF4FB</Color>
+    <Color x:Key="ColorSidebarBorder">#E3E8EF</Color>
+
     <SolidColorBrush x:Key="BrushPrimaryDark" Color="{StaticResource ColorPrimaryDark}"/>
     <SolidColorBrush x:Key="BrushPrimary" Color="{StaticResource ColorPrimary}"/>
     <SolidColorBrush x:Key="BrushPrimaryLight" Color="{StaticResource ColorPrimaryLight}"/>
@@ -25,6 +31,14 @@
     <SolidColorBrush x:Key="BrushTestoSecondario" Color="{StaticResource ColorTestoSecondario}"/>
     <SolidColorBrush x:Key="BrushBordo" Color="{StaticResource ColorBordo}"/>
     <SolidColorBrush x:Key="BrushSfondoChiaro" Color="{StaticResource ColorSfondoChiaro}"/>
+
+    <SolidColorBrush x:Key="BrushSidebarBackground" Color="{StaticResource ColorSidebarBackground}"/>
+
+    <SolidColorBrush x:Key="BrushSidebarHover" Color="{StaticResource ColorSidebarHover}"/>
+
+    <SolidColorBrush x:Key="BrushSidebarSelected" Color="{StaticResource ColorSidebarSelected}"/>
+
+    <SolidColorBrush x:Key="BrushSidebarBorder" Color="{StaticResource ColorSidebarBorder}"/>
 
     <!-- Colori di stato -->
     <Color x:Key="ColorStatoAttivo">#1D9E75</Color>

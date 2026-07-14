@@ -347,7 +347,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="{Binding FormRagioneSociale}"
+                                <TextBlock Text="{Binding Dettaglio.FormRagioneSociale}"
                                        FontSize="15" FontWeight="SemiBold" Foreground="White"/>
                                 <TextBlock Text="{Binding PannelloSottoTitolo}"
                                        FontSize="10" FontWeight="Bold"
@@ -395,30 +395,30 @@
 
                                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,16">
                                     <TextBlock Text="P.IVA / C.F." Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Text="{Binding FormPartitaIva}" Style="{StaticResource FieldValue}"/>
+                                    <TextBlock Text="{Binding Dettaglio.FormPartitaIva}" Style="{StaticResource FieldValue}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,16">
                                     <TextBlock Text="CONTABILITÀ" Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Text="{Binding FormTipoContabilita}" Style="{StaticResource FieldValue}"/>
+                                    <TextBlock Text="{Binding Dettaglio.FormTipoContabilita}" Style="{StaticResource FieldValue}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,16">
                                     <TextBlock Text="REFERENTE" Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Text="{Binding FormReferente}" Style="{StaticResource FieldValue}"/>
+                                    <TextBlock Text="{Binding Dettaglio.FormReferente}" Style="{StaticResource FieldValue}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,16">
                                     <TextBlock Text="INTERMEDIARIO" Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Text="{Binding FormIntermediario}" Style="{StaticResource FieldValue}"/>
+                                    <TextBlock Text="{Binding Dettaglio.FormIntermediario}" Style="{StaticResource FieldValue}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,16">
                                     <TextBlock Text="STATO" Style="{StaticResource FieldLabel}"/>
                                     <Border Style="{StaticResource StatoBadgeStyle}"
-                                        Background="{Binding FormStato, Converter={StaticResource StatoBadgeBack}}">
+                                        Background="{Binding Dettaglio.FormStato, Converter={StaticResource StatoBadgeBack}}">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <Ellipse Width="6" Height="6" Margin="0,0,5,0"
-                                                 Fill="{Binding FormStato, Converter={StaticResource StatoBadgeFore}}"/>
-                                            <TextBlock Text="{Binding FormStato, Converter={StaticResource StatoBadge}}"
+                                                 Fill="{Binding Dettaglio.FormStato, Converter={StaticResource StatoBadgeFore}}"/>
+                                            <TextBlock Text="{Binding Dettaglio.FormStato, Converter={StaticResource StatoBadge}}"
                                                    FontSize="11" FontWeight="Medium"
-                                                   Foreground="{Binding FormStato, Converter={StaticResource StatoBadgeFore}}"/>
+                                                   Foreground="{Binding Dettaglio.FormStato, Converter={StaticResource StatoBadgeFore}}"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
@@ -428,7 +428,7 @@
 
                             <!-- Telefoni read-only -->
                             <TextBlock Text="TELEFONI" Style="{StaticResource SectionTitle}"/>
-                            <ItemsControl ItemsSource="{Binding TelefoniCliente}">
+                            <ItemsControl ItemsSource="{Binding Dettaglio.TelefoniCliente}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="#FAFBFC" BorderBrush="#E1E6EE" BorderThickness="1"
@@ -463,7 +463,7 @@
                             </ItemsControl>
                             <TextBlock Text="Nessun telefono" FontSize="12" Foreground="#8A95A3" Margin="0,0,0,4">
                                 <TextBlock.Visibility>
-                                    <Binding Path="TelefoniCliente.Count"
+                                    <Binding Path="Dettaglio.TelefoniCliente.Count"
                                          Converter="{StaticResource BoolToVisibility}"
                                          ConverterParameter="Inverti"/>
                                 </TextBlock.Visibility>
@@ -473,7 +473,7 @@
 
                             <!-- Email read-only -->
                             <TextBlock Text="EMAIL" Style="{StaticResource SectionTitle}"/>
-                            <ItemsControl ItemsSource="{Binding EmailCliente}">
+                            <ItemsControl ItemsSource="{Binding Dettaglio.EmailCliente}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="#FAFBFC" BorderBrush="#E1E6EE" BorderThickness="1"
@@ -508,7 +508,7 @@
                             </ItemsControl>
                             <TextBlock Text="Nessuna email" FontSize="12" Foreground="#8A95A3" Margin="0,0,0,4">
                                 <TextBlock.Visibility>
-                                    <Binding Path="EmailCliente.Count"
+                                    <Binding Path="Dettaglio.EmailCliente.Count"
                                          Converter="{StaticResource BoolToVisibility}"
                                          ConverterParameter="Inverti"/>
                                 </TextBlock.Visibility>
@@ -519,7 +519,7 @@
                         <StackPanel Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}}">
 
                             <TextBlock Text="RAGIONE SOCIALE *" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding FormRagioneSociale, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+                            <TextBox Text="{Binding Dettaglio.FormRagioneSociale, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
 
                             <Grid Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
@@ -529,11 +529,11 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="P.IVA / C.F." Style="{StaticResource FieldLabel}"/>
-                                    <TextBox Text="{Binding FormPartitaIva, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Text="{Binding Dettaglio.FormPartitaIva, UpdateSourceTrigger=PropertyChanged}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2">
                                     <TextBlock Text="TIPO CONTABILITÀ" Style="{StaticResource FieldLabel}"/>
-                                    <ComboBox SelectedValue="{Binding FormTipoContabilita}"
+                                    <ComboBox SelectedValue="{Binding Dettaglio.FormTipoContabilita}"
                                           SelectedValuePath="Content"
                                           Margin="0,0,0,0">
                                         <ComboBoxItem Content="Ordinaria"/>
@@ -551,23 +551,23 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="REFERENTE" Style="{StaticResource FieldLabel}"/>
-                                    <TextBox Text="{Binding FormReferente, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Text="{Binding Dettaglio.FormReferente, UpdateSourceTrigger=PropertyChanged}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2">
                                     <TextBlock Text="INTERMEDIARIO" Style="{StaticResource FieldLabel}"/>
-                                    <TextBox Text="{Binding FormIntermediario, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Text="{Binding Dettaglio.FormIntermediario, UpdateSourceTrigger=PropertyChanged}"/>
                                 </StackPanel>
                             </Grid>
 
                             <TextBlock Text="STATO" Style="{StaticResource FieldLabel}"/>
                             <ComboBox ItemsSource="{Binding Source={StaticResource StatiCliente}}"
-                                  SelectedItem="{Binding FormStato}" Margin="0,0,0,16"/>
+                                  SelectedItem="{Binding Dettaglio.FormStato}" Margin="0,0,0,16"/>
 
                             <Border BorderBrush="#E1E6EE" BorderThickness="0,1,0,0" Margin="0,0,0,16"/>
 
                             <!-- Telefoni modifica -->
                             <TextBlock Text="TELEFONI" Style="{StaticResource SectionTitle}"/>
-                            <ItemsControl ItemsSource="{Binding TelefoniCliente}" Margin="0,0,0,6">
+                            <ItemsControl ItemsSource="{Binding Dettaglio.TelefoniCliente}" Margin="0,0,0,6">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="#FAFBFC" BorderBrush="#E1E6EE" BorderThickness="1"
@@ -627,9 +627,9 @@
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="ETICHETTA" Style="{StaticResource FieldLabel}"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="NUMERO"    Style="{StaticResource FieldLabel}"/>
                                     <TextBox Grid.Row="1" Grid.Column="0"
-                                         Text="{Binding NuovoTelefonoValore, UpdateSourceTrigger=PropertyChanged}"/>
+                                         Text="{Binding Dettaglio.NuovoTelefonoValore, UpdateSourceTrigger=PropertyChanged}"/>
                                     <TextBox Grid.Row="1" Grid.Column="2"
-                                         Text="{Binding NuovoTelefonoEtichetta, UpdateSourceTrigger=PropertyChanged}"/>
+                                         Text="{Binding Dettaglio.NuovoTelefonoEtichetta, UpdateSourceTrigger=PropertyChanged}"/>
                                     <Button Grid.Row="1" Grid.Column="4"
                                         Style="{StaticResource BtnPrimary}"
                                         Command="{Binding SalvaTelefonoCommand}"
@@ -643,7 +643,7 @@
 
                             <!-- Email modifica -->
                             <TextBlock Text="EMAIL" Style="{StaticResource SectionTitle}"/>
-                            <ItemsControl ItemsSource="{Binding EmailCliente}" Margin="0,0,0,6">
+                            <ItemsControl ItemsSource="{Binding Dettaglio.EmailCliente}" Margin="0,0,0,6">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="#FAFBFC" BorderBrush="#E1E6EE" BorderThickness="1"
@@ -703,9 +703,9 @@
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="ETICHETTA"  Style="{StaticResource FieldLabel}"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="INDIRIZZO"  Style="{StaticResource FieldLabel}"/>
                                     <TextBox Grid.Row="1" Grid.Column="0"
-                                         Text="{Binding NuovaEmailEtichetta, UpdateSourceTrigger=PropertyChanged}"/>
+                                         Text="{Binding Dettaglio.NuovaEmailEtichetta, UpdateSourceTrigger=PropertyChanged}"/>
                                     <TextBox Grid.Row="1" Grid.Column="2"
-                                         Text="{Binding NuovaEmailValore, UpdateSourceTrigger=PropertyChanged}"/>
+                                         Text="{Binding Dettaglio.NuovaEmailValore, UpdateSourceTrigger=PropertyChanged}"/>
                                     <Button Grid.Row="1" Grid.Column="4"
                                         Style="{StaticResource BtnPrimary}"
                                         Command="{Binding SalvaEmailCommand}"

@@ -3,11 +3,14 @@ using CLab.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using System.Windows;
+using CLab.ViewModels.Dettaglio;
 
 namespace CLab.ViewModels
 {
     public class ClientiViewModel : ViewModelBase
     {
+        public ClienteDettaglioViewModel Dettaglio { get; } = new();
+
         private ObservableCollection<Cliente> _tuttiClienti = new();
 
         private ObservableCollection<Cliente> _clientiFiltrati = new();
@@ -201,39 +204,39 @@ namespace CLab.ViewModels
 
         private void CaricaNelForm(Cliente? cliente)
         {
-            TelefoniCliente.Clear();
-            EmailCliente.Clear();
+            Dettaglio.TelefoniCliente.Clear();
+            Dettaglio.EmailCliente.Clear();
             AnnullaModificaTelefono();
             AnnullaModificaEmail();
 
             if (cliente == null)
             {
                 _formId = 0;
-                FormRagioneSociale = string.Empty;
-                FormPartitaIva = null;
-                FormReferente = null;
-                FormIntermediario = null;
-                FormTipoContabilita = null;
-                FormStato = StatoCliente.Attivo;
+                Dettaglio.FormRagioneSociale = string.Empty;
+                Dettaglio.FormPartitaIva = null;
+                Dettaglio.FormReferente = null;
+                Dettaglio.FormIntermediario = null;
+                Dettaglio.FormTipoContabilita = null;
+                Dettaglio.FormStato = StatoCliente.Attivo;
             }
             else
             {
                 _formId = cliente.Id;
-                FormRagioneSociale = cliente.RagioneSociale;
-                FormPartitaIva = cliente.PartitaIva;
-                FormReferente = cliente.Referente;
-                FormIntermediario = cliente.Intermediario;
-                FormTipoContabilita = cliente.TipoContabilita;
-                FormStato = cliente.Stato;
+                Dettaglio.FormRagioneSociale = cliente.RagioneSociale;
+                Dettaglio.FormPartitaIva = cliente.PartitaIva;
+                Dettaglio.FormReferente = cliente.Referente;
+                Dettaglio.FormIntermediario = cliente.Intermediario;
+                Dettaglio.FormTipoContabilita = cliente.TipoContabilita;
+                Dettaglio.FormStato = cliente.Stato;
 
                 using var db = new ClabDbContext();
                 var contatti = db.Contatti.Where(c => c.ClienteId == cliente.Id).ToList();
                 foreach (var contatto in contatti)
                 {
                     if (contatto.Tipo == TipoContatto.Telefono)
-                        TelefoniCliente.Add(contatto);
+                        Dettaglio.TelefoniCliente.Add(contatto);
                     else
-                        EmailCliente.Add(contatto);
+                        Dettaglio.EmailCliente.Add(contatto);
                 }
             }
         }
@@ -248,14 +251,14 @@ namespace CLab.ViewModels
 
         private void Salva()
         {
-            if (string.IsNullOrWhiteSpace(FormRagioneSociale))
+            if (string.IsNullOrWhiteSpace(Dettaglio.FormRagioneSociale))
             {
                 MessageBox.Show("La Ragione Sociale è obbligatoria.",
                     "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (!ValidaPartitaIvaCodiceFiscale(FormPartitaIva, out string erroreIva))
+            if (!ValidaPartitaIvaCodiceFiscale(Dettaglio.FormPartitaIva, out string erroreIva))
             {
                 MessageBox.Show(erroreIva, "Attenzione",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -269,12 +272,12 @@ namespace CLab.ViewModels
             {
                 var nuovo = new Cliente
                 {
-                    RagioneSociale = FormRagioneSociale,
-                    PartitaIva = FormPartitaIva,
-                    Referente = FormReferente,
-                    Intermediario = FormIntermediario,
-                    TipoContabilita = FormTipoContabilita,
-                    Stato = FormStato
+                    RagioneSociale = Dettaglio.FormRagioneSociale,
+                    PartitaIva = Dettaglio.FormPartitaIva,
+                    Referente = Dettaglio.FormReferente,
+                    Intermediario = Dettaglio.FormIntermediario,
+                    TipoContabilita = Dettaglio.FormTipoContabilita,
+                    Stato = Dettaglio.FormStato
                 };
                 db.Clienti.Add(nuovo);
                 db.SaveChanges();
@@ -297,7 +300,7 @@ namespace CLab.ViewModels
                 db.Contatti.RemoveRange(vecchi);
             }
 
-            foreach (var c in TelefoniCliente.Concat(EmailCliente))
+            foreach (var c in Dettaglio.TelefoniCliente.Concat(Dettaglio.EmailCliente))
             {
                 db.Contatti.Add(new Contatti
                 {

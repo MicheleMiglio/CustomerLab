@@ -5,8 +5,6 @@ namespace CLab.ViewModels.Dettaglio
 {
     public class ClienteDettaglioViewModel : ViewModelBase
     {
-        private int _formId;
-
         private string _formRagioneSociale = string.Empty;
         public string FormRagioneSociale
         {
@@ -77,8 +75,6 @@ namespace CLab.ViewModels.Dettaglio
 
         public ObservableCollection<Contatti> EmailCliente { get; } = new();
 
-        private int _telefonoInModificaId;
-
         private string _nuovoTelefonoValore = string.Empty;
         public string NuovoTelefonoValore
         {
@@ -101,8 +97,6 @@ namespace CLab.ViewModels.Dettaglio
             }
         }
 
-        private int _emailInModificaId;
-
         private string _nuovaEmailValore = string.Empty;
         public string NuovaEmailValore
         {
@@ -124,7 +118,5 @@ namespace CLab.ViewModels.Dettaglio
                 OnPropertyChanged();
             }
         }
-
-        private int _tempIdCounter = -1;
     }
 }

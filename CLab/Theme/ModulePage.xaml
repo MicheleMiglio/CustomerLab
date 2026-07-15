@@ -1,0 +1,111 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================ -->
+    <!-- Kit condiviso per la "pagina di modulo": ogni modulo futuro   -->
+    <!-- (Attività, Scadenze, Fatture...) parte da questi stili invece -->
+    <!-- di ridisegnare header/griglia da zero.                       -->
+    <!-- ============================================================ -->
+
+    <!-- Header di pagina (in alto) e header del pannello di dettaglio:
+         stessa identità, chiara e sobria. Il colore forte del brand
+         resta demandato alla Sidebar, qui serve solo leggibilità. -->
+    <Style x:Key="ModuleHeaderBorderStyle" TargetType="Border">
+        <Setter Property="Background" Value="WhiteSmoke"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    </Style>
+
+    <Style x:Key="ModuleTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+    </Style>
+
+    <Style x:Key="ModuleSubtitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+        <Setter Property="Margin" Value="0,3,0,0"/>
+    </Style>
+
+    <!-- Bottone icona "neutro": per azioni secondarie su sfondo chiaro
+         (es. chiudi pannello). Non satura di colore, si nota solo in hover. -->
+    <Style x:Key="BtnIconGhost" TargetType="Button">
+        <Setter Property="Width" Value="30"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" CornerRadius="15" Background="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushSfondoChiaro}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Header di colonna DataGrid: cursore a manetta + freccia di
+         ordinamento visibile sulla colonna attiva. Include le due
+         maniglie di ridimensionamento standard, per non perdere la
+         possibilità di trascinare i bordi delle colonne. -->
+    <Style x:Key="ModuleColumnHeaderStyle" TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridColumnHeader">
+                    <Grid>
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,0,0,1">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Border>
+                        <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left"
+                            Width="4" Cursor="SizeWE">
+                            <Thumb.Template>
+                                <ControlTemplate TargetType="Thumb">
+                                    <Rectangle Fill="Transparent"/>
+                                </ControlTemplate>
+                            </Thumb.Template>
+                        </Thumb>
+                        <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right"
+                            Width="4" Cursor="SizeWE">
+                            <Thumb.Template>
+                                <ControlTemplate TargetType="Thumb">
+                                    <Rectangle Fill="Transparent"/>
+                                </ControlTemplate>
+                            </Thumb.Template>
+                        </Thumb>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="SortDirection" Value="Ascending">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                            <Setter TargetName="bd" Property="BorderThickness" Value="0,0,0,2"/>
+                            <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                        </Trigger>
+                        <Trigger Property="SortDirection" Value="Descending">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                            <Setter TargetName="bd" Property="BorderThickness" Value="0,0,0,2"/>
+                            <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushSfondoChiaro}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

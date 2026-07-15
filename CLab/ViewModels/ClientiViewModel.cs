@@ -76,82 +76,13 @@ namespace CLab.ViewModels
             set { _pannelloSottoTitolo = value; OnPropertyChanged(); }
         }
 
-        public ObservableCollection<Contatti> TelefoniCliente { get; set; } = new();
-        public ObservableCollection<Contatti> EmailCliente { get; set; } = new();
-
+        // Stato del form telefoni/email/anagrafica: unica fonte di verità in Dettaglio
+        // (letta e scritta dalla UI). Qui restano solo i due contatori tecnici,
+        // che non sono bindati da nessuna view e servono solo a questi comandi.
         private int _tempIdCounter = -1;
-
         private int _telefonoInModificaId = 0;
-        private string _nuovoTelefonoValore = string.Empty;
-        public string NuovoTelefonoValore
-        {
-            get => _nuovoTelefonoValore;
-            set { _nuovoTelefonoValore = value; OnPropertyChanged(); }
-        }
-        private string? _nuovoTelefonoEtichetta;
-        public string? NuovoTelefonoEtichetta
-        {
-            get => _nuovoTelefonoEtichetta;
-            set { _nuovoTelefonoEtichetta = value; OnPropertyChanged(); }
-        }
-
         private int _emailInModificaId = 0;
-        private string _nuovaEmailValore = string.Empty;
-        public string NuovaEmailValore
-        {
-            get => _nuovaEmailValore;
-            set { _nuovaEmailValore = value; OnPropertyChanged(); }
-        }
-        private string? _nuovaEmailEtichetta;
-        public string? NuovaEmailEtichetta
-        {
-            get => _nuovaEmailEtichetta;
-            set { _nuovaEmailEtichetta = value; OnPropertyChanged(); }
-        }
-
         private int _formId;
-
-        private string _formRagioneSociale = string.Empty;
-        public string FormRagioneSociale
-        {
-            get => _formRagioneSociale;
-            set { _formRagioneSociale = value; OnPropertyChanged(); }
-        }
-
-        private string? _formPartitaIva;
-        public string? FormPartitaIva
-        {
-            get => _formPartitaIva;
-            set { _formPartitaIva = value; OnPropertyChanged(); }
-        }
-
-        private string? _formReferente;
-        public string? FormReferente
-        {
-            get => _formReferente;
-            set { _formReferente = value; OnPropertyChanged(); }
-        }
-
-        private StatoCliente _formStato = StatoCliente.Attivo;
-        public StatoCliente FormStato
-        {
-            get => _formStato;
-            set { _formStato = value; OnPropertyChanged(); }
-        }
-
-        private string? _formIntermediario;
-        public string? FormIntermediario
-        {
-            get => _formIntermediario;
-            set { _formIntermediario = value; OnPropertyChanged(); }
-        }
-
-        private string? _formTipoContabilita;
-        public string? FormTipoContabilita
-        {
-            get => _formTipoContabilita;
-            set { _formTipoContabilita = value; OnPropertyChanged(); }
-        }
 
         public RelayCommand NuovoCommand { get; }
         public RelayCommand SalvaCommand { get; }
@@ -175,12 +106,12 @@ namespace CLab.ViewModels
             NuovoCommand = new RelayCommand(Nuovo);
             SalvaCommand = new RelayCommand(Salva);
             SalvaTelefonoCommand = new RelayCommand(SalvaTelefono,
-                                                   () => !string.IsNullOrWhiteSpace(NuovoTelefonoValore));
+                                                   () => !string.IsNullOrWhiteSpace(Dettaglio.NuovoTelefonoValore));
             SelezionaTelefonoCommand = new RelayCommand<Contatti>(SelezionaTelefono);
             RimuoviTelefonoCommand = new RelayCommand<Contatti>(RimuoviTelefono);
             ImpostaTelefonoPrincipaleCommand = new RelayCommand<Contatti>(ImpostaTelefonoPrincipale);
             SalvaEmailCommand = new RelayCommand(SalvaEmail,
-                                                   () => !string.IsNullOrWhiteSpace(NuovaEmailValore));
+                                                   () => !string.IsNullOrWhiteSpace(Dettaglio.NuovaEmailValore));
             SelezionaEmailCommand = new RelayCommand<Contatti>(SelezionaEmail);
             RimuoviEmailCommand = new RelayCommand<Contatti>(RimuoviEmail);
             ImpostaEmailPrincipaleCommand = new RelayCommand<Contatti>(ImpostaEmailPrincipale);
@@ -288,12 +219,12 @@ namespace CLab.ViewModels
                 var esistente = db.Clienti.Find(_formId);
                 if (esistente == null) return;
 
-                esistente.RagioneSociale = FormRagioneSociale;
-                esistente.PartitaIva = FormPartitaIva;
-                esistente.Referente = FormReferente;
-                esistente.Intermediario = FormIntermediario;
-                esistente.TipoContabilita = FormTipoContabilita;
-                esistente.Stato = FormStato;
+                esistente.RagioneSociale = Dettaglio.FormRagioneSociale;
+                esistente.PartitaIva = Dettaglio.FormPartitaIva;
+                esistente.Referente = Dettaglio.FormReferente;
+                esistente.Intermediario = Dettaglio.FormIntermediario;
+                esistente.TipoContabilita = Dettaglio.FormTipoContabilita;
+                esistente.Stato = Dettaglio.FormStato;
                 clienteSalvato = esistente;
 
                 var vecchi = db.Contatti.Where(c => c.ClienteId == clienteSalvato.Id).ToList();
@@ -353,7 +284,7 @@ namespace CLab.ViewModels
 
         private void SalvaTelefono()
         {
-            if (!ValidaTelefono(NuovoTelefonoValore, out string errore))
+            if (!ValidaTelefono(Dettaglio.NuovoTelefonoValore, out string errore))
             {
                 MessageBox.Show(errore, "Attenzione",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -362,19 +293,19 @@ namespace CLab.ViewModels
 
             if (_telefonoInModificaId == 0)
             {
-                TelefoniCliente.Add(new Contatti
+                Dettaglio.TelefoniCliente.Add(new Contatti
                 {
                     Id = _tempIdCounter--,
                     Tipo = TipoContatto.Telefono,
-                    Valore = NuovoTelefonoValore,
-                    Etichetta = NuovoTelefonoEtichetta,
-                    Principale = !TelefoniCliente.Any()
+                    Valore = Dettaglio.NuovoTelefonoValore,
+                    Etichetta = Dettaglio.NuovoTelefonoEtichetta,
+                    Principale = !Dettaglio.TelefoniCliente.Any()
                 });
             }
             else
             {
-                var es = TelefoniCliente.FirstOrDefault(t => t.Id == _telefonoInModificaId);
-                if (es != null) { es.Valore = NuovoTelefonoValore; es.Etichetta = NuovoTelefonoEtichetta; }
+                var es = Dettaglio.TelefoniCliente.FirstOrDefault(t => t.Id == _telefonoInModificaId);
+                if (es != null) { es.Valore = Dettaglio.NuovoTelefonoValore; es.Etichetta = Dettaglio.NuovoTelefonoEtichetta; }
             }
             AnnullaModificaTelefono();
         }
@@ -383,35 +314,35 @@ namespace CLab.ViewModels
         {
             if (t == null) return;
             _telefonoInModificaId = t.Id;
-            NuovoTelefonoValore = t.Valore;
-            NuovoTelefonoEtichetta = t.Etichetta;
+            Dettaglio.NuovoTelefonoValore = t.Valore;
+            Dettaglio.NuovoTelefonoEtichetta = t.Etichetta;
         }
 
         private void AnnullaModificaTelefono()
         {
             _telefonoInModificaId = 0;
-            NuovoTelefonoValore = string.Empty;
-            NuovoTelefonoEtichetta = null;
+            Dettaglio.NuovoTelefonoValore = string.Empty;
+            Dettaglio.NuovoTelefonoEtichetta = null;
         }
 
         private void RimuoviTelefono(Contatti? t)
         {
             if (t == null) return;
             bool era = t.Principale;
-            TelefoniCliente.Remove(t);
-            if (era && TelefoniCliente.Any()) TelefoniCliente.First().Principale = true;
+            Dettaglio.TelefoniCliente.Remove(t);
+            if (era && Dettaglio.TelefoniCliente.Any()) Dettaglio.TelefoniCliente.First().Principale = true;
             if (_telefonoInModificaId == t.Id) AnnullaModificaTelefono();
         }
 
         private void ImpostaTelefonoPrincipale(Contatti? t)
         {
             if (t == null) return;
-            foreach (var x in TelefoniCliente) x.Principale = (x == t);
+            foreach (var x in Dettaglio.TelefoniCliente) x.Principale = (x == t);
         }
 
         private void SalvaEmail()
         {
-            if (!ValidaEmail(NuovaEmailValore, out string errore))
+            if (!ValidaEmail(Dettaglio.NuovaEmailValore, out string errore))
             {
                 MessageBox.Show(errore, "Attenzione",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -420,19 +351,19 @@ namespace CLab.ViewModels
 
             if (_emailInModificaId == 0)
             {
-                EmailCliente.Add(new Contatti
+                Dettaglio.EmailCliente.Add(new Contatti
                 {
                     Id = _tempIdCounter--,
                     Tipo = TipoContatto.Email,
-                    Valore = NuovaEmailValore,
-                    Etichetta = NuovaEmailEtichetta,
-                    Principale = !EmailCliente.Any()
+                    Valore = Dettaglio.NuovaEmailValore,
+                    Etichetta = Dettaglio.NuovaEmailEtichetta,
+                    Principale = !Dettaglio.EmailCliente.Any()
                 });
             }
             else
             {
-                var es = EmailCliente.FirstOrDefault(e => e.Id == _emailInModificaId);
-                if (es != null) { es.Valore = NuovaEmailValore; es.Etichetta = NuovaEmailEtichetta; }
+                var es = Dettaglio.EmailCliente.FirstOrDefault(e => e.Id == _emailInModificaId);
+                if (es != null) { es.Valore = Dettaglio.NuovaEmailValore; es.Etichetta = Dettaglio.NuovaEmailEtichetta; }
             }
             AnnullaModificaEmail();
         }
@@ -441,30 +372,30 @@ namespace CLab.ViewModels
         {
             if (em == null) return;
             _emailInModificaId = em.Id;
-            NuovaEmailValore = em.Valore;
-            NuovaEmailEtichetta = em.Etichetta;
+            Dettaglio.NuovaEmailValore = em.Valore;
+            Dettaglio.NuovaEmailEtichetta = em.Etichetta;
         }
 
         private void AnnullaModificaEmail()
         {
             _emailInModificaId = 0;
-            NuovaEmailValore = string.Empty;
-            NuovaEmailEtichetta = null;
+            Dettaglio.NuovaEmailValore = string.Empty;
+            Dettaglio.NuovaEmailEtichetta = null;
         }
 
         private void RimuoviEmail(Contatti? em)
         {
             if (em == null) return;
             bool era = em.Principale;
-            EmailCliente.Remove(em);
-            if (era && EmailCliente.Any()) EmailCliente.First().Principale = true;
+            Dettaglio.EmailCliente.Remove(em);
+            if (era && Dettaglio.EmailCliente.Any()) Dettaglio.EmailCliente.First().Principale = true;
             if (_emailInModificaId == em.Id) AnnullaModificaEmail();
         }
 
         private void ImpostaEmailPrincipale(Contatti? em)
         {
             if (em == null) return;
-            foreach (var x in EmailCliente) x.Principale = (x == em);
+            foreach (var x in Dettaglio.EmailCliente) x.Principale = (x == em);
         }
 
         private static bool ValidaPartitaIvaCodiceFiscale(string? valore, out string errore)

@@ -59,9 +59,6 @@
         <Setter Property="FontSize"
             Value="{StaticResource FontSizeMenu}"/>
 
-        <Setter Property="Foreground"
-            Value="{StaticResource BrushTestoSecondario}"/>
-
     </Style>
 
 </ResourceDictionary>

@@ -43,6 +43,10 @@
                 <ResourceDictionary Source="Theme/Controls.xaml"/>
 
                 <ResourceDictionary Source="Theme/Sidebar.xaml"/>
+                <ResourceDictionary Source="Theme/ModulePage.xaml"/>
+
+                <!-- Stili di modulo (estendono il Theme, non lo sostituiscono) -->
+                <ResourceDictionary Source="Styles/ClientiStyles.xaml"/>
 
             </ResourceDictionary.MergedDictionaries>
 

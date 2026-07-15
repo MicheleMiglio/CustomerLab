@@ -4,88 +4,58 @@
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:conv="clr-namespace:CLab.Converters">
 
-    <Border Background="{StaticResource BrushSidebarBackground}"
-        BorderBrush="{StaticResource BrushBordo}"
-        BorderThickness="0,0,1,0">
+    <Border Background="{StaticResource BrushSidebarBackground}">
 
         <Grid ClipToBounds="True">
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="95"/>
+                <RowDefinition Height="64"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="60"/>
             </Grid.RowDefinitions>
-            <!-- Logo / Nome applicazione -->
-            <Grid Grid.Row="0"
-      Background="{StaticResource BrushPrimaryDark}">
 
+            <!-- Logo / Nome applicazione: stessa altezza dell'header di pagina,
+                 così le due barre in cima allo schermo si allineano. Tutto il
+                 blocco è cliccabile per aprire/chiudere la sidebar. -->
+            <Border Grid.Row="0"
+                BorderBrush="{StaticResource BrushDivisoreSuScuro}" BorderThickness="0,0,0,1"
+                Background="Transparent" Cursor="Hand">
 
-                <Grid.RowDefinitions>
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding ToggleSidebarCommand}"/>
+                </Border.InputBindings>
 
-                    <RowDefinition Height="*"/>
+                <Grid Margin="18,0,14,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                    <RowDefinition Height="35"/>
+                    <!-- Marchio -->
+                    <Border Grid.Column="0" Width="28" Height="28" CornerRadius="6"
+                        Background="{StaticResource BrushAccentHover}" VerticalAlignment="Center">
+                        <TextBlock Text="C" FontSize="13" FontWeight="Bold"
+                               Foreground="{StaticResource BrushAccent}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
 
-                </Grid.RowDefinitions>
-
-                <Grid Grid.Row="0"
-      VerticalAlignment="Center">
-
-
-                    <!-- Brand esteso -->
-                    <StackPanel
-        Margin="18,10,0,0"
-        Visibility="{Binding SidebarEspansa,
-                     Converter={StaticResource BoolToVisibility}}">
-
-
-                        <TextBlock Text="CLab"
-                   FontSize="24"
-                   FontWeight="Bold"
-                   Foreground="White"/>
-
-
-                        <TextBlock Text="Customer Lab"
-                   FontSize="12"
-                   Foreground="#B8C7D8"
-                   Margin="0,2,0,0"/>
-
-
+                    <!-- Wordmark, solo a sidebar espansa -->
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"
+                        Visibility="{Binding SidebarEspansa, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="CLab" FontSize="15" FontWeight="Medium"
+                               Foreground="{StaticResource BrushTestoSuScuro}"/>
+                        <TextBlock Text="Customer Lab" FontSize="10" FontWeight="Bold"
+                               Foreground="{StaticResource BrushTestoSuScuroSecondario}" Margin="0,1,0,0"/>
                     </StackPanel>
 
-
-
-                    <!-- Brand compatto -->
-                    <TextBlock Text="CLab"
-               FontSize="20"
-               FontWeight="SemiBold"
-               Foreground="White"
-               HorizontalAlignment="Center"
-               Visibility="{Binding SidebarEspansa,
-                            Converter={StaticResource BoolToVisibility},
-                            ConverterParameter=Inverti}"/>
-
-
+                    <!-- Indicatore di collassa, solo a sidebar espansa -->
+                    <iconPacks:PackIconBootstrapIcons Grid.Column="2" Kind="ChevronLeft"
+                        Width="12" Height="12" Foreground="{StaticResource BrushTestoSuScuroSecondario}"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding SidebarEspansa, Converter={StaticResource BoolToVisibility}}"/>
                 </Grid>
-
-                <!-- HAMBURGER -->
-                <Button Grid.Row="1"
-            Style="{StaticResource SidebarToggleButton}"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top"
-            Command="{Binding ToggleSidebarCommand}">
-
-
-                    <iconPacks:PackIconBootstrapIcons
-            Kind="List"
-            Width="18"
-            Height="18"/>
-
-
-                </Button>
-
-
-            </Grid>
+            </Border>
 
             <!-- Menu principale -->
             <Border Grid.Row="1"

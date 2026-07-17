@@ -50,7 +50,7 @@
         </Border>
 
         <!-- AREA TABELLA -->
-        <Grid Grid.Row="1" Grid.Column="0" Background="WhiteSmoke">
+        <Grid Grid.Row="1" Grid.Column="0" >
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -81,7 +81,7 @@
                              BorderThickness="0" Background="Transparent"
                              FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
                              VerticalContentAlignment="Center" Height="32"
-                             mah:TextBoxHelper.Watermark="Cerca cliente, P.IVA, referente…"/>
+                             mah:TextBoxHelper.Watermark="  Cerca cliente, P.IVA, referente…"/>
                     </Grid>
                 </Border>
                 <TextBlock Grid.Column="2"

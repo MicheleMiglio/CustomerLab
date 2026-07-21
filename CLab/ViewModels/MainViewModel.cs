@@ -10,6 +10,7 @@ namespace CLab.ViewModels
         private object? _vistaCorrente;
         private MenuItemModel? _dashboardMenu;
         private MenuItemModel? _clientiMenu;
+        private MenuItemModel? _attivitaMenu;
 
         public object? VistaCorrente
         {
@@ -95,13 +96,13 @@ namespace CLab.ViewModels
             };
             MenuPrincipale.Add(_clientiMenu);
 
-            MenuPrincipale.Add(
-                new MenuItemModel
-                {
-                    Titolo = "Attività",
-                    Icona = "Clipboard",
-                    Comando = null
-                });
+            _attivitaMenu = new MenuItemModel
+            {
+                Titolo = "Attività",
+                Icona = "Clipboard",
+                Comando = new RelayCommand<MenuItemModel>(ApriAttivita)
+            };
+            MenuPrincipale.Add(_attivitaMenu);
 
             MenuPrincipale.Add(
                 new MenuItemModel
@@ -141,6 +142,13 @@ namespace CLab.ViewModels
             SelezionaMenu(menu);
 
             VistaCorrente = new ClientiViewModel();
+        }
+
+        private void ApriAttivita(MenuItemModel? menu)
+        {
+            SelezionaMenu(menu);
+
+            VistaCorrente = new AttivitaViewModel();
         }
 
         private void SelezionaMenu(MenuItemModel? menu)

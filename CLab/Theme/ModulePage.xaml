@@ -107,5 +107,34 @@
             </Setter.Value>
         </Setter>
     </Style>
-
+    <!-- Checkbox "moderna": quadrato pieno con segno di spunta, coerente
+         con la palette dell'app invece del controllo di sistema. Riusabile
+         ovunque serva una selezione booleana in griglia o form. -->
+    <Style x:Key="ModuleCheckBoxStyle" TargetType="CheckBox">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Border x:Name="bd" Width="18" Height="18" CornerRadius="4"
+                        Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1.5">
+                        <Path x:Name="segno" Data="M2,6 L6,10 L14,2"
+                          Stroke="White" StrokeThickness="2"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                          Visibility="Collapsed"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushPrimary}"/>
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushPrimary}"/>
+                            <Setter TargetName="segno" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushPrimary}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

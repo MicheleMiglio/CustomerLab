@@ -666,7 +666,7 @@
                             <ColumnDefinition Width="10"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="Salva cliente"
+                        <Button Grid.Column="0" Content="Salva"
                             Command="{Binding SalvaCommand}"
                             Style="{StaticResource BtnPrimary}"
                             HorizontalAlignment="Stretch"/>

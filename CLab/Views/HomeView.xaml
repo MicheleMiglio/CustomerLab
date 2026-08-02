@@ -1,0 +1,217 @@
+﻿<UserControl x:Class="CLab.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0" Height="64">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Home" Style="{StaticResource ModuleTitleStyle}"/>
+                <TextBlock Text="SITUAZIONE GENERALE" Style="{StaticResource ModuleSubtitleStyle}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- CONTENUTO -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="28,24,28,28">
+
+                <!-- Saluto -->
+                <StackPanel Margin="0,0,0,24">
+                    <TextBlock FontSize="20" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}">
+                        <Run Text="{Binding Saluto, Mode=OneTime}"/>
+                    </TextBlock>
+                    <TextBlock Text="{Binding DataOggiTesto, Mode=OneTime}" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <!-- KPI -->
+                <UniformGrid Rows="1" Columns="5" Margin="0,0,0,24">
+                    <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,10,0">
+                        <StackPanel>
+                            <TextBlock Text="CLIENTI ATTIVI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"/>
+                            <TextBlock Text="{Binding ClientiAttivi}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="{StaticResource BrushDangerLight}" CornerRadius="10" Padding="18" Margin="0,0,10,0">
+                        <StackPanel>
+                            <TextBlock Text="ADEMPIMENTI IN RITARDO" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushDanger}"/>
+                            <TextBlock Text="{Binding AdempimentiInRitardo}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushDanger}" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,10,0">
+                        <StackPanel>
+                            <TextBlock Text="FATTURATO ANNO CORRENTE" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"/>
+                            <TextBlock Text="{Binding FatturatoAnnoTesto}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="{StaticResource BrushStatoStandByLight}" CornerRadius="10" Padding="18">
+                        <StackPanel>
+                            <TextBlock Text="DA INCASSARE" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}"/>
+                            <TextBlock Text="{Binding DaIncassareAnnoTesto}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18">
+                        <StackPanel>
+                            <TextBlock Text="REFERENTI ATTIVI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"/>
+                            <TextBlock Text="{Binding ReferentiAttiviCount}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <!-- Torte: Clienti + Adempimenti -->
+                <UniformGrid Rows="1" Columns="2" Margin="0,0,0,24">
+
+                    <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="20" Margin="0,0,10,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Width="110" Height="110">
+                                <Viewbox Width="110" Height="110">
+                                    <Canvas Width="100" Height="100">
+                                        <Ellipse Width="100" Height="100" Fill="{StaticResource BrushSfondoChiaro}"
+                                             Visibility="{Binding TortaClienti.Vuoto, Converter={StaticResource BoolToVisibility}}"/>
+                                        <Path Data="{Binding TortaClienti.FettaCompletate}" Fill="{StaticResource BrushStatoAttivo}"/>
+                                        <Path Data="{Binding TortaClienti.FettaInCorso}" Fill="{StaticResource BrushStatoStandBy}"/>
+                                        <Path Data="{Binding TortaClienti.FettaInRitardo}" Fill="{StaticResource BrushStatoCessato}"/>
+                                        <Ellipse Canvas.Left="22" Canvas.Top="22" Width="56" Height="56" Fill="White"/>
+                                    </Canvas>
+                                </Viewbox>
+                                <TextBlock Text="{Binding TotaleClienti}" FontSize="15" FontWeight="Medium"
+                                       Foreground="{StaticResource BrushTestoPrimario}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock Text="CLIENTI" FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,0,10"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <Border Width="8" Height="8" Background="{StaticResource BrushStatoAttivo}" CornerRadius="2" Margin="0,0,6,0"/>
+                                    <TextBlock Text="{Binding TortaClienti.Completate, StringFormat='Attivi: {0}'}" FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <Border Width="8" Height="8" Background="{StaticResource BrushStatoStandBy}" CornerRadius="2" Margin="0,0,6,0"/>
+                                    <TextBlock Text="{Binding TortaClienti.InCorso, StringFormat='Stand by: {0}'}" FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="8" Height="8" Background="{StaticResource BrushStatoCessato}" CornerRadius="2" Margin="0,0,6,0"/>
+                                    <TextBlock Text="{Binding TortaClienti.InRitardo, StringFormat='Cessati: {0}'}" FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="20">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Width="110" Height="110">
+                                <Viewbox Width="110" Height="110">
+                                    <Canvas Width="100" Height="100">
+                                        <Ellipse Width="100" Height="100" Fill="{StaticResource BrushSfondoChiaro}"
+                                             Visibility="{Binding TortaAdempimenti.Vuoto, Converter={StaticResource BoolToVisibility}}"/>
+                                        <Path Data="{Binding TortaAdempimenti.FettaCompletate}" Fill="{StaticResource BrushSuccess}"/>
+                                        <Path Data="{Binding TortaAdempimenti.FettaInCorso}" Fill="{StaticResource BrushPrimary}"/>
+                                        <Path Data="{Binding TortaAdempimenti.FettaInRitardo}" Fill="{StaticResource BrushDanger}"/>
+                                        <Ellipse Canvas.Left="22" Canvas.Top="22" Width="56" Height="56" Fill="White"/>
+                                    </Canvas>
+                                </Viewbox>
+                            </Grid>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock Text="ADEMPIMENTI (ANNO CORRENTE)" FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,0,10"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <Border Width="8" Height="8" Background="{StaticResource BrushSuccess}" CornerRadius="2" Margin="0,0,6,0"/>
+                                    <TextBlock Text="{Binding TortaAdempimenti.Completate, StringFormat='Completati: {0}'}" FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <Border Width="8" Height="8" Background="{StaticResource BrushPrimary}" CornerRadius="2" Margin="0,0,6,0"/>
+                                    <TextBlock Text="{Binding TortaAdempimenti.InCorso, StringFormat='Da fare adesso: {0}'}" FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="8" Height="8" Background="{StaticResource BrushDanger}" CornerRadius="2" Margin="0,0,6,0"/>
+                                    <TextBlock Text="{Binding TortaAdempimenti.InRitardo, StringFormat='In ritardo: {0}'}" FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                </UniformGrid>
+
+                <!-- Clienti da controllare -->
+                <TextBlock Text="CLIENTI DA CONTROLLARE" Style="{StaticResource FieldLabel}" Margin="0,0,0,10"/>
+                <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="6" Margin="0,0,0,24">
+                    <StackPanel>
+                        <ItemsControl ItemsSource="{Binding ClientiDaControllare}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="14,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding RagioneSociale}" FontSize="13" Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Background="{StaticResource BrushDangerLight}" CornerRadius="5" Padding="8,3">
+                                            <TextBlock Text="{Binding NumeroInRitardo, StringFormat='{}{0} in ritardo'}" FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrushDanger}"/>
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="Tutto in regola per il periodo trascorso."
+                               FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" Margin="14,14"
+                               Visibility="{Binding ClientiDaControllare.Count, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                    </StackPanel>
+                </Border>
+                <TextBlock Text="CLIENTI PER REFERENTE" Style="{StaticResource FieldLabel}" Margin="0,0,0,10"/>
+                <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="6" Margin="0,0,0,24">
+                    <ItemsControl ItemsSource="{Binding TopReferenti}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="14,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Nome}" FontSize="13" Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding NumeroClienti}" FontSize="13" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <!-- Fatture -->
+                <TextBlock Text="FATTURE (ANNO CORRENTE)" Style="{StaticResource FieldLabel}" Margin="0,0,0,10"/>
+                <UniformGrid Rows="1" Columns="3">
+                    <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="10" Padding="18" Margin="0,0,10,0">
+                        <StackPanel>
+                            <TextBlock Text="{Binding FatturatoAnnoTesto}" FontSize="20" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"/>
+                            <TextBlock Text="FATTURATO" FontSize="9" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="{StaticResource BrushSuccessLight}" CornerRadius="10" Padding="18" Margin="0,0,10,0">
+                        <StackPanel>
+                            <TextBlock Text="{Binding IncassatoAnnoTesto}" FontSize="20" FontWeight="Medium" Foreground="{StaticResource BrushSuccess}"/>
+                            <TextBlock Text="INCASSATO" FontSize="9" FontWeight="Medium" Foreground="{StaticResource BrushSuccess}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="{StaticResource BrushStatoStandByLight}" CornerRadius="10" Padding="18">
+                        <StackPanel>
+                            <TextBlock Text="{Binding DaIncassareAnnoTesto}" FontSize="20" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}"/>
+                            <TextBlock Text="DA INCASSARE" FontSize="9" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+            </StackPanel>
+        </ScrollViewer>
+
+    </Grid>
+</UserControl>

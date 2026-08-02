@@ -1,14 +1,44 @@
 ﻿using CLab.Data;
 using CLab.Models;
+using CLab.ViewModels.Dettaglio;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using System.Windows;
-using CLab.ViewModels.Dettaglio;
+using System.Windows.Input;
 
 namespace CLab.ViewModels
 {
     public class ClientiViewModel : ViewModelBase
     {
+        public ObservableCollection<Referente> ReferentiAttivi { get; set; } = new();
+        public ObservableCollection<Referente> ReferentiTutti { get; set; } = new();
+        public ObservableCollection<Programma> Programmi { get; set; } = new();
+
+        private bool _pannelloReferentiAperto;
+        public bool PannelloReferentiAperto { get => _pannelloReferentiAperto; set { _pannelloReferentiAperto = value; OnPropertyChanged(); } }
+
+        private bool _pannelloProgrammiAperto;
+        public bool PannelloProgrammiAperto { get => _pannelloProgrammiAperto; set { _pannelloProgrammiAperto = value; OnPropertyChanged(); } }
+
+        private string _nuovoReferenteTesto = string.Empty;
+        public string NuovoReferenteTesto { get => _nuovoReferenteTesto; set { _nuovoReferenteTesto = value; OnPropertyChanged(); } }
+
+        private string _nuovoProgrammaTesto = string.Empty;
+        public string NuovoProgrammaTesto { get => _nuovoProgrammaTesto; set { _nuovoProgrammaTesto = value; OnPropertyChanged(); } }
+
+        public ICommand ApriGestioneReferentiCommand { get; }
+        public ICommand ChiudiGestioneReferentiCommand { get; }
+        public ICommand AggiungiReferenteCommand { get; }
+        public ICommand RinominaReferenteCommand { get; }
+        public ICommand EliminaReferenteCommand { get; }
+        public ICommand RiattivaReferenteCommand { get; }
+
+        public ICommand ApriGestioneProgrammiCommand { get; }
+        public ICommand ChiudiGestioneProgrammiCommand { get; }
+        public ICommand AggiungiProgrammaCommand { get; }
+        public ICommand RinominaProgrammaCommand { get; }
+        public ICommand EliminaProgrammaCommand { get; }
+
         public ClienteDettaglioViewModel Dettaglio { get; } = new();
 
         private ObservableCollection<Cliente> _tuttiClienti = new();
@@ -103,6 +133,22 @@ namespace CLab.ViewModels
         {
             CaricaClienti();
 
+            ApriGestioneReferentiCommand = new RelayCommand(() => { CaricaReferenti(); PannelloReferentiAperto = true; });
+            ChiudiGestioneReferentiCommand = new RelayCommand(() => PannelloReferentiAperto = false);
+            AggiungiReferenteCommand = new RelayCommand(AggiungiReferente);
+            RinominaReferenteCommand = new RelayCommand<Referente>(RinominaReferente);
+            EliminaReferenteCommand = new RelayCommand<Referente>(EliminaReferente);
+            RiattivaReferenteCommand = new RelayCommand<Referente>(RiattivaReferente);
+
+            ApriGestioneProgrammiCommand = new RelayCommand(() => { CaricaProgrammi(); PannelloProgrammiAperto = true; });
+            ChiudiGestioneProgrammiCommand = new RelayCommand(() => PannelloProgrammiAperto = false);
+            AggiungiProgrammaCommand = new RelayCommand(AggiungiProgramma);
+            RinominaProgrammaCommand = new RelayCommand<Programma>(RinominaProgramma);
+            EliminaProgrammaCommand = new RelayCommand<Programma>(EliminaProgramma);
+
+            CaricaReferenti();
+            CaricaProgrammi();
+
             NuovoCommand = new RelayCommand(Nuovo);
             SalvaCommand = new RelayCommand(Salva);
             SalvaTelefonoCommand = new RelayCommand(SalvaTelefono,
@@ -155,7 +201,8 @@ namespace CLab.ViewModels
                 _formId = cliente.Id;
                 Dettaglio.FormRagioneSociale = cliente.RagioneSociale;
                 Dettaglio.FormPartitaIva = cliente.PartitaIva;
-                Dettaglio.FormReferente = cliente.Referente;
+                Dettaglio.FormReferente = ReferentiAttivi.FirstOrDefault(r => r.Id == cliente.ReferenteId);
+                Dettaglio.FormProgramma = Programmi.FirstOrDefault(p => p.Id == cliente.ProgrammaId);
                 Dettaglio.FormIntermediario = cliente.Intermediario;
                 Dettaglio.FormTipoContabilita = cliente.TipoContabilita;
                 Dettaglio.FormStato = cliente.Stato;
@@ -205,7 +252,7 @@ namespace CLab.ViewModels
                 {
                     RagioneSociale = Dettaglio.FormRagioneSociale,
                     PartitaIva = Dettaglio.FormPartitaIva,
-                    Referente = Dettaglio.FormReferente,
+                    ReferenteId = Dettaglio.FormReferente,
                     Intermediario = Dettaglio.FormIntermediario,
                     TipoContabilita = Dettaglio.FormTipoContabilita,
                     Stato = Dettaglio.FormStato
@@ -221,7 +268,13 @@ namespace CLab.ViewModels
 
                 esistente.RagioneSociale = Dettaglio.FormRagioneSociale;
                 esistente.PartitaIva = Dettaglio.FormPartitaIva;
-                esistente.Referente = Dettaglio.FormReferente;
+                if (Dettaglio.FormReferente == null)
+                {
+                    MessageBox.Show("Il referente è obbligatorio.", "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                esistente.ReferenteId = Dettaglio.FormReferente.Id;
+                esistente.ProgrammaId = Dettaglio.FormProgramma?.Id;
                 esistente.Intermediario = Dettaglio.FormIntermediario;
                 esistente.TipoContabilita = Dettaglio.FormTipoContabilita;
                 esistente.Stato = Dettaglio.FormStato;
@@ -441,4 +494,151 @@ namespace CLab.ViewModels
             return true;
         }
     }
-}
+
+    private void CaricaReferenti()
+        {
+            using var db = new ClabDbContext();
+            var tutti = db.Referenti.AsNoTracking().OrderBy(r => r.Nome).ToList();
+
+            ReferentiTutti.Clear();
+            foreach (var r in tutti) ReferentiTutti.Add(r);
+
+            ReferentiAttivi.Clear();
+            foreach (var r in tutti.Where(r => r.Attivo)) ReferentiAttivi.Add(r);
+        }
+
+        private void CaricaProgrammi()
+        {
+            using var db = new ClabDbContext();
+            Programmi.Clear();
+            foreach (var p in db.Programmi.AsNoTracking().OrderBy(p => p.Nome).ToList())
+                Programmi.Add(p);
+        }
+
+        private void AggiungiReferente()
+        {
+            if (string.IsNullOrWhiteSpace(NuovoReferenteTesto)) return;
+            using var db = new ClabDbContext();
+            db.Referenti.Add(new Referente { Nome = NuovoReferenteTesto.Trim(), Attivo = true });
+            db.SaveChanges();
+            NuovoReferenteTesto = string.Empty;
+            CaricaReferenti();
+        }
+
+        public void RinominaReferente(Referente? r)
+        {
+            if (r == null || string.IsNullOrWhiteSpace(r.Nome)) return;
+            using var db = new ClabDbContext();
+            var entita = db.Referenti.First(x => x.Id == r.Id);
+            entita.Nome = r.Nome.Trim();
+            db.SaveChanges();
+        }
+
+        private void EliminaReferente(Referente? r)
+        {
+            if (r == null) return;
+
+            using var db = new ClabDbContext();
+            int numeroClienti = db.Clienti.Count(c => c.ReferenteId == r.Id);
+
+            if (numeroClienti == 0)
+            {
+                var entita = db.Referenti.First(x => x.Id == r.Id);
+                db.Referenti.Remove(entita);
+                db.SaveChanges();
+                CaricaReferenti();
+                return;
+            }
+
+            var esito = MessageBox.Show(
+                $"\"{r.Nome}\" è collegato a {numeroClienti} client{(numeroClienti == 1 ? "e" : "i")}.\n" +
+                "Non può essere eliminato: verrà disattivato (sparirà dalla tendina) e " +
+                $"{(numeroClienti == 1 ? "il cliente collegato passerà" : "i clienti collegati passeranno")} in stato Cessato.\nContinuare?",
+                "Conferma disattivazione", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (esito != MessageBoxResult.Yes) return;
+
+            var entitaRef = db.Referenti.First(x => x.Id == r.Id);
+            entitaRef.Attivo = false;
+
+            foreach (var c in db.Clienti.Where(c => c.ReferenteId == r.Id).ToList())
+                c.Stato = StatoCliente.Cessato;
+
+            db.SaveChanges();
+            CaricaReferenti();
+            CaricaElenco();
+        }
+
+        private void RiattivaReferente(Referente? r)
+        {
+            if (r == null) return;
+
+            using var db = new ClabDbContext();
+            var entita = db.Referenti.First(x => x.Id == r.Id);
+            entita.Attivo = true;
+            db.SaveChanges();
+
+            var clientiCessati = db.Clienti.Where(c => c.ReferenteId == r.Id && c.Stato == StatoCliente.Cessato).ToList();
+
+            if (clientiCessati.Count > 0)
+            {
+                var esito = MessageBox.Show(
+                    $"\"{r.Nome}\" è di nuovo attivo. Ci sono {clientiCessati.Count} client{(clientiCessati.Count == 1 ? "e" : "i")} " +
+                    "attualmente Cessati (probabilmente a causa della precedente disattivazione).\nVuoi riportarli in stato Attivo?",
+                    "Riattivare anche i clienti?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (esito == MessageBoxResult.Yes)
+                {
+                    foreach (var c in clientiCessati) c.Stato = StatoCliente.Attivo;
+                    db.SaveChanges();
+                }
+            }
+
+            CaricaReferenti();
+            CaricaElenco();
+        }
+
+        private void AggiungiProgramma()
+        {
+            if (string.IsNullOrWhiteSpace(NuovoProgrammaTesto)) return;
+            using var db = new ClabDbContext();
+            db.Programmi.Add(new Programma { Nome = NuovoProgrammaTesto.Trim() });
+            db.SaveChanges();
+            NuovoProgrammaTesto = string.Empty;
+            CaricaProgrammi();
+        }
+
+        public void RinominaProgramma(Programma? p)
+        {
+            if (p == null || string.IsNullOrWhiteSpace(p.Nome)) return;
+            using var db = new ClabDbContext();
+            var entita = db.Programmi.First(x => x.Id == p.Id);
+            entita.Nome = p.Nome.Trim();
+            db.SaveChanges();
+        }
+
+        private void EliminaProgramma(Programma? p)
+        {
+            if (p == null) return;
+
+            using var db = new ClabDbContext();
+            int numeroClienti = db.Clienti.Count(c => c.ProgrammaId == p.Id);
+
+            if (numeroClienti > 0)
+            {
+                var esito = MessageBox.Show(
+                    $"\"{p.Nome}\" è assegnato a {numeroClienti} client{(numeroClienti == 1 ? "e" : "i")}. " +
+                    "Eliminandolo, il campo Programma di quei clienti verrà svuotato.\nContinuare?",
+                    "Conferma eliminazione", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (esito != MessageBoxResult.Yes) return;
+
+                foreach (var c in db.Clienti.Where(c => c.ProgrammaId == p.Id).ToList())
+                    c.ProgrammaId = null;
+            }
+
+            var entita = db.Programmi.First(x => x.Id == p.Id);
+            db.Programmi.Remove(entita);
+            db.SaveChanges();
+            CaricaProgrammi();
+        }
+    }

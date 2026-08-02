@@ -1,0 +1,1384 @@
+﻿<UserControl x:Class="CLab.Views.ScadenzarioView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:converters="clr-namespace:CLab.Converters"
+             xmlns:local="clr-namespace:CLab.Views">
+
+    <UserControl.Resources>
+        <converters:TipoCampoLabelConverter x:Key="TipoCampoLabel"/>
+        <converters:StatoAColoreConverter x:Key="StatoAColore"/>
+        <converters:StatoASfondoConverter x:Key="StatoASfondo"/>
+        <converters:VersatoAColoreConverter x:Key="VersatoAColore"/>
+        <converters:StatoVersamentoTestoConverter x:Key="StatoVersamentoTesto"/>
+        <converters:StatoVersamentoAColoreConverter x:Key="StatoVersamentoAColore"/>
+
+        <DataTemplate x:Key="RigaAttivitaTemplate">
+            <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1"
+                CornerRadius="8" Margin="0,0,0,8">
+                <StackPanel>
+                    <Button Command="{Binding ToggleEspansaCommand}" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="Transparent" Padding="16,13">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <iconPacks:PackIconBootstrapIcons Grid.Column="0" Width="12" Height="12"
+                                            Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,10,0" VerticalAlignment="Center">
+                                            <iconPacks:PackIconBootstrapIcons.Style>
+                                                <Style TargetType="iconPacks:PackIconBootstrapIcons">
+                                                    <Setter Property="Kind" Value="ChevronRight"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Espansa}" Value="True">
+                                                            <Setter Property="Kind" Value="ChevronDown"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </iconPacks:PackIconBootstrapIcons.Style>
+                                        </iconPacks:PackIconBootstrapIcons>
+                                        <TextBlock Grid.Column="1" Text="{Binding Nome}" FontSize="13" VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrushTestoPrimario}" TextTrimming="CharacterEllipsis"/>
+                                        <Ellipse Grid.Column="2" Width="7" Height="7" Margin="0,0,8,0" VerticalAlignment="Center"
+                                             Fill="{Binding StatoRiepilogo, Converter={StaticResource StatoAColore}}"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding TestoRiepilogo}" FontSize="11"
+                                               Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <StackPanel Visibility="{Binding Espansa, Converter={StaticResource BoolToVisibility}}">
+                        <Border BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0">
+                            <Border BorderThickness="3,0,0,0"
+                                BorderBrush="{Binding CellaSelezionata.Stato, Converter={StaticResource StatoAColore}}"
+                                Background="{StaticResource BrushSfondoChiaro}">
+                                <StackPanel Margin="16,16,16,20">
+
+                                    <ItemsControl ItemsSource="{Binding Pillole}" Margin="0,0,0,16"
+                                              Visibility="{Binding Pillole.Count, Converter={StaticResource BoolToVisibility}}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Command="{Binding SelezionaCommand}" CommandParameter="{Binding Indice}"
+                                                    Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,6,6">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="bd" CornerRadius="5" Padding="9,5" BorderThickness="1.5"
+                                                                Background="{Binding StatoColore, Converter={StaticResource StatoASfondo}}">
+                                                                <TextBlock Text="{Binding Etichetta}" FontSize="11"
+                                                                       Foreground="{Binding StatoColore, Converter={StaticResource StatoAColore}}"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <DataTrigger Binding="{Binding Selezionato}" Value="True">
+                                                                    <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Selezionato}" Value="False">
+                                                                    <Setter TargetName="bd" Property="BorderBrush" Value="Transparent"/>
+                                                                </DataTrigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <local:CellaCompilazioneControl DataContext="{Binding CellaSelezionata}"/>
+
+                                </StackPanel>
+                            </Border>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <Style x:Key="ChevronSezioneStyle" TargetType="iconPacks:PackIconBootstrapIcons">
+            <Setter Property="Kind" Value="ChevronRight"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0" Height="64">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0">
+                    <TextBlock Text="Scadenzario" Style="{StaticResource ModuleTitleStyle}"/>
+                    <TextBlock Text="SCADENZE E ATTIVITÀ CLIENTI" Style="{StaticResource ModuleSubtitleStyle}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Dashboard" Command="{Binding MostraDashboardCommand}"
+                        Padding="4,8" Margin="0,0,16,0" Cursor="Hand" Background="Transparent">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
+                                    <ContentPresenter Margin="{TemplateBinding Padding}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="FontSize" Value="12"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding MostraDashboard}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="Adempimenti" Command="{Binding MostraAdempimentiCommand}"
+                        Padding="4,8" Margin="0,0,16,0" Cursor="Hand" Background="Transparent">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
+                                    <ContentPresenter Margin="{TemplateBinding Padding}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="FontSize" Value="12"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding MostraAdempimenti}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="Ritenute d'acconto" Command="{Binding MostraRitenuteCommand}"
+                        Padding="4,8" Cursor="Hand" Background="Transparent">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
+                                    <ContentPresenter Margin="{TemplateBinding Padding}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="FontSize" Value="12"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding MostraRitenute}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <ComboBox Width="170" Height="34" Margin="0,0,10,0"
+      IsTextSearchEnabled="True" TextSearch.TextPath="Nome"
+      ItemsSource="{Binding ReferentiFiltro}"
+      SelectedItem="{Binding ReferenteFiltro}"/>
+                    <ComboBox Width="220" Height="34" Margin="0,0,10,0"
+      IsTextSearchEnabled="True"
+      TextSearch.TextPath="RagioneSociale"
+      ItemsSource="{Binding ClientiDisponibili}"
+      SelectedItem="{Binding ClienteSelezionato}"/>
+
+                    <Border BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6" Height="34">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
+                            <Button Command="{Binding AnnoPrecedenteCommand}" Style="{StaticResource BtnIcon}" Padding="4">
+                                <iconPacks:PackIconBootstrapIcons Kind="ChevronLeft" Width="11" Height="11" Foreground="{StaticResource BrushTestoSecondario}"/>
+                            </Button>
+                            <TextBlock Text="{Binding AnnoSelezionato}" FontSize="12" FontWeight="Medium"
+                                   Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center" Margin="8,0"/>
+                            <Button Command="{Binding AnnoSuccessivoCommand}" Style="{StaticResource BtnIcon}" Padding="4">
+                                <iconPacks:PackIconBootstrapIcons Kind="ChevronRight" Width="11" Height="11" Foreground="{StaticResource BrushTestoSecondario}"/>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Border Grid.Row="1" VerticalAlignment="Top" Background="{StaticResource BrushStatoStandByLight}"
+            Padding="16,8" Visibility="{Binding MostraAvvisoClienteNonAttivo, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel Orientation="Horizontal">
+                <iconPacks:PackIconBootstrapIcons Kind="ExclamationTriangle" Width="12" Height="12"
+                    Foreground="{StaticResource BrushStatoStandBy}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding TestoAvvisoClienteNonAttivo}" FontSize="12" Foreground="{StaticResource BrushStatoStandBy}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- DASHBOARD -->
+        <Grid Grid.Row="1" Visibility="{Binding MostraDashboard, Converter={StaticResource BoolToVisibility}}">
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{Binding NessunClienteSelezionato, Converter={StaticResource BoolToVisibility}}">
+                <iconPacks:PackIconBootstrapIcons Kind="PersonWorkspace" Width="40" Height="40"
+                    Foreground="{StaticResource BrushBordo}" HorizontalAlignment="Center"/>
+                <TextBlock Text="Seleziona un cliente e un anno per iniziare"
+                       FontSize="13" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"
+                       HorizontalAlignment="Center" Margin="0,14,0,2"/>
+                <TextBlock Text="Troverai qui adempimenti, scadenze e ritenute d'acconto"
+                       FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{Binding MostraEmptyState, Converter={StaticResource BoolToVisibility}}">
+                <iconPacks:PackIconBootstrapIcons Kind="ClipboardData" Width="40" Height="40"
+                    Foreground="{StaticResource BrushBordo}" HorizontalAlignment="Center"/>
+                <TextBlock Text="Nessuna attività configurata per questo cliente"
+                       FontSize="13" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"
+                       HorizontalAlignment="Center" Margin="0,14,0,2"/>
+                <TextBlock Text="Scegli come iniziare" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}"
+                       HorizontalAlignment="Center" Margin="0,0,0,18"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Style="{StaticResource BtnOutlineGold}"
+                        Command="{Binding ConfiguraAttivitaCommand}" Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconBootstrapIcons Kind="ListCheck" Width="12" Height="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Configura attività" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource BtnOutline}" Command="{Binding ApriPannelloDuplicaCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconBootstrapIcons Kind="Copy" Width="12" Height="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Duplica da un altro cliente" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Visibility="{Binding HaAttivitaConfigurate, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel Margin="28,24,28,24">
+
+                    <TextBlock Text="STATO ADEMPIMENTI" Style="{StaticResource FieldLabel}" Margin="0,0,0,10"/>
+                    <UniformGrid Rows="1" Columns="3" Margin="0,0,0,16">
+
+                        <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,10,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid HorizontalAlignment="Center" Width="120" Height="120">
+                                    <Viewbox Width="120" Height="120">
+                                        <Canvas Width="100" Height="100">
+                                            <Ellipse Width="100" Height="100" Fill="{StaticResource BrushSfondoChiaro}"
+                                                 Visibility="{Binding TortaMensili.Vuoto, Converter={StaticResource BoolToVisibility}}"/>
+                                            <Path Data="{Binding TortaMensili.FettaCompletate}" Fill="{StaticResource BrushSuccess}"/>
+                                            <Path Data="{Binding TortaMensili.FettaInCorso}" Fill="{StaticResource BrushPrimary}"/>
+                                            <Path Data="{Binding TortaMensili.FettaInRitardo}" Fill="{StaticResource BrushDanger}"/>
+                                            <Ellipse Canvas.Left="22" Canvas.Top="22" Width="56" Height="56" Fill="White"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding CompletamentoMensiliTesto}" FontSize="17" FontWeight="Medium"
+                                           Foreground="{StaticResource BrushTestoPrimario}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                                <TextBlock Text="MENSILI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"
+                                       HorizontalAlignment="Center" Margin="0,10,0,10"/>
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="8" Height="8" Background="{StaticResource BrushSuccess}" CornerRadius="2" Margin="0,0,6,0"/>
+                                        <TextBlock Grid.Column="1" Text="Completate" FontSize="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding TortaMensili.Completate}" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="8" Height="8" Background="{StaticResource BrushPrimary}" CornerRadius="2" Margin="0,0,6,0"/>
+                                        <TextBlock Grid.Column="1" Text="Da fare ad oggi" FontSize="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding TortaMensili.InCorso}" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="8" Height="8" Background="{StaticResource BrushDanger}" CornerRadius="2" Margin="0,0,6,0"/>
+                                        <TextBlock Grid.Column="1" Text="In ritardo" FontSize="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding TortaMensili.InRitardo}" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,10,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid HorizontalAlignment="Center" Width="120" Height="120">
+                                    <Viewbox Width="120" Height="120">
+                                        <Canvas Width="100" Height="100">
+                                            <Ellipse Width="100" Height="100" Fill="{StaticResource BrushSfondoChiaro}"
+                                                 Visibility="{Binding TortaTrimestrali.Vuoto, Converter={StaticResource BoolToVisibility}}"/>
+                                            <Path Data="{Binding TortaTrimestrali.FettaCompletate}" Fill="{StaticResource BrushSuccess}"/>
+                                            <Path Data="{Binding TortaTrimestrali.FettaInCorso}" Fill="{StaticResource BrushPrimary}"/>
+                                            <Path Data="{Binding TortaTrimestrali.FettaInRitardo}" Fill="{StaticResource BrushDanger}"/>
+                                            <Ellipse Canvas.Left="22" Canvas.Top="22" Width="56" Height="56" Fill="White"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding CompletamentoTrimestraliTesto}" FontSize="17" FontWeight="Medium"
+                                           Foreground="{StaticResource BrushTestoPrimario}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                                <TextBlock Text="TRIMESTRALI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"
+                                       HorizontalAlignment="Center" Margin="0,10,0,10"/>
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="8" Height="8" Background="{StaticResource BrushSuccess}" CornerRadius="2" Margin="0,0,6,0"/>
+                                        <TextBlock Grid.Column="1" Text="Completate" FontSize="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding TortaTrimestrali.Completate}" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="8" Height="8" Background="{StaticResource BrushPrimary}" CornerRadius="2" Margin="0,0,6,0"/>
+                                        <TextBlock Grid.Column="1" Text="Da fare ad oggi" FontSize="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding TortaTrimestrali.InCorso}" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="8" Height="8" Background="{StaticResource BrushDanger}" CornerRadius="2" Margin="0,0,6,0"/>
+                                        <TextBlock Grid.Column="1" Text="In ritardo" FontSize="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding TortaTrimestrali.InRitardo}" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid HorizontalAlignment="Center" Width="120" Height="120">
+                                    <Viewbox Width="120" Height="120">
+                                        <Canvas Width="100" Height="100">
+                                            <Ellipse Width="100" Height="100" Fill="{StaticResource BrushSfondoChiaro}"
+                                                 Visibility="{Binding TortaAnnuali.Vuoto, Converter={StaticResource BoolToVisibility}}"/>
+                                            <Path Data="{Binding TortaAnnuali.FettaCompletate}" Fill="{StaticResource BrushSuccess}"/>
+                                            <Path Data="{Binding TortaAnnuali.FettaInCorso}" Fill="{StaticResource BrushPrimary}"/>
+                                            <Path Data="{Binding TortaAnnuali.FettaInRitardo}" Fill="{StaticResource BrushDanger}"/>
+                                            <Ellipse Canvas.Left="22" Canvas.Top="22" Width="56" Height="56" Fill="White"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding CompletamentoAnnualiTesto}" FontSize="17" FontWeight="Medium"
+                                           Foreground="{StaticResource BrushTestoPrimario}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                                <TextBlock Text="ANNUALI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"
+                                       HorizontalAlignment="Center" Margin="0,10,0,10"/>
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="8" Height="8" Background="{StaticResource BrushSuccess}" CornerRadius="2" Margin="0,0,6,0"/>
+                                        <TextBlock Grid.Column="1" Text="Completate" FontSize="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding TortaAnnuali.Completate}" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="8" Height="8" Background="{StaticResource BrushPrimary}" CornerRadius="2" Margin="0,0,6,0"/>
+                                        <TextBlock Grid.Column="1" Text="Da fare ad oggi" FontSize="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding TortaAnnuali.InCorso}" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="8" Height="8" Background="{StaticResource BrushDanger}" CornerRadius="2" Margin="0,0,6,0"/>
+                                        <TextBlock Grid.Column="1" Text="In ritardo" FontSize="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding TortaAnnuali.InRitardo}" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                    </UniformGrid>
+
+                    <UniformGrid Rows="1" Columns="3">
+                        <Border Background="{StaticResource BrushSuccessLight}" CornerRadius="10" Padding="30" Margin="0,0,10,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding TotaleCompletateAdOggi}" FontSize="26" FontWeight="Medium"
+                                       Foreground="{StaticResource BrushSuccess}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="COMPLETATE AD OGGI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushSuccess}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="{StaticResource BrushInfoLight}" CornerRadius="10" Padding="30" Margin="0,0,10,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding TotaleInCorso}" FontSize="26" FontWeight="Medium"
+                                       Foreground="{StaticResource BrushPrimary}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="DA FARE AD OGGI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushPrimary}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="{StaticResource BrushDangerLight}" CornerRadius="10" Padding="30">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding TotaleInRitardo}" FontSize="26" FontWeight="Medium"
+                                       Foreground="{StaticResource BrushDanger}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="IN RITARDO" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushDanger}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <TextBlock Text="STATO RITENUTE D'ACCONTO" Style="{StaticResource FieldLabel}" Margin="0,24,0,10"/>
+                    <Grid>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Column="0"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Background="White"
+            BorderBrush="{StaticResource BrushBordo}"
+            BorderThickness="1"
+            CornerRadius="10"
+            Padding="18"
+            Margin="0,0,10,0">
+
+                            <StackPanel HorizontalAlignment="Center">
+
+                                <Grid HorizontalAlignment="Center" Width="120" Height="120">
+
+                                    <Viewbox Width="120" Height="120">
+                                        <Canvas Width="100" Height="100">
+
+                                            <Ellipse Width="100" Height="100"
+                                 Fill="{StaticResource BrushSfondoChiaro}"
+                                 Visibility="{Binding TortaRitenute.Vuoto, Converter={StaticResource BoolToVisibility}}"/>
+
+                                            <Path Data="{Binding TortaRitenute.FettaCompletate}"
+                              Fill="{StaticResource BrushSuccess}"/>
+
+                                            <Path Data="{Binding TortaRitenute.FettaInCorso}"
+                              Fill="{StaticResource BrushStatoStandBy}"/>
+
+                                            <Path Data="{Binding TortaRitenute.FettaInRitardo}"
+                              Fill="{StaticResource BrushDanger}"/>
+
+                                            <Ellipse Canvas.Left="22"
+                                 Canvas.Top="22"
+                                 Width="56"
+                                 Height="56"
+                                 Fill="White"/>
+
+                                        </Canvas>
+                                    </Viewbox>
+
+
+                                    <!-- Percentuale al centro -->
+                                    <TextBlock Text="{Binding CompletamentoRitenuteTesto}"
+                           FontSize="17"
+                           FontWeight="Medium"
+                           Foreground="{StaticResource BrushTestoPrimario}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+
+                                </Grid>
+
+
+                                <TextBlock Text="RITENUTE"
+                       FontSize="10"
+                       FontWeight="Medium"
+                       Foreground="{StaticResource BrushTestoSecondario}"
+                       HorizontalAlignment="Center"
+                       Margin="0,10,0,10"/>
+
+
+                                <StackPanel>
+
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Width="8"
+                            Height="8"
+                            Background="{StaticResource BrushSuccess}"
+                            CornerRadius="2"
+                            Margin="0,0,6,0"/>
+
+                                        <TextBlock Grid.Column="1"
+                               Text="Versate"
+                               FontSize="10"
+                               Foreground="{StaticResource BrushTestoSecondario}"/>
+
+                                        <TextBlock Grid.Column="2"
+                               Text="{Binding RitenuteVersate}"
+                               FontSize="10"
+                               FontWeight="Medium"
+                               Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+
+
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Width="8"
+                            Height="8"
+                            Background="{StaticResource BrushStatoStandBy}"
+                            CornerRadius="2"
+                            Margin="0,0,6,0"/>
+
+                                        <TextBlock Grid.Column="1"
+                               Text="Da versare"
+                               FontSize="10"
+                               Foreground="{StaticResource BrushTestoSecondario}"/>
+
+                                        <TextBlock Grid.Column="2"
+                               Text="{Binding RitenuteDaVersare}"
+                               FontSize="10"
+                               FontWeight="Medium"
+                               Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Width="8"
+                            Height="8"
+                            Background="{StaticResource BrushDanger}"
+                            CornerRadius="2"
+                            Margin="0,0,6,0"/>
+
+                                        <TextBlock Grid.Column="1"
+                               Text="Anomalie"
+                               FontSize="10"
+                               Foreground="{StaticResource BrushTestoSecondario}"/>
+
+                                        <TextBlock Grid.Column="2"
+                               Text="{Binding RitenuteAnomalie}"
+                               FontSize="10"
+                               FontWeight="Medium"
+                               Foreground="{StaticResource BrushTestoPrimario}"/>
+                                    </Grid>
+
+                                </StackPanel>
+
+                            </StackPanel>
+
+                        </Border>
+
+                        <Border Grid.Column="1" Grid.Row="0" Background="{StaticResource BrushSuccessLight}" CornerRadius="10" Padding="18" Margin="0,0,10,10">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding TotaleRitenuteTesto}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushSuccess}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="TOTALE RITENUTE" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushSuccess}"
+               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Grid.Row="1" Background="{StaticResource BrushStatoStandByLight}" CornerRadius="10" Padding="18" Margin="0,0,10,0">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding RitenuteDaVersare}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}" HorizontalAlignment="Center"/>
+
+                                <TextBlock Text="RITENUTE IN ATTESA" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}"
+               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+
+                            </StackPanel>
+
+                        </Border>
+
+                        <Border Grid.Column="2" Grid.Row="1" Background="{StaticResource BrushDangerLight}" CornerRadius="10" Padding="18">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding RitenuteAnomalie}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushDanger}" HorizontalAlignment="Center"/>
+
+                                <TextBlock Text="ANOMALIE DA VERIFICARE" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushDanger}"
+               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+
+                            </StackPanel>
+
+                        </Border>
+
+                        <Border Grid.Column="2" Grid.Row="0" Background="{StaticResource BrushInfoLight}" CornerRadius="10" Padding="18"  Margin="0,0,0,10">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding TotaleVersatoTesto}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushPrimary}" HorizontalAlignment="Center"/>
+
+                                <TextBlock Text="TOTALE VERSATO" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushPrimary}"
+               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+
+                            </StackPanel>
+
+                        </Border>
+
+
+                    </Grid>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- ADEMPIMENTI -->
+        <Grid Grid.Row="1" Visibility="{Binding MostraAdempimenti, Converter={StaticResource BoolToVisibility}}">
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{Binding NessunClienteSelezionato, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="Seleziona un cliente e un anno per iniziare" FontSize="13" Foreground="{StaticResource BrushTestoSecondario}"/>
+            </StackPanel>
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{Binding MostraEmptyState, Converter={StaticResource BoolToVisibility}}">
+                <iconPacks:PackIconBootstrapIcons Kind="ClipboardData" Width="40" Height="40"
+                    Foreground="{StaticResource BrushBordo}" HorizontalAlignment="Center"/>
+                <TextBlock Text="Nessuna attività configurata per questo cliente"
+                       FontSize="13" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"
+                       HorizontalAlignment="Center" Margin="0,14,0,2"/>
+                <TextBlock Text="Scegli come iniziare" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}"
+                       HorizontalAlignment="Center" Margin="0,0,0,18"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Style="{StaticResource BtnOutlineGold}"
+                        Command="{Binding ConfiguraAttivitaCommand}" Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconBootstrapIcons Kind="ListCheck" Width="12" Height="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Configura attività" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource BtnOutline}" Command="{Binding ApriPannelloDuplicaCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconBootstrapIcons Kind="Copy" Width="12" Height="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Duplica da un altro cliente" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+
+            <Grid Visibility="{Binding HaAttivitaConfigurate, Converter={StaticResource BoolToVisibility}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="28,16,20,24">
+
+                        <Border Width="280" HorizontalAlignment="Left" Background="White"
+                            BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6" Height="34" Margin="0,0,0,20">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <iconPacks:PackIconBootstrapIcons Grid.Column="0"
+                                Kind="Search" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"
+                                Margin="10,0,6,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1"
+                                     Text="{Binding FiltroAttivitaTesto, UpdateSourceTrigger=PropertyChanged}"
+                                     BorderThickness="0" Background="Transparent"
+                                     FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
+                                     VerticalContentAlignment="Center" Height="32"
+                                     mah:TextBoxHelper.Watermark="Cerca attività…"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- MENSILI -->
+                        <StackPanel Visibility="{Binding HaRigheMensili, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,10">
+                            <Button Command="{Binding ToggleSezioneMensiliCommand}" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" HorizontalAlignment="Left">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iconPacks:PackIconBootstrapIcons Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                <iconPacks:PackIconBootstrapIcons.Style>
+                                                    <Style TargetType="iconPacks:PackIconBootstrapIcons" BasedOn="{StaticResource ChevronSezioneStyle}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding SezioneMensiliEspansa}" Value="True">
+                                                                <Setter Property="Kind" Value="ChevronDown"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </iconPacks:PackIconBootstrapIcons.Style>
+                                            </iconPacks:PackIconBootstrapIcons>
+                                            <TextBlock Text="MENSILI" FontSize="9" FontWeight="Bold" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                            <Ellipse Width="7" Height="7" Margin="8,0,0,0" VerticalAlignment="Center" Fill="{Binding StatoSezioneMensili, Converter={StaticResource StatoAColore}}"/>
+                                        </StackPanel>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding RigheMensiliFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
+                                      Visibility="{Binding SezioneMensiliEspansa, Converter={StaticResource BoolToVisibility}}"/>
+                        </StackPanel>
+
+                        <!-- TRIMESTRALI -->
+                        <StackPanel Visibility="{Binding HaRigheTrimestrali, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,10">
+                            <Button Command="{Binding ToggleSezioneTrimestraliCommand}" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" HorizontalAlignment="Left">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iconPacks:PackIconBootstrapIcons Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                <iconPacks:PackIconBootstrapIcons.Style>
+                                                    <Style TargetType="iconPacks:PackIconBootstrapIcons" BasedOn="{StaticResource ChevronSezioneStyle}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding SezioneTrimestraliEspansa}" Value="True">
+                                                                <Setter Property="Kind" Value="ChevronDown"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </iconPacks:PackIconBootstrapIcons.Style>
+                                            </iconPacks:PackIconBootstrapIcons>
+                                            <TextBlock Text="TRIMESTRALI" FontSize="9" FontWeight="Bold" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                            <Ellipse Width="7" Height="7" Margin="8,0,0,0" VerticalAlignment="Center" Fill="{Binding StatoSezioneTrimestrali, Converter={StaticResource StatoAColore}}"/>
+                                        </StackPanel>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding RigheTrimestraliFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
+                                      Visibility="{Binding SezioneTrimestraliEspansa, Converter={StaticResource BoolToVisibility}}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="Width" Value="540"/>
+                                        <Setter Property="VerticalAlignment" Value="Top"/>
+                                        <Setter Property="Margin" Value="0,0,10,10"/>
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- ANNUALI -->
+                        <StackPanel Visibility="{Binding HaRigheAnnuali, Converter={StaticResource BoolToVisibility}}">
+                            <Button Command="{Binding ToggleSezioneAnnualiCommand}" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" HorizontalAlignment="Left">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iconPacks:PackIconBootstrapIcons Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                <iconPacks:PackIconBootstrapIcons.Style>
+                                                    <Style TargetType="iconPacks:PackIconBootstrapIcons" BasedOn="{StaticResource ChevronSezioneStyle}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding SezioneAnnualiEspansa}" Value="True">
+                                                                <Setter Property="Kind" Value="ChevronDown"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </iconPacks:PackIconBootstrapIcons.Style>
+                                            </iconPacks:PackIconBootstrapIcons>
+                                            <TextBlock Text="ANNUALI" FontSize="9" FontWeight="Bold" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                            <Ellipse Width="7" Height="7" Margin="8,0,0,0" VerticalAlignment="Center" Fill="{Binding StatoSezioneAnnuali, Converter={StaticResource StatoAColore}}"/>
+                                        </StackPanel>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding RigheAnnualiFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
+                                      Visibility="{Binding SezioneAnnualiEspansa, Converter={StaticResource BoolToVisibility}}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="Width" Value="540"/>
+                                        <Setter Property="VerticalAlignment" Value="Top"/>
+                                        <Setter Property="Margin" Value="0,0,10,10"/>
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <Grid Margin="0px, 20px" HorizontalAlignment="Left">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="NOTE CLIENTE" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Grid.Row="1" Text="{Binding NotaCliente, UpdateSourceTrigger=LostFocus}"
+                             AcceptsReturn="True" TextWrapping="Wrap" Width="540" Height="150"
+                             VerticalContentAlignment="Top" Margin="0,4,0,0"/>
+                        </Grid>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+
+        <!-- RITENUTE D'ACCONTO -->
+        <Grid Grid.Row="1" Visibility="{Binding MostraRitenute, Converter={StaticResource BoolToVisibility}}">
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{Binding NessunClienteSelezionato, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="Seleziona un cliente e un anno per iniziare" FontSize="13" Foreground="{StaticResource BrushTestoSecondario}"/>
+            </StackPanel>
+
+            <Grid Visibility="{Binding NessunClienteSelezionato, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="28,16,28,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <StackPanel Margin="0,0,50,0">
+                            <TextBlock Text="TOTALE" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushSuccess}"/>
+                            <TextBlock Text="{Binding TotaleRitenuteTesto}" FontSize="16" FontWeight="Medium" Foreground="{StaticResource BrushSuccess}" Margin="0,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,50,0">
+                            <TextBlock Text="VERSATO" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushPrimary}"/>
+                            <TextBlock Text="{Binding TotaleVersatoTesto}" FontSize="16" FontWeight="Medium" Foreground="{StaticResource BrushPrimary}" Margin="0,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="RESIDUO" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}"/>
+                            <TextBlock Text="{Binding ResiduoRitenuteTesto}" FontSize="16" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}" Margin="0,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Grid.Column="1" Width="240" HorizontalAlignment="Right" Background="White"
+                        BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6" Height="34" Margin="0,0,10,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <iconPacks:PackIconBootstrapIcons Grid.Column="0"
+                            Kind="Search" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"
+                            Margin="10,0,6,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1"
+                                 Text="{Binding FiltroRitenuteTesto, UpdateSourceTrigger=PropertyChanged}"
+                                 BorderThickness="0" Background="Transparent"
+                                 FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
+                                 VerticalContentAlignment="Center" Height="32"
+                                 mah:TextBoxHelper.Watermark="  Cerca fattura…"/>
+                        </Grid>
+                    </Border>
+
+                    <Button Grid.Column="2" HorizontalAlignment="Right" Style="{StaticResource BtnOutlineGold}" Height="34"
+                        Command="{Binding NuovaRitenutaCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="11" Height="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Nuova ritenuta" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <DataGrid Grid.Row="1" x:Name="gridRitenute" ItemsSource="{Binding RitenuteFiltrate}"
+                      AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
+                      SelectionMode="Single"
+                      BorderThickness="1" BorderBrush="{StaticResource BrushBordo}"
+                      RowHeight="48" HeadersVisibility="Column" GridLinesVisibility="None"
+                      Background="White" RowBackground="White"
+                      AlternatingRowBackground="{StaticResource BrushSfondoAlternato}"
+                      Margin="28,0,28,24"
+                      MouseDoubleClick="gridRitenute_MouseDoubleClick">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModuleColumnHeaderStyle}"/>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="VerticalAlignment" Value="Stretch"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridCell">
+                                        <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                                            <ContentPresenter VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.CellStyle>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Cursor" Value="Hand"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource BrushAccentHover}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="INTESTAZIONE" Binding="{Binding Intestazione}" Width="1.2*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="FontWeight" Value="Medium"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="14,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="N. FATTURA" Binding="{Binding NumeroFattura}" Width="1*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="FontWeight" Value="Medium"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="14,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="EMISSIONE FATT." Binding="{Binding DataFattura, StringFormat=dd/MM/yyyy}" Width="1*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="14,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="PAGAMENTO FATT." Binding="{Binding DataPagamentoFattura, StringFormat=dd/MM/yyyy}" Width="1*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="14,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="IMPORTO R.A." Binding="{Binding ImportoRitenuta, StringFormat='€ {0:N0}'}" Width="1*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="14,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="PAGAMENTO R.A." Binding="{Binding ScadenzaVersamento, StringFormat=dd/MM/yyyy}" Width="1*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="14,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="VERSATO R.A." Binding="{Binding ImportoVersato, StringFormat='€ {0:N0}'}" Width="1*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="14,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="STATO" Width="1.2*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0">
+                                        <Ellipse Width="6" Height="6" Margin="0,0,6,0"
+                                             Fill="{Binding StatoVersamento, Converter={StaticResource StatoVersamentoAColore}}"/>
+                                        <TextBlock Text="{Binding StatoVersamento, Converter={StaticResource StatoVersamentoTesto}}"
+                                               FontSize="12" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        <iconPacks:PackIconBootstrapIcons Kind="ExclamationTriangleFill"
+                                            Width="11" Height="11" Foreground="{StaticResource BrushDanger}" Margin="6,3,0,0"
+                                            Visibility="{Binding HaAnomalieData, Converter={StaticResource BoolToVisibility}}"
+                                            ToolTip="{Binding DettaglioAnomalieData}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="" Width="80">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Button Style="{StaticResource BtnIcon}"
+                                            Command="{Binding DataContext.ModificaRitenutaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" ToolTip="Modifica">
+                                            <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        </Button>
+                                        <Button Style="{StaticResource BtnIconRed}" Margin="3,0,0,0"
+                                            Command="{Binding DataContext.EliminaRitenutaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" ToolTip="Elimina">
+                                            <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+
+            <!-- OVERLAY + PANNELLO NUOVA/MODIFICA RITENUTA -->
+            <Border Cursor="Arrow" Visibility="{Binding PannelloRitenutaAperto, Converter={StaticResource BoolToVisibility}}">
+                <Border.Background>
+                    <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
+                </Border.Background>
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding AnnullaRitenutaCommand}"/>
+                </Border.InputBindings>
+            </Border>
+
+            <Border Width="380" HorizontalAlignment="Right" Background="White"
+                BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+                Visibility="{Binding PannelloRitenutaAperto, Converter={StaticResource BoolToVisibility}}">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="0" Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Ritenuta d'acconto" Style="{StaticResource ModuleTitleStyle}"/>
+                            <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}"
+                                Command="{Binding AnnullaRitenutaCommand}" ToolTip="Chiudi" VerticalAlignment="Top">
+                                <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="22,16">
+
+                            <TextBlock Text="INTESTAZIONE" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding FormIntestazione, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
+
+                            <TextBlock Text="NUMERO FATTURA" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding FormNumeroFattura, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
+
+                            <TextBlock Text="DATA FATTURA" Style="{StaticResource FieldLabel}"/>
+                            <DatePicker SelectedDate="{Binding FormDataFattura}" Margin="0,4,0,16"/>
+
+                            <TextBlock Text="DATA PAGAMENTO FATTURA" Style="{StaticResource FieldLabel}"/>
+                            <Grid Margin="0,4,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <DatePicker Grid.Column="0" SelectedDate="{Binding FormDataPagamentoFattura}"/>
+                                <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
+                                    Command="{Binding PulisciDataPagamentoFatturaCommand}" ToolTip="Svuota">
+                                    <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                </Button>
+                            </Grid>
+
+                            <TextBlock Text="IMPORTO RITENUTA" Style="{StaticResource FieldLabel}"/>
+                            <Border BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="5" Height="34" Margin="0,4,0,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Background="{StaticResource BrushSfondoChiaro}" CornerRadius="4,0,0,4" Padding="10,0">
+                                        <TextBlock Text="€" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" FontSize="12"/>
+                                    </Border>
+                                    <TextBox Grid.Column="1" BorderThickness="0" TextAlignment="Right" Padding="8,0"
+                                         Text="{Binding FormImportoRitenuta, UpdateSourceTrigger=PropertyChanged, StringFormat=N0}"/>
+                                </Grid>
+                            </Border>
+
+                            <TextBlock Text="DATA PAGAMENTO RITENUTA" Style="{StaticResource FieldLabel}"/>
+                            <Grid Margin="0,4,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <DatePicker Grid.Column="0" SelectedDate="{Binding FormScadenzaVersamento}"/>
+                                <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
+                                    Command="{Binding PulisciDataPagamentoRitenutaCommand}" ToolTip="Svuota">
+                                    <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                </Button>
+                            </Grid>
+
+                            <Grid Margin="0,0,4,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="IMPORTO VERSATO" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0"
+                                    Command="{Binding SegnaVersatoInteroCommand}"
+                                    ToolTip="Imposta l'importo versato pari alla ritenuta e la data di pagamento di oggi">
+                                    <StackPanel Orientation="Horizontal">
+                                        <iconPacks:PackIconBootstrapIcons Kind="CheckCircle" Width="11" Height="11"
+                                            Foreground="{StaticResource BrushAccent}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Segna versato oggi" FontSize="11" FontWeight="Medium"
+                                               Foreground="{StaticResource BrushAccent}"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="5" Height="34">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Background="{StaticResource BrushSfondoChiaro}" CornerRadius="4,0,0,4" Padding="10,0">
+                                            <TextBlock Text="€" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" FontSize="12"/>
+                                        </Border>
+                                        <TextBox Grid.Column="1" BorderThickness="0" TextAlignment="Right" Padding="8,0"
+                                             Text="{Binding FormImportoVersato, UpdateSourceTrigger=PropertyChanged, StringFormat=N0}"/>
+                                    </Grid>
+                                </Border>
+                                <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
+                                    Command="{Binding PulisciImportoVersatoCommand}" ToolTip="Svuota">
+                                    <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                </Button>
+                            </Grid>
+
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Border Grid.Row="2" BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Padding="22,14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Content="Salva" Command="{Binding SalvaRitenutaCommand}"
+                                Style="{StaticResource BtnPrimary}" HorizontalAlignment="Stretch"/>
+                            <Button Grid.Column="2" Content="Annulla" Command="{Binding AnnullaRitenutaCommand}"
+                                Style="{StaticResource BtnOutline}"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- OVERLAY DUPLICA -->
+        <Border Grid.Row="0" Grid.RowSpan="2" Cursor="Arrow"
+            Visibility="{Binding PannelloDuplicaAperto, Converter={StaticResource BoolToVisibility}}">
+            <Border.Background>
+                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
+            </Border.Background>
+            <Border.InputBindings>
+                <MouseBinding MouseAction="LeftClick" Command="{Binding AnnullaDuplicaCommand}"/>
+            </Border.InputBindings>
+        </Border>
+
+        <!-- PANNELLO DUPLICA -->
+        <Border Grid.Row="0" Grid.RowSpan="2" Width="380" HorizontalAlignment="Right"
+            Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+            Visibility="{Binding PannelloDuplicaAperto, Converter={StaticResource BoolToVisibility}}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="0"
+                              Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Duplica attività" Style="{StaticResource ModuleTitleStyle}"/>
+                        <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}"
+                            Command="{Binding AnnullaDuplicaCommand}" ToolTip="Chiudi" VerticalAlignment="Top">
+                            <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="14" Height="14"
+                            Foreground="{StaticResource BrushTestoSecondario}"/>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="22,16">
+
+                        <TextBlock Text="DUPLICA DA" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding ClientiDuplicabili}"
+                              TextSearch.TextPath="RagioneSociale"
+                              SelectedItem="{Binding ClienteSorgenteSelezionato}"
+                              Margin="0,4,0,16"/>
+
+                        <StackPanel Visibility="{Binding ClienteSorgenteSelezionato, Converter={StaticResource BoolToVisibility}}">
+
+                            <TextBlock Text="VERRANNO ASSEGNATE" Style="{StaticResource FieldLabel}"/>
+                            <ItemsControl ItemsSource="{Binding AttivitaAssegnate}" Margin="0,4,0,16">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="4"
+                                            Padding="10,7" Margin="0,0,0,6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Nome}" FontSize="12"
+                                                           Foreground="{StaticResource BrushTestoPrimario}"/>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                        <TextBlock Text="{Binding Periodicita}" FontSize="10"
+                                                               Foreground="{StaticResource BrushTestoSecondario}"
+                                                               Background="White" Padding="6,2" Margin="0,0,5,0"/>
+                                                        <TextBlock Text="{Binding TipoCampo, Converter={StaticResource TipoCampoLabel}}"
+                                                               FontSize="10" Foreground="{StaticResource BrushTestoSecondario}"
+                                                               Background="White" Padding="6,2"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="4"
+                                                    VerticalAlignment="Center"
+                                                    Command="{Binding DataContext.RimuoviDaAssegnateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" ToolTip="Non assegnare">
+                                                    <iconPacks:PackIconBootstrapIcons Kind="Dash" Width="11" Height="11"
+                                                    Foreground="{StaticResource BrushTestoSecondario}"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="NON VERRANNO ASSEGNATE" Style="{StaticResource FieldLabel}"/>
+                            <ItemsControl ItemsSource="{Binding AttivitaNonAssegnate}" Margin="0,4,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="4"
+                                            Padding="10,7" Margin="0,0,0,6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Nome}" FontSize="12"
+                                                           Foreground="{StaticResource BrushTestoSecondario}"/>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                        <TextBlock Text="{Binding Periodicita}" FontSize="10"
+                                                               Foreground="{StaticResource BrushTestoSecondario}"
+                                                               Background="White" Padding="6,2" Margin="0,0,5,0"/>
+                                                        <TextBlock Text="{Binding TipoCampo, Converter={StaticResource TipoCampoLabel}}"
+                                                               FontSize="10" Foreground="{StaticResource BrushTestoSecondario}"
+                                                               Background="White" Padding="6,2"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="4"
+                                                    VerticalAlignment="Center"
+                                                    Command="{Binding DataContext.AggiungiAdAssegnateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" ToolTip="Assegna">
+                                                    <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="11" Height="11"
+                                                    Foreground="{StaticResource BrushTestoSecondario}"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Border Grid.Row="2" BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Padding="22,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Salva" Command="{Binding SalvaDuplicaCommand}"
+                            Style="{StaticResource BtnPrimary}" HorizontalAlignment="Stretch"/>
+                        <Button Grid.Column="2" Content="Annulla" Command="{Binding AnnullaDuplicaCommand}"
+                            Style="{StaticResource BtnOutline}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

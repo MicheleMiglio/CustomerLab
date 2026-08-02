@@ -487,8 +487,37 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="REFERENTE" Style="{StaticResource FieldLabel}"/>
-                                    <TextBox Text="{Binding Dettaglio.FormReferente, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBlock Text="REFERENTE *" Style="{StaticResource FieldLabel}"/>
+                                    <Grid Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <ComboBox Grid.Column="0"
+          ItemsSource="{Binding ReferentiAttivi}"
+          DisplayMemberPath="Nome"
+          SelectedItem="{Binding Dettaglio.FormReferente}"/>
+                                        <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
+        Command="{Binding ApriGestioneReferentiCommand}" ToolTip="Gestisci referenti">
+                                            <iconPacks:PackIconBootstrapIcons Kind="Gear" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        </Button>
+                                    </Grid>
+
+                                    <TextBlock Text="PROGRAMMA" Style="{StaticResource FieldLabel}"/>
+                                    <Grid Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <ComboBox Grid.Column="0"
+          ItemsSource="{Binding Programmi}"
+          DisplayMemberPath="Nome"
+          SelectedItem="{Binding Dettaglio.FormProgramma}"/>
+                                        <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
+        Command="{Binding ApriGestioneProgrammiCommand}" ToolTip="Gestisci programmi">
+                                            <iconPacks:PackIconBootstrapIcons Kind="Gear" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        </Button>
+                                    </Grid>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2">
                                     <TextBlock Text="INTERMEDIARIO" Style="{StaticResource FieldLabel}"/>
@@ -678,6 +707,176 @@
 
             </Grid>
         </Border>
+        <!-- GESTIONE REFERENTI -->
+        <Border Grid.Row="0" Grid.RowSpan="2" Cursor="Arrow" Visibility="{Binding PannelloReferentiAperto, Converter={StaticResource BoolToVisibility}}">
+            <Border.Background>
+                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
+            </Border.Background>
+            <Border.InputBindings>
+                <MouseBinding MouseAction="LeftClick" Command="{Binding ChiudiGestioneReferentiCommand}"/>
+            </Border.InputBindings>
+        </Border>
+        <Border Grid.Row="0" Grid.RowSpan="2" Width="360" HorizontalAlignment="Right" Background="White"
+            BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+            Visibility="{Binding PannelloReferentiAperto, Converter={StaticResource BoolToVisibility}}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="0" Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Gestisci referenti" Style="{StaticResource ModuleTitleStyle}"/>
+                        <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}" Command="{Binding ChiudiGestioneReferentiCommand}" VerticalAlignment="Top">
+                            <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
+                        </Button>
+                    </Grid>
+                </Border>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="22,16">
 
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding NuovoReferenteTesto, UpdateSourceTrigger=PropertyChanged}"
+                                 mah:TextBoxHelper.Watermark="Nuovo referente…"/>
+                            <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Margin="6,0,0,0" Command="{Binding AggiungiReferenteCommand}">
+                                <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="12" Height="12" Foreground="White"/>
+                            </Button>
+                        </Grid>
+
+                        <TextBlock Text="ATTIVI" Style="{StaticResource FieldLabel}"/>
+                        <ItemsControl ItemsSource="{Binding ReferentiTutti}" Margin="0,4,0,16">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="5" Padding="8,6" Margin="0,0,0,5"
+                                        Visibility="{Binding Attivo, Converter={StaticResource BoolToVisibility}}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding Nome, UpdateSourceTrigger=LostFocus}"
+                                                 BorderThickness="0" Background="Transparent" FontSize="12"
+                                                 LostFocus="Referente_LostFocus" Tag="{Binding}"/>
+                                            <Button Grid.Column="1" Style="{StaticResource BtnIconRed}" Padding="4"
+                                                Command="{Binding DataContext.EliminaReferenteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" ToolTip="Elimina/disattiva">
+                                                <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="11" Height="11" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="DISATTIVATI" Style="{StaticResource FieldLabel}"/>
+                        <ItemsControl ItemsSource="{Binding ReferentiTutti}" Margin="0,4,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="5" Padding="8,6" Margin="0,0,0,5"
+                                        Visibility="{Binding Attivo, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Nome}" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                            <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="4"
+                                                Command="{Binding DataContext.RiattivaReferenteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" ToolTip="Riattiva">
+                                                <iconPacks:PackIconBootstrapIcons Kind="ArrowCounterclockwise" Width="11" Height="11" Foreground="{StaticResource BrushAccent}"/>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- GESTIONE PROGRAMMI -->
+        <Border Grid.Row="0" Grid.RowSpan="2" Cursor="Arrow" Visibility="{Binding PannelloProgrammiAperto, Converter={StaticResource BoolToVisibility}}">
+            <Border.Background>
+                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
+            </Border.Background>
+            <Border.InputBindings>
+                <MouseBinding MouseAction="LeftClick" Command="{Binding ChiudiGestioneProgrammiCommand}"/>
+            </Border.InputBindings>
+        </Border>
+        <Border Grid.Row="0" Grid.RowSpan="2" Width="360" HorizontalAlignment="Right" Background="White"
+            BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+            Visibility="{Binding PannelloProgrammiAperto, Converter={StaticResource BoolToVisibility}}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="0" Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Gestisci programmi" Style="{StaticResource ModuleTitleStyle}"/>
+                        <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}" Command="{Binding ChiudiGestioneProgrammiCommand}" VerticalAlignment="Top">
+                            <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
+                        </Button>
+                    </Grid>
+                </Border>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="22,16">
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding NuovoProgrammaTesto, UpdateSourceTrigger=PropertyChanged}"
+                                 mah:TextBoxHelper.Watermark="Nuovo programma…"/>
+                            <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Margin="6,0,0,0" Command="{Binding AggiungiProgrammaCommand}">
+                                <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="12" Height="12" Foreground="White"/>
+                            </Button>
+                        </Grid>
+                        <ItemsControl ItemsSource="{Binding Programmi}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="5" Padding="8,6" Margin="0,0,0,5">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding Nome, UpdateSourceTrigger=LostFocus}"
+                                                 BorderThickness="0" Background="Transparent" FontSize="12"
+                                                 LostFocus="Programma_LostFocus" Tag="{Binding}"/>
+                                            <Button Grid.Column="1" Style="{StaticResource BtnIconRed}" Padding="4"
+                                                Command="{Binding DataContext.EliminaProgrammaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" ToolTip="Elimina">
+                                                <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="11" Height="11" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

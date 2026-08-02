@@ -13,6 +13,9 @@ namespace CLab.Data
         public DbSet<ClienteAttivita> ClientiAttivita { get; set; }
         public DbSet<Compilazione> Compilazioni { get; set; }
         public DbSet<RitenutaAcconto> RitenuteAcconto { get; set; }
+        public DbSet<Fattura> Fatture { get; set; }
+        public DbSet<Referente> Referenti { get; set; }
+        public DbSet<Programma> Programmi { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -44,6 +47,24 @@ namespace CLab.Data
                 .WithMany()
                 .HasForeignKey(r => r.ClienteId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Fattura>()
+                .HasOne<Referente>()
+                .WithMany()
+                .HasForeignKey(f => f.ReferenteId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Cliente>()
+                .HasOne<Referente>()
+                .WithMany()
+                .HasForeignKey(c => c.ReferenteId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Cliente>()
+                .HasOne<Programma>()
+                .WithMany()
+                .HasForeignKey(c => c.ProgrammaId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Eliminare un'Attivita dal catalogo elimina a cascata le sue
             // opzioni, le assegnazioni ai clienti e tutte le compilazioni:

@@ -4,7 +4,8 @@
         xmlns:views="clr-namespace:CLab.Views"
         Title="CustomerLab"
         Height="800"
-        Width="1200">
+        Width="1200"
+        WindowState="Maximized">
 
     <Grid>
 

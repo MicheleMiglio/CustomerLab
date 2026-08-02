@@ -13,9 +13,11 @@ namespace CLab.Models
     {
         public int Id { get; set; }
         public string RagioneSociale { get; set; } = string.Empty;
+        public override string ToString() => RagioneSociale;
         public string? PartitaIva { get; set; }
         public string? CodiceFiscale { get; set; }
-        public string? Referente { get; set; }
+        public int? ReferenteId { get; set; }
+        public int? ProgrammaId { get; set; }
         public string? Note { get; set; }
         public string? Intermediario { get; set; }
         public string? TipoContabilita { get; set; }

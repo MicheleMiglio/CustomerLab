@@ -27,15 +27,18 @@ namespace CLab.ViewModels.Dettaglio
             }
         }
 
-        private string? _formReferente;
-        public string? FormReferente
+        private Referente? _formReferente;
+        public Referente? FormReferente
         {
             get => _formReferente;
-            set
-            {
-                _formReferente = value;
-                OnPropertyChanged();
-            }
+            set { _formReferente = value; OnPropertyChanged(); }
+        }
+
+        private Programma? _formProgramma;
+        public Programma? FormProgramma
+        {
+            get => _formProgramma;
+            set { _formProgramma = value; OnPropertyChanged(); }
         }
 
         private string? _formIntermediario;

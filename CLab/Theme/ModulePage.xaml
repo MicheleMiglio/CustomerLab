@@ -61,6 +61,7 @@
         <Setter Property="FontSize" Value="11"/>
         <Setter Property="FontWeight" Value="Medium"/>
         <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -69,7 +70,7 @@
                         <Border x:Name="bd" Background="{TemplateBinding Background}"
                             BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,0,0,1">
                             <ContentPresenter Margin="{TemplateBinding Padding}"
-                                HorizontalAlignment="Left" VerticalAlignment="Center"/>
+    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
                         </Border>
                         <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left"
                             Width="4" Cursor="SizeWE">

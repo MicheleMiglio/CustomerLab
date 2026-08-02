@@ -11,6 +11,8 @@ namespace CLab.ViewModels
         private MenuItemModel? _dashboardMenu;
         private MenuItemModel? _clientiMenu;
         private MenuItemModel? _attivitaMenu;
+        private MenuItemModel? _scadenzarioMenu;
+        private MenuItemModel? _fattureMenu;
 
         public object? VistaCorrente
         {
@@ -82,11 +84,19 @@ namespace CLab.ViewModels
         {
             _dashboardMenu = new MenuItemModel
             {
-                Titolo = "Dashboard",
+                Titolo = "Home",
                 Icona = "House",
                 Comando = new RelayCommand<MenuItemModel>(ApriDashboard)
             };
             MenuPrincipale.Add(_dashboardMenu);
+
+            _scadenzarioMenu = new MenuItemModel
+            {
+                Titolo = "Scadenzario",
+                Icona = "Calendar",
+                Comando = new RelayCommand<MenuItemModel>(ApriScadenzario)
+            };
+            MenuPrincipale.Add(_scadenzarioMenu);
 
             _clientiMenu = new MenuItemModel
             {
@@ -104,21 +114,13 @@ namespace CLab.ViewModels
             };
             MenuPrincipale.Add(_attivitaMenu);
 
-            MenuPrincipale.Add(
-                new MenuItemModel
-                {
-                    Titolo = "Scadenze",
-                    Icona = "Calendar",
-                    Comando = null
-                });
-
-            MenuPrincipale.Add(
-                new MenuItemModel
-                {
-                    Titolo = "Fatture",
-                    Icona = "Receipt",
-                    Comando = null
-                });
+            _fattureMenu = new MenuItemModel
+            {
+                Titolo = "Fatture",
+                Icona = "Receipt",
+                Comando = new RelayCommand<MenuItemModel>(ApriFatture)
+            };
+            MenuPrincipale.Add(_fattureMenu);
 
             MenuFooter.Add(
                 new MenuItemModel
@@ -134,7 +136,7 @@ namespace CLab.ViewModels
         {
             SelezionaMenu(menu);
 
-            VistaCorrente = new DashboardViewModel();
+            VistaCorrente = new HomeViewModel();
         }
 
         private void ApriClienti(MenuItemModel? menu)
@@ -144,11 +146,35 @@ namespace CLab.ViewModels
             VistaCorrente = new ClientiViewModel();
         }
 
+        private void ApriScadenzario(MenuItemModel? menu)
+        {
+            SelezionaMenu(menu);
+
+            VistaCorrente = new ScadenzarioViewModel(ApriConfigurazioneAttivitaPerCliente);
+        }
+
         private void ApriAttivita(MenuItemModel? menu)
         {
             SelezionaMenu(menu);
 
             VistaCorrente = new AttivitaViewModel();
+        }
+
+        private void ApriFatture(MenuItemModel? menu)
+        {
+            SelezionaMenu(menu);
+            VistaCorrente = new FattureViewModel();
+        }
+
+        private void ApriConfigurazioneAttivitaPerCliente(string ragioneSociale)
+        {
+            SelezionaMenu(_attivitaMenu);
+
+            var vm = new AttivitaViewModel();
+            vm.MostraConfigurazioneCommand.Execute(null);
+            vm.ApriConfigurazionePerCliente(ragioneSociale);
+
+            VistaCorrente = vm;
         }
 
         private void SelezionaMenu(MenuItemModel? menu)

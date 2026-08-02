@@ -1,6 +1,6 @@
 ﻿using CLab.Data;
 using CLab.Models;
-using CLab.ViewModels;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -11,7 +11,6 @@ namespace CLab.ViewModels
     public class AttivitaViewModel : ViewModelBase
     {
         public ObservableCollection<Attivita> Elenco { get; set; } = new();
-
         public ObservableCollection<Attivita> ElencoFiltrato { get; set; } = new();
 
         private string _filtroCatalogoTesto = string.Empty;
@@ -86,7 +85,7 @@ namespace CLab.ViewModels
             set { _formNuovaOpzione = value; OnPropertyChanged(); }
         }
 
-        // --- Comandi ---
+        // --- Comandi catalogo ---
 
         public ICommand NuovoCommand { get; }
         public ICommand ModificaCommand { get; }
@@ -105,10 +104,18 @@ namespace CLab.ViewModels
             EliminaCommand = new RelayCommand<Attivita>(Elimina);
             AggiungiOpzioneCommand = new RelayCommand(AggiungiOpzione);
             RimuoviOpzioneCommand = new RelayCommand<string>(RimuoviOpzione);
+
             MostraCatalogoCommand = new RelayCommand(MostraCatalogo);
             MostraConfigurazioneCommand = new RelayCommand(MostraConfigurazione);
+            MostraConfigPerClienteCommand = new RelayCommand(() => ModalitaPerCliente = true);
+            MostraConfigPerAttivitaCommand = new RelayCommand(() => ModalitaPerCliente = false);
+            RimuoviAttivitaCommand = new RelayCommand<VoceDuplica>(RimuoviAttivita);
+            AggiungiAttivitaCommand = new RelayCommand<VoceDuplica>(AggiungiAttivita);
+            RimuoviClienteCommand = new RelayCommand<VoceClienteConfigurazione>(RimuoviCliente);
+            AggiungiClienteCommand = new RelayCommand<VoceClienteConfigurazione>(AggiungiCliente);
 
             CaricaElenco();
+            CaricaClientiPerConfigurazione();
         }
 
         private void CaricaElenco()
@@ -217,7 +224,6 @@ namespace CLab.ViewModels
             {
                 entita = db.Attivita.First(a => a.Id == _attivitaInModificaId);
 
-                // Rimuoviamo le vecchie opzioni: le riscriviamo da capo con quelle del form
                 var vecchieOpzioni = db.OpzioniAttivita.Where(o => o.AttivitaId == entita.Id);
                 db.OpzioniAttivita.RemoveRange(vecchieOpzioni);
             }
@@ -251,10 +257,7 @@ namespace CLab.ViewModels
             CaricaElenco();
 
             if (ConfigurazioneAttiva)
-            {
-                CaricaMatrice();
-                OnPropertyChanged(nameof(ConfigurazioneAttiva));
-            }
+                CaricaListeConfigurazione();
         }
 
         private void Annulla()
@@ -287,14 +290,14 @@ namespace CLab.ViewModels
 
             CaricaElenco();
 
+            if (AttivitaConfigurazione != null && !Elenco.Any(x => x.Id == AttivitaConfigurazione.Id))
+                AttivitaConfigurazione = null;
+
             if (ConfigurazioneAttiva)
-            {
-                CaricaMatrice();
-                OnPropertyChanged(nameof(ConfigurazioneAttiva));
-            }
+                CaricaListeConfigurazione();
         }
 
-        // --- Configurazione (matrice Clienti × Attività) ---
+        // --- Configurazione: doppia lista, due modalità ---
 
         private bool _configurazioneAttiva;
         public bool ConfigurazioneAttiva
@@ -303,10 +306,14 @@ namespace CLab.ViewModels
             set { _configurazioneAttiva = value; OnPropertyChanged(); }
         }
 
-        public ObservableCollection<RigaMatriceCliente> Matrice { get; set; } = new();
-
         public ICommand MostraCatalogoCommand { get; }
         public ICommand MostraConfigurazioneCommand { get; }
+        public ICommand MostraConfigPerClienteCommand { get; }
+        public ICommand MostraConfigPerAttivitaCommand { get; }
+        public ICommand RimuoviAttivitaCommand { get; }
+        public ICommand AggiungiAttivitaCommand { get; }
+        public ICommand RimuoviClienteCommand { get; }
+        public ICommand AggiungiClienteCommand { get; }
 
         private void MostraCatalogo()
         {
@@ -315,157 +322,347 @@ namespace CLab.ViewModels
 
         private void MostraConfigurazione()
         {
-            CaricaMatrice();
             ConfigurazioneAttiva = true;
+            CaricaListeConfigurazione();
         }
 
-        private List<RigaMatriceCliente> _matriceCompleta = new();
-
-        private string _filtroMatriceTesto = string.Empty;
-        public string FiltroMatriceTesto
+        private bool _modalitaPerCliente = true;
+        public bool ModalitaPerCliente
         {
-            get => _filtroMatriceTesto;
+            get => _modalitaPerCliente;
             set
             {
-                _filtroMatriceTesto = value;
+                _modalitaPerCliente = value;
                 OnPropertyChanged();
-                ApplicaFiltroMatrice();
+                CaricaListeConfigurazione();
             }
         }
 
-        private void CaricaMatrice()
+        public ObservableCollection<Cliente> ClientiPerConfigurazione { get; set; } = new();
+
+        private List<Cliente> _clientiConfigurazioneCompleti = new();
+        public ObservableCollection<Referente> ReferentiFiltroConfigurazione { get; set; } = new();
+
+        private Referente? _referenteFiltroConfigurazione;
+        public Referente? ReferenteFiltroConfigurazione
+        {
+            get => _referenteFiltroConfigurazione;
+            set { _referenteFiltroConfigurazione = value; OnPropertyChanged(); ApplicaFiltroClientiConfigurazione(); }
+        }
+
+        private Cliente? _clienteConfigurazione;
+        public Cliente? ClienteConfigurazione
+        {
+            get => _clienteConfigurazione;
+            set
+            {
+                _clienteConfigurazione = value;
+                OnPropertyChanged();
+                CaricaListeConfigurazione();
+            }
+        }
+
+        private Attivita? _attivitaConfigurazione;
+        public Attivita? AttivitaConfigurazione
+        {
+            get => _attivitaConfigurazione;
+            set
+            {
+                _attivitaConfigurazione = value;
+                OnPropertyChanged();
+                CaricaListeConfigurazione();
+            }
+        }
+
+        // Liste "per cliente" (contengono attività)
+        public ObservableCollection<VoceDuplica> AttivitaAssegnateConfig { get; set; } = new();
+        public ObservableCollection<VoceDuplica> AttivitaNonAssegnateConfig { get; set; } = new();
+        private List<VoceDuplica> _attivitaAssegnateComplete = new();
+        private List<VoceDuplica> _attivitaNonAssegnateComplete = new();
+
+        // Liste "per attività" (contengono clienti)
+        public ObservableCollection<VoceClienteConfigurazione> ClientiAssegnatiConfig { get; set; } = new();
+        public ObservableCollection<VoceClienteConfigurazione> ClientiNonAssegnatiConfig { get; set; } = new();
+        private List<VoceClienteConfigurazione> _clientiAssegnatiCompleti = new();
+        private List<VoceClienteConfigurazione> _clientiNonAssegnatiCompleti = new();
+
+        private string _filtroAssegnateTesto = string.Empty;
+        public string FiltroAssegnateTesto
+        {
+            get => _filtroAssegnateTesto;
+            set { _filtroAssegnateTesto = value; OnPropertyChanged(); ApplicaFiltriConfigurazione(); }
+        }
+
+        private string _filtroNonAssegnateTesto = string.Empty;
+        public string FiltroNonAssegnateTesto
+        {
+            get => _filtroNonAssegnateTesto;
+            set { _filtroNonAssegnateTesto = value; OnPropertyChanged(); ApplicaFiltriConfigurazione(); }
+        }
+
+        private void CaricaClientiPerConfigurazione()
         {
             using var db = new ClabDbContext();
+            _clientiConfigurazioneCompleti = db.Clienti.AsNoTracking().OrderBy(x => x.RagioneSociale).ToList();
 
-            var clienti = db.Clienti.OrderBy(c => c.RagioneSociale).ToList();
-            var assegnazioni = db.ClientiAttivita.ToList();
+            ReferentiFiltroConfigurazione.Clear();
+            foreach (var r in db.Referenti.AsNoTracking().Where(r => r.Attivo).OrderBy(r => r.Nome).ToList())
+                ReferentiFiltroConfigurazione.Add(r);
 
-            _matriceCompleta = new List<RigaMatriceCliente>();
+            ApplicaFiltroClientiConfigurazione();
+        }
 
-            foreach (var cliente in clienti)
+        private void ApplicaFiltroClientiConfigurazione()
+        {
+            ClientiPerConfigurazione.Clear();
+
+            var filtrati = ReferenteFiltroConfigurazione == null
+                ? _clientiConfigurazioneCompleti
+                : _clientiConfigurazioneCompleti.Where(c => c.ReferenteId == ReferenteFiltroConfigurazione.Id);
+
+            foreach (var c in filtrati) ClientiPerConfigurazione.Add(c);
+
+            if (ClienteConfigurazione != null && !ClientiPerConfigurazione.Contains(ClienteConfigurazione))
+                ClienteConfigurazione = null;
+        }
+
+        private void CaricaListeConfigurazione()
+        {
+            if (ModalitaPerCliente)
+                CaricaListePerCliente();
+            else
+                CaricaListePerAttivita();
+        }
+
+        private void CaricaListePerCliente()
+        {
+            _attivitaAssegnateComplete = new List<VoceDuplica>();
+            _attivitaNonAssegnateComplete = new List<VoceDuplica>();
+
+            if (ClienteConfigurazione != null)
             {
-                var riga = new RigaMatriceCliente
-                {
-                    ClienteId = cliente.Id,
-                    RagioneSociale = cliente.RagioneSociale,
-                    PartitaIva = cliente.PartitaIva
-                };
+                using var db = new ClabDbContext();
+                var idAssegnate = db.ClientiAttivita
+                    .Where(ca => ca.ClienteId == ClienteConfigurazione.Id)
+                    .Select(ca => ca.AttivitaId)
+                    .ToHashSet();
 
-                foreach (var att in Elenco)
+                foreach (var a in Elenco)
                 {
-                    bool selezionata = assegnazioni.Any(a => a.ClienteId == cliente.Id && a.AttivitaId == att.Id);
-
-                    var cella = new CellaMatrice
+                    var voce = new VoceDuplica
                     {
-                        ClienteId = cliente.Id,
-                        AttivitaId = att.Id,
-                        Selezionata = selezionata
+                        AttivitaId = a.Id,
+                        Nome = a.Nome,
+                        Periodicita = a.Periodicita,
+                        TipoCampo = a.TipoCampo
                     };
-                    cella.OnCambiata = CellaMatriceCambiata;
-                    riga.Celle.Add(cella);
-                }
 
-                _matriceCompleta.Add(riga);
+                    if (idAssegnate.Contains(a.Id))
+                        _attivitaAssegnateComplete.Add(voce);
+                    else
+                        _attivitaNonAssegnateComplete.Add(voce);
+                }
             }
 
-            ApplicaFiltroMatrice();
+            ApplicaFiltriConfigurazione();
         }
 
-        private void ApplicaFiltroMatrice()
+        private void CaricaListePerAttivita()
         {
-            Matrice.Clear();
+            _clientiAssegnatiCompleti = new List<VoceClienteConfigurazione>();
+            _clientiNonAssegnatiCompleti = new List<VoceClienteConfigurazione>();
 
-            var filtrate = string.IsNullOrWhiteSpace(FiltroMatriceTesto)
-                ? _matriceCompleta
-                : _matriceCompleta.Where(r =>
-                    r.RagioneSociale.Contains(FiltroMatriceTesto, StringComparison.OrdinalIgnoreCase) ||
-                    (r.PartitaIva != null && r.PartitaIva.Contains(FiltroMatriceTesto, StringComparison.OrdinalIgnoreCase)));
-
-            foreach (var riga in filtrate)
-                Matrice.Add(riga);
-        }
-
-        private void CellaMatriceCambiata(CellaMatrice cella)
-        {
-            using var db = new ClabDbContext();
-
-            if (cella.Selezionata)
+            if (AttivitaConfigurazione != null)
             {
-                bool esiste = db.ClientiAttivita.Any(a => a.ClienteId == cella.ClienteId && a.AttivitaId == cella.AttivitaId);
-                if (!esiste)
+                using var db = new ClabDbContext();
+                var idAssegnati = db.ClientiAttivita
+                    .Where(ca => ca.AttivitaId == AttivitaConfigurazione.Id)
+                    .Select(ca => ca.ClienteId)
+                    .ToHashSet();
+
+                foreach (var c in ClientiPerConfigurazione)
                 {
-                    db.ClientiAttivita.Add(new ClienteAttivita
+                    var voce = new VoceClienteConfigurazione
                     {
-                        ClienteId = cella.ClienteId,
-                        AttivitaId = cella.AttivitaId
-                    });
-                    db.SaveChanges();
+                        ClienteId = c.Id,
+                        RagioneSociale = c.RagioneSociale,
+                        PartitaIva = c.PartitaIva
+                    };
+
+                    if (idAssegnati.Contains(c.Id))
+                        _clientiAssegnatiCompleti.Add(voce);
+                    else
+                        _clientiNonAssegnatiCompleti.Add(voce);
                 }
-                return;
             }
 
-            // Tolta la spunta: chiediamo SEMPRE conferma, il messaggio si
-            // arricchisce solo se ci sono davvero compilazioni da perdere.
-            int compilazioniCoinvolte = db.Compilazioni.Count(c => c.ClienteId == cella.ClienteId && c.AttivitaId == cella.AttivitaId);
+            ApplicaFiltriConfigurazione();
+        }
 
-            string nomeAttivita = Elenco.First(a => a.Id == cella.AttivitaId).Nome;
-            string nomeCliente = _matriceCompleta.First(r => r.ClienteId == cella.ClienteId).RagioneSociale;
+        private void ApplicaFiltriConfigurazione()
+        {
+            AttivitaAssegnateConfig.Clear();
+            foreach (var v in Filtra(_attivitaAssegnateComplete, FiltroAssegnateTesto, x => x.Nome))
+                AttivitaAssegnateConfig.Add(v);
+
+            AttivitaNonAssegnateConfig.Clear();
+            foreach (var v in Filtra(_attivitaNonAssegnateComplete, FiltroNonAssegnateTesto, x => x.Nome))
+                AttivitaNonAssegnateConfig.Add(v);
+
+            ClientiAssegnatiConfig.Clear();
+            foreach (var v in Filtra(_clientiAssegnatiCompleti, FiltroAssegnateTesto, x => x.RagioneSociale))
+                ClientiAssegnatiConfig.Add(v);
+
+            ClientiNonAssegnatiConfig.Clear();
+            foreach (var v in Filtra(_clientiNonAssegnatiCompleti, FiltroNonAssegnateTesto, x => x.RagioneSociale))
+                ClientiNonAssegnatiConfig.Add(v);
+        }
+
+        private static IEnumerable<T> Filtra<T>(List<T> lista, string filtro, Func<T, string> testo)
+        {
+            return string.IsNullOrWhiteSpace(filtro)
+                ? lista
+                : lista.Where(x => testo(x).Contains(filtro, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void RimuoviAttivita(VoceDuplica? voce)
+        {
+            if (voce == null || ClienteConfigurazione == null) return;
+
+            using var db = new ClabDbContext();
+            int compilazioniCoinvolte = db.Compilazioni.Count(c =>
+                c.ClienteId == ClienteConfigurazione.Id && c.AttivitaId == voce.AttivitaId);
 
             string messaggio = compilazioniCoinvolte > 0
                 ? $"Ci sono {compilazioniCoinvolte} compilazion{(compilazioniCoinvolte == 1 ? "e" : "i")} registrat{(compilazioniCoinvolte == 1 ? "a" : "e")} " +
-                  $"per \"{nomeAttivita}\" su {nomeCliente}.\nRimuovendola, verranno eliminate definitivamente. Continuare?"
-                : $"Rimuovere \"{nomeAttivita}\" da {nomeCliente}?";
+                  $"per \"{voce.Nome}\" su {ClienteConfigurazione.RagioneSociale}.\nRimuovendola, verranno eliminate definitivamente. Continuare?"
+                : $"Rimuovere \"{voce.Nome}\" da {ClienteConfigurazione.RagioneSociale}?";
 
             var esito = MessageBox.Show(messaggio, "Conferma rimozione", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (esito != MessageBoxResult.Yes)
-            {
-                cella.OnCambiata = null;
-                cella.Selezionata = true;
-                cella.OnCambiata = CellaMatriceCambiata;
-                return;
-            }
+            if (esito != MessageBoxResult.Yes) return;
 
             if (compilazioniCoinvolte > 0)
+                db.Compilazioni.RemoveRange(db.Compilazioni.Where(c =>
+                    c.ClienteId == ClienteConfigurazione.Id && c.AttivitaId == voce.AttivitaId));
+
+            var esistente = db.ClientiAttivita.FirstOrDefault(a =>
+                a.ClienteId == ClienteConfigurazione.Id && a.AttivitaId == voce.AttivitaId);
+            if (esistente != null) db.ClientiAttivita.Remove(esistente);
+            db.SaveChanges();
+
+            _attivitaAssegnateComplete.Remove(voce);
+            _attivitaNonAssegnateComplete.Add(voce);
+            ApplicaFiltriConfigurazione();
+        }
+
+        private void AggiungiAttivita(VoceDuplica? voce)
+        {
+            if (voce == null || ClienteConfigurazione == null) return;
+
+            using var db = new ClabDbContext();
+            bool esiste = db.ClientiAttivita.Any(a =>
+                a.ClienteId == ClienteConfigurazione.Id && a.AttivitaId == voce.AttivitaId);
+
+            if (!esiste)
             {
-                db.Compilazioni.RemoveRange(
-                    db.Compilazioni.Where(c => c.ClienteId == cella.ClienteId && c.AttivitaId == cella.AttivitaId));
+                db.ClientiAttivita.Add(new ClienteAttivita
+                {
+                    ClienteId = ClienteConfigurazione.Id,
+                    AttivitaId = voce.AttivitaId
+                });
+                db.SaveChanges();
             }
 
-            var esistente = db.ClientiAttivita.FirstOrDefault(a => a.ClienteId == cella.ClienteId && a.AttivitaId == cella.AttivitaId);
-            if (esistente != null)
-                db.ClientiAttivita.Remove(esistente);
+            _attivitaNonAssegnateComplete.Remove(voce);
+            _attivitaAssegnateComplete.Add(voce);
+            ApplicaFiltriConfigurazione();
+        }
 
+        private void RimuoviCliente(VoceClienteConfigurazione? voce)
+        {
+            if (voce == null || AttivitaConfigurazione == null) return;
+
+            using var db = new ClabDbContext();
+            int compilazioniCoinvolte = db.Compilazioni.Count(c =>
+                c.ClienteId == voce.ClienteId && c.AttivitaId == AttivitaConfigurazione.Id);
+
+            string messaggio = compilazioniCoinvolte > 0
+                ? $"Ci sono {compilazioniCoinvolte} compilazion{(compilazioniCoinvolte == 1 ? "e" : "i")} registrat{(compilazioniCoinvolte == 1 ? "a" : "e")} " +
+                  $"per \"{AttivitaConfigurazione.Nome}\" su {voce.RagioneSociale}.\nRimuovendola, verranno eliminate definitivamente. Continuare?"
+                : $"Rimuovere \"{AttivitaConfigurazione.Nome}\" da {voce.RagioneSociale}?";
+
+            var esito = MessageBox.Show(messaggio, "Conferma rimozione", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (esito != MessageBoxResult.Yes) return;
+
+            if (compilazioniCoinvolte > 0)
+                db.Compilazioni.RemoveRange(db.Compilazioni.Where(c =>
+                    c.ClienteId == voce.ClienteId && c.AttivitaId == AttivitaConfigurazione.Id));
+
+            var esistente = db.ClientiAttivita.FirstOrDefault(a =>
+                a.ClienteId == voce.ClienteId && a.AttivitaId == AttivitaConfigurazione.Id);
+            if (esistente != null) db.ClientiAttivita.Remove(esistente);
             db.SaveChanges();
+
+            _clientiAssegnatiCompleti.Remove(voce);
+            _clientiNonAssegnatiCompleti.Add(voce);
+            ApplicaFiltriConfigurazione();
+        }
+
+        private void AggiungiCliente(VoceClienteConfigurazione? voce)
+        {
+            if (voce == null || AttivitaConfigurazione == null) return;
+
+            using var db = new ClabDbContext();
+            bool esiste = db.ClientiAttivita.Any(a =>
+                a.ClienteId == voce.ClienteId && a.AttivitaId == AttivitaConfigurazione.Id);
+
+            if (!esiste)
+            {
+                db.ClientiAttivita.Add(new ClienteAttivita
+                {
+                    ClienteId = voce.ClienteId,
+                    AttivitaId = AttivitaConfigurazione.Id
+                });
+                db.SaveChanges();
+            }
+
+            _clientiNonAssegnatiCompleti.Remove(voce);
+            _clientiAssegnatiCompleti.Add(voce);
+            ApplicaFiltriConfigurazione();
+        }
+
+        /// <summary>
+        /// Chiamato da fuori (es. Scadenzario) per aprire la Configurazione
+        /// già impostata in modalità "per cliente" con un cliente preselezionato.
+        /// </summary>
+        public void ApriConfigurazionePerCliente(string ragioneSociale)
+        {
+            ModalitaPerCliente = true;
+
+            var cliente = ClientiPerConfigurazione.FirstOrDefault(c => c.RagioneSociale == ragioneSociale);
+            if (cliente != null)
+                ClienteConfigurazione = cliente;
         }
     }
 
-    public class RigaMatriceCliente
+    public class VoceScaduta
+    {
+        public string Nome { get; set; } = string.Empty;
+        public string Periodo { get; set; } = string.Empty;
+    }
+
+    public class VoceDuplica
+    {
+        public int AttivitaId { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public Periodicita Periodicita { get; set; }
+        public TipoCampoAttivita TipoCampo { get; set; }
+    }
+
+    public class VoceClienteConfigurazione
     {
         public int ClienteId { get; set; }
         public string RagioneSociale { get; set; } = string.Empty;
         public string? PartitaIva { get; set; }
-        public ObservableCollection<CellaMatrice> Celle { get; set; } = new();
-    }
-
-    public class CellaMatrice : ViewModelBase
-    {
-        public int ClienteId { get; set; }
-        public int AttivitaId { get; set; }
-
-        private bool _selezionata;
-        public bool Selezionata
-        {
-            get => _selezionata;
-            set
-            {
-                if (_selezionata == value) return;
-                _selezionata = value;
-                OnPropertyChanged();
-                OnCambiata?.Invoke(this);
-            }
-        }
-
-        public Action<CellaMatrice>? OnCambiata;
     }
 }

@@ -1,0 +1,370 @@
+﻿<UserControl x:Class="CLab.Views.FattureView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:converters="clr-namespace:CLab.Converters">
+
+    <UserControl.Resources>
+        <converters:StatoFatturaAColoreConverter x:Key="StatoFatturaAColore"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0" Height="64">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Fatture" Style="{StaticResource ModuleTitleStyle}"/>
+                <TextBlock Text="FATTURE EMESSE E INCASSI" Style="{StaticResource ModuleSubtitleStyle}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- CONTENUTO -->
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="28,16,28,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <StackPanel Margin="0,0,50,0">
+                        <TextBlock Text="TOTALE" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushSuccess}"/>
+                        <TextBlock Text="{Binding TotaleFatturatoTesto}" FontSize="16" FontWeight="Medium" Foreground="{StaticResource BrushSuccess}" Margin="0,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,50,0">
+                        <TextBlock Text="INCASSATO" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushPrimary}"/>
+                        <TextBlock Text="{Binding IncassatoTesto}" FontSize="16" FontWeight="Medium" Foreground="{StaticResource BrushPrimary}" Margin="0,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,50,0">
+                        <TextBlock Text="DA INCASSARE" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}"/>
+                        <TextBlock Text="{Binding DaIncassareTesto}" FontSize="16" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}" Margin="0,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding FattureScadute, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="SCADUTE" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushDanger}"/>
+                        <TextBlock Text="{Binding FattureScadute}" FontSize="16" FontWeight="Medium" Foreground="{StaticResource BrushDanger}" Margin="0,3,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <Border Grid.Column="1" Width="280" HorizontalAlignment="Right" Background="White"
+                    BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6" Height="34" Margin="0,0,10,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <iconPacks:PackIconBootstrapIcons Grid.Column="0"
+                        Kind="Search" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"
+                        Margin="10,0,6,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1"
+                             Text="{Binding FiltroTesto, UpdateSourceTrigger=PropertyChanged}"
+                             BorderThickness="0" Background="Transparent"
+                             FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
+                             VerticalContentAlignment="Center" Height="32"
+                             mah:TextBoxHelper.Watermark="  Cerca numero fattura o Referente…"/>
+                    </Grid>
+                </Border>
+
+                <Button Grid.Column="2" Style="{StaticResource BtnOutlineGold}" Height="34"
+                    Command="{Binding NuovaCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="11" Height="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Nuova fattura" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <DataGrid Grid.Row="1" x:Name="gridFatture" ItemsSource="{Binding FattureFiltrate}"
+                  AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
+                  SelectionMode="Single"
+                  BorderThickness="1" BorderBrush="{StaticResource BrushBordo}"
+                  RowHeight="48" HeadersVisibility="Column" GridLinesVisibility="None"
+                  Background="White" RowBackground="White"
+                  AlternatingRowBackground="{StaticResource BrushSfondoAlternato}"
+                  Margin="28,0,28,24"
+                  MouseDoubleClick="gridFatture_MouseDoubleClick">
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModuleColumnHeaderStyle}"/>
+                </DataGrid.ColumnHeaderStyle>
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="VerticalAlignment" Value="Stretch"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="DataGridCell">
+                                    <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                                        <ContentPresenter VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.CellStyle>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource BrushAccentHover}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="NUMERO" Binding="{Binding Fattura.Numero}" Width="0.8*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize" Value="12"/>
+                                <Setter Property="FontWeight" Value="Medium"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="14,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="ReferentE" Binding="{Binding ReferenteRagioneSociale}" Width="1.3*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize" Value="12"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="14,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="DATA EMISSIONE" Binding="{Binding Fattura.DataEmissione, StringFormat=dd/MM/yyyy}" Width="1*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize" Value="12"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="14,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="IMPORTO" Binding="{Binding Fattura.Importo, StringFormat='€ {0:N0}'}" Width="0.8*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize" Value="12"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="14,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="SCADENZA" Binding="{Binding Fattura.DataScadenza, StringFormat=dd/MM/yyyy}" Width="0.9*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize" Value="12"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="14,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="PAGAMENTO" Binding="{Binding Fattura.DataPagamento, StringFormat=dd/MM/yyyy}" Width="0.9*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize" Value="12"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="14,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Header="STATO" Width="1*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0">
+                                    <Ellipse Width="6" Height="6" Margin="0,0,6,0" Fill="{Binding Fattura.Stato, Converter={StaticResource StatoFatturaAColore}}"/>
+                                    <TextBlock Text="{Binding Fattura.Stato}" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                    <iconPacks:PackIconBootstrapIcons Kind="ExclamationTriangleFill"
+                                        Width="11" Height="11" Foreground="{StaticResource BrushDanger}" Margin="6,0,0,0"
+                                        Visibility="{Binding Fattura.HaAnomalie, Converter={StaticResource BoolToVisibility}}"
+                                        ToolTip="{Binding Fattura.DettaglioAnomalie}"/>
+                                    <iconPacks:PackIconBootstrapIcons Kind="ChatLeftText"
+                                        Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="6,0,0,0"
+                                        Visibility="{Binding Fattura.Nota, Converter={StaticResource BoolToVisibility}}"
+                                        ToolTip="{Binding Fattura.Nota}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="" Width="80">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Button Style="{StaticResource BtnIcon}"
+                                        Command="{Binding DataContext.ModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" ToolTip="Modifica">
+                                        <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                    </Button>
+                                    <Button Style="{StaticResource BtnIconRed}" Margin="3,0,0,0"
+                                        Command="{Binding DataContext.EliminaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" ToolTip="Elimina">
+                                        <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <!-- OVERLAY + PANNELLO NUOVA/MODIFICA -->
+        <Border Grid.Row="0" Grid.RowSpan="2" Cursor="Arrow" Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
+            <Border.Background>
+                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
+            </Border.Background>
+            <Border.InputBindings>
+                <MouseBinding MouseAction="LeftClick" Command="{Binding AnnullaCommand}"/>
+            </Border.InputBindings>
+        </Border>
+
+        <Border Grid.Row="0" Grid.RowSpan="2" Width="380" HorizontalAlignment="Right" Background="White"
+            BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+            Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="0" Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Fattura" Style="{StaticResource ModuleTitleStyle}"/>
+                        <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}"
+                            Command="{Binding AnnullaCommand}" ToolTip="Chiudi" VerticalAlignment="Top">
+                            <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="22,16">
+
+                        <TextBlock Text="ReferentE" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding ReferentiDisponibili}"
+                              TextSearch.TextPath="RagioneSociale"
+                              SelectedItem="{Binding FormReferente}"
+                              Margin="0,4,0,16"/>
+
+                        <TextBlock Text="NUMERO" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding FormNumero, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
+
+                        <TextBlock Text="DATA EMISSIONE" Style="{StaticResource FieldLabel}"/>
+                        <DatePicker SelectedDate="{Binding FormDataEmissione}" Margin="0,4,0,16"/>
+
+                        <TextBlock Text="IMPORTO" Style="{StaticResource FieldLabel}"/>
+                        <Border BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="5" Height="34" Margin="0,4,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="{StaticResource BrushSfondoChiaro}" CornerRadius="4,0,0,4" Padding="10,0">
+                                    <TextBlock Text="€" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" FontSize="12"/>
+                                </Border>
+                                <TextBox Grid.Column="1" BorderThickness="0" TextAlignment="Right" Padding="8,0"
+                                     Text="{Binding FormImporto, UpdateSourceTrigger=PropertyChanged, StringFormat=N0}"/>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="SCADENZA PAGAMENTO (facoltativo)" Style="{StaticResource FieldLabel}"/>
+                        <Grid Margin="0,4,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <DatePicker Grid.Column="0" SelectedDate="{Binding FormDataScadenza}"/>
+                            <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
+                                Command="{Binding PulisciScadenzaCommand}" ToolTip="Svuota">
+                                <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                            </Button>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="DATA PAGAMENTO (facoltativo)" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0"
+                                Command="{Binding SegnaPagataOggiCommand}" ToolTip="Imposta la data di pagamento a oggi">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconBootstrapIcons Kind="CheckCircle" Width="11" Height="11"
+                                        Foreground="{StaticResource BrushAccent}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Segna pagata oggi" FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrushAccent}"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                        <Grid Margin="0,4,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <DatePicker Grid.Column="0" SelectedDate="{Binding FormDataPagamento}"/>
+                            <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
+                                Command="{Binding PulisciPagamentoCommand}" ToolTip="Svuota">
+                                <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                            </Button>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                            <CheckBox Style="{StaticResource ModuleCheckBoxStyle}" IsChecked="{Binding FormAnnullata}"/>
+                            <TextBlock Text="Fattura annullata" Margin="8,0,0,0"
+                                   Foreground="{StaticResource BrushTestoPrimario}" FontSize="13" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <TextBlock Text="NOTE (facoltativo)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding FormNota, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True" TextWrapping="Wrap" Height="80"
+                             VerticalContentAlignment="Top" Margin="0,4,0,0"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Border Grid.Row="2" BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Padding="22,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Salva" Command="{Binding SalvaCommand}"
+                            Style="{StaticResource BtnPrimary}" HorizontalAlignment="Stretch"/>
+                        <Button Grid.Column="2" Content="Annulla" Command="{Binding AnnullaCommand}"
+                            Style="{StaticResource BtnOutline}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

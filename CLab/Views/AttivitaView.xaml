@@ -41,12 +41,14 @@
         <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0" Height="64">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="Attività" Style="{StaticResource ModuleTitleStyle}"
-                       VerticalAlignment="Center" Margin="0,0,28,0"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Attività" Style="{StaticResource ModuleTitleStyle}"/>
+                    <TextBlock Text="GESTIONE E CONFIGURAZIONE ATTIVITÀ" Style="{StaticResource ModuleSubtitleStyle}"/>
+                </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="Catalogo" Command="{Binding MostraCatalogoCommand}"
@@ -106,19 +108,18 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Toolbar -->
-            <Grid Grid.Row="0" Margin="28,14,28,12">
+            <!-- Toolbar: solo per il Catalogo, la Configurazione ha i suoi controlli sotto -->
+            <Grid Grid.Row="0" Margin="28,14,28,12"
+                Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="300"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Ricerca Catalogo -->
                 <Border Grid.Column="0" Background="White"
                     BorderBrush="{StaticResource BrushBordo}" BorderThickness="1"
-                    CornerRadius="6" Height="34"
-                    Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                    CornerRadius="6" Height="34">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -133,28 +134,6 @@
                              FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
                              VerticalContentAlignment="Center" Height="32"
                              mah:TextBoxHelper.Watermark="  Cerca attività…"/>
-                    </Grid>
-                </Border>
-
-                <!-- Ricerca Configurazione -->
-                <Border Grid.Column="0" Background="White"
-                    BorderBrush="{StaticResource BrushBordo}" BorderThickness="1"
-                    CornerRadius="6" Height="34"
-                    Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <iconPacks:PackIconBootstrapIcons Grid.Column="0"
-                        Kind="Search" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"
-                        Margin="10,0,6,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <TextBox Grid.Column="1"
-                             Text="{Binding FiltroMatriceTesto, UpdateSourceTrigger=PropertyChanged}"
-                             BorderThickness="0" Background="Transparent"
-                             FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
-                             VerticalContentAlignment="Center" Height="32"
-                             mah:TextBoxHelper.Watermark="  Cerca cliente, P.IVA…"/>
                     </Grid>
                 </Border>
 
@@ -271,71 +250,303 @@
                 </DataGrid.Columns>
             </DataGrid>
 
-            <!-- Matrice Clienti × Attività -->
-            <DataGrid Grid.Row="1" x:Name="gridMatrice"
-                  ItemsSource="{Binding Matrice}"
-                  AutoGenerateColumns="False"
-                  CanUserAddRows="False"
-                  IsReadOnly="False"
-                  SelectionMode="Single"
-                  BorderThickness="1" BorderBrush="{StaticResource BrushBordo}"
-                  RowHeight="48" HeadersVisibility="Column"
-                  GridLinesVisibility="None"
-                  Background="White" RowBackground="White"
-                  AlternatingRowBackground="{StaticResource BrushSfondoAlternato}"
-                  Margin="28,0,28,24"
-                  Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}}">
-                <DataGrid.ColumnHeaderStyle>
-                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModuleColumnHeaderStyle}"/>
-                </DataGrid.ColumnHeaderStyle>
-                <DataGrid.CellStyle>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="BorderThickness" Value="0"/>
-                        <Setter Property="Padding" Value="0"/>
-                        <Setter Property="VerticalAlignment" Value="Stretch"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="DataGridCell">
-                                    <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
-                                        <ContentPresenter VerticalAlignment="Center"/>
+            <!-- Configurazione: doppia lista -->
+            <Grid Grid.Row="1" Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Sotto-schede + selettore -->
+                <Grid Grid.Row="0" Margin="28,15,28,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="Per cliente" Command="{Binding MostraConfigPerClienteCommand}"
+                            Padding="4,6" Margin="0,0,16,0" Cursor="Hand" Background="Transparent">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
+                                        <ContentPresenter Margin="{TemplateBinding Padding}"/>
                                     </Border>
                                 </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.CellStyle>
-                <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource BrushAccentHover}"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.RowStyle>
-                <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="CLIENTE" Width="1.4*" IsReadOnly="True" SortMemberPath="RagioneSociale">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel VerticalAlignment="Center" Margin="14,0">
-                                    <TextBlock Text="{Binding RagioneSociale}"
-                                           FontSize="13" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"/>
-                                    <TextBlock Text="{Binding PartitaIva, StringFormat='P.IVA {0}'}"
-                                           FontSize="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,2,0,0"
-                                           Visibility="{Binding PartitaIva, Converter={StaticResource BoolToVisibility}}"/>
+                            </Button.Template>
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ModalitaPerCliente}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Content="Per attività" Command="{Binding MostraConfigPerAttivitaCommand}"
+                            Padding="4,6" Cursor="Hand" Background="Transparent">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
+                                        <ContentPresenter Margin="{TemplateBinding Padding}"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ModalitaPerCliente}" Value="False">
+                                            <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
+                    <ComboBox Width="170" Height="34" Margin="0,0,10,0"
+      Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}"
+      IsTextSearchEnabled="True" TextSearch.TextPath="Nome"
+      ItemsSource="{Binding ReferentiFiltroConfigurazione}"
+      SelectedItem="{Binding ReferenteFiltroConfigurazione}"/>
+                    
+                    <ComboBox Grid.Column="1" Width="260" Height="34" HorizontalAlignment="Right"
+                        Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}"
+                        ItemsSource="{Binding ClientiPerConfigurazione}"
+                        TextSearch.TextPath="RagioneSociale"
+                        SelectedItem="{Binding ClienteConfigurazione}"/>
+
+                    <ComboBox Grid.Column="1" Width="260" Height="34" HorizontalAlignment="Right"
+                        Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"
+                        ItemsSource="{Binding ElencoFiltrato}"
+                        SelectedItem="{Binding AttivitaConfigurazione}"/>
+                </Grid>
+
+                <!-- Le due colonne -->
+                <Grid Grid.Row="1" Margin="28,0,28,24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ASSEGNATE -->
+                    <Border Grid.Column="0" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="8" Background="White" Opacity="0.6">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Margin="14,12,14,8"
+                                   Text="{Binding AttivitaAssegnateConfig.Count, StringFormat='ASSEGNATE ({0})'}"
+                                   FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"
+                                   Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}"/>
+                            <TextBlock Grid.Row="0" Margin="14,12,14,8"
+                                   Text="{Binding ClientiAssegnatiConfig.Count, StringFormat='ASSEGNATI ({0})'}"
+                                   FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"
+                                   Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+
+                            <Border Grid.Row="1" Margin="14,0,14,10" Background="White"
+                                BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6" Height="32">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <iconPacks:PackIconBootstrapIcons Grid.Column="0"
+                                    Kind="Search" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"
+                                    Margin="9,0,5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1"
+                                         Text="{Binding FiltroAssegnateTesto, UpdateSourceTrigger=PropertyChanged}"
+                                         BorderThickness="0" Background="Transparent"
+                                         FontSize="12" Foreground="{StaticResource BrushTestoPrimario}"
+                                         VerticalContentAlignment="Center" Height="30"
+                                         mah:TextBoxHelper.Watermark="  Cerca tra le assegnate…"/>
+                                </Grid>
+                            </Border>
+
+                            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="14,0,14,14">
+
+                                    <ItemsControl ItemsSource="{Binding AttivitaAssegnateConfig}"
+                                              Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="5"
+                                                    Padding="10,8" Margin="0,0,0,6">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Nome}" FontSize="12" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                                            <TextBlock FontSize="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,2,0,0">
+                                                                <Run Text="{Binding Periodicita}"/>
+                                                                <Run Text=" · "/>
+                                                                <Run Text="{Binding TipoCampo, Converter={StaticResource TipoCampoLabel}}"/>
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                        <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="4" VerticalAlignment="Center"
+                                                            Command="{Binding DataContext.RimuoviAttivitaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" ToolTip="Non assegnare">
+                                                            <iconPacks:PackIconBootstrapIcons Kind="Dash" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <ItemsControl ItemsSource="{Binding ClientiAssegnatiConfig}"
+                                              Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="5"
+                                                    Padding="10,8" Margin="0,0,0,6">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding RagioneSociale}" FontSize="12" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                                            <TextBlock Text="{Binding PartitaIva, StringFormat='P.IVA {0}'}"
+                                                                   FontSize="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,2,0,0"
+                                                                   Visibility="{Binding PartitaIva, Converter={StaticResource BoolToVisibility}}"/>
+                                                        </StackPanel>
+                                                        <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="4" VerticalAlignment="Center"
+                                                            Command="{Binding DataContext.RimuoviClienteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" ToolTip="Non assegnare">
+                                                            <iconPacks:PackIconBootstrapIcons Kind="Dash" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
                                 </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+
+                    <!-- NON ASSEGNATE -->
+                    <Border Grid.Column="2" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="8"  Background="White" Opacity="0.6">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Margin="14,12,14,8"
+                                   Text="{Binding AttivitaNonAssegnateConfig.Count, StringFormat='NON ASSEGNATE ({0})'}"
+                                   FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"
+                                   Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}"/>
+                            <TextBlock Grid.Row="0" Margin="14,12,14,8"
+                                   Text="{Binding ClientiNonAssegnatiConfig.Count, StringFormat='NON ASSEGNATI ({0})'}"
+                                   FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"
+                                   Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+
+                            <Border Grid.Row="1" Margin="14,0,14,10" Background="White"
+                                BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6" Height="32">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <iconPacks:PackIconBootstrapIcons Grid.Column="0"
+                                    Kind="Search" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"
+                                    Margin="9,0,5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1"
+                                         Text="{Binding FiltroNonAssegnateTesto, UpdateSourceTrigger=PropertyChanged}"
+                                         BorderThickness="0" Background="Transparent"
+                                         FontSize="12" Foreground="{StaticResource BrushTestoPrimario}"
+                                         VerticalContentAlignment="Center" Height="30"
+                                         mah:TextBoxHelper.Watermark="  Cerca tra le non assegnate…"/>
+                                </Grid>
+                            </Border>
+
+                            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="14,0,14,14">
+
+                                    <ItemsControl ItemsSource="{Binding AttivitaNonAssegnateConfig}"
+                                              Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="5"
+                                                    Padding="10,8" Margin="0,0,0,6">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Nome}" FontSize="12" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                                            <TextBlock FontSize="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,2,0,0">
+                                                                <Run Text="{Binding Periodicita}"/>
+                                                                <Run Text=" · "/>
+                                                                <Run Text="{Binding TipoCampo, Converter={StaticResource TipoCampoLabel}}"/>
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                        <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="4" VerticalAlignment="Center"
+                                                            Command="{Binding DataContext.AggiungiAttivitaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" ToolTip="Assegna">
+                                                            <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <ItemsControl ItemsSource="{Binding ClientiNonAssegnatiConfig}"
+                                              Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="5"
+                                                    Padding="10,8" Margin="0,0,0,6">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding RagioneSociale}" FontSize="12" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                                            <TextBlock Text="{Binding PartitaIva, StringFormat='P.IVA {0}'}"
+                                                                   FontSize="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,2,0,0"
+                                                                   Visibility="{Binding PartitaIva, Converter={StaticResource BoolToVisibility}}"/>
+                                                        </StackPanel>
+                                                        <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="4" VerticalAlignment="Center"
+                                                            Command="{Binding DataContext.AggiungiClienteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" ToolTip="Assegna">
+                                                            <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+
+                </Grid>
+            </Grid>
+
         </Grid>
 
         <!-- OVERLAY -->

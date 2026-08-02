@@ -152,5 +152,17 @@ namespace CLab.Views
 
                 vm.ApriDettaglioCommand.Execute(cliente);
         }
+
+        private void Referente_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox tb && tb.Tag is Referente r && DataContext is ClientiViewModel vm)
+                vm.RinominaReferente(r);
+        }
+
+        private void Programma_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox tb && tb.Tag is Programma p && DataContext is ClientiViewModel vm)
+                vm.RinominaProgramma(p);
+        }
     }
 }

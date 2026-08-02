@@ -2,9 +2,9 @@
 
 namespace CLab.Views
 {
-    public partial class AttivitaView : UserControl
+    public partial class HomeView : UserControl
     {
-        public AttivitaView()
+        public HomeView()
         {
             InitializeComponent();
         }

@@ -1,0 +1,123 @@
+﻿<UserControl x:Class="CLab.Views.CellaCompilazioneControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:converters="clr-namespace:CLab.Converters">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityLocale"/>
+        <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityLocale"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="200"/>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="1.3*" MinWidth="220"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" VerticalAlignment="Top">
+
+            <!-- Sì / No -->
+            <StackPanel Orientation="Horizontal"
+                    Visibility="{Binding TipoCampo, Converter={StaticResource EnumToVisibilityLocale}, ConverterParameter=SiNo}">
+                <CheckBox x:Name="ChkSiNo" Style="{DynamicResource ModuleCheckBoxStyle}"
+                      IsChecked="{Binding ValoreBooleano, Mode=OneWay}"
+                      Checked="ChkSiNo_Checked" Unchecked="ChkSiNo_Unchecked"/>
+                <TextBlock Text="Completato" FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
+                       Margin="8,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Testo libero: casella grande, non più a riga singola -->
+            <StackPanel Visibility="{Binding TipoCampo, Converter={StaticResource EnumToVisibilityLocale}, ConverterParameter=TestoLibero}">
+                <TextBlock Text="TESTO" Style="{StaticResource FieldLabel}"/>
+                <TextBox AcceptsReturn="True" TextWrapping="Wrap" Height="90"
+                     VerticalContentAlignment="Top"
+                     MaxLength="{Binding TestoLunghezzaMassimaEffettiva}"
+                     Text="{Binding ValoreTesto, UpdateSourceTrigger=LostFocus}"/>
+            </StackPanel>
+
+            <!-- Numero -->
+            <StackPanel Visibility="{Binding TipoCampo, Converter={StaticResource EnumToVisibilityLocale}, ConverterParameter=Numero}">
+                <TextBlock Text="IMPORTO" Style="{StaticResource FieldLabel}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="5" Height="34">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="{StaticResource BrushSfondoChiaro}" CornerRadius="4,0,0,4" Padding="10,0"
+                                Visibility="{Binding EImporto, Converter={StaticResource BoolToVisibilityLocale}}">
+                                <TextBlock Text="€" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" FontSize="12"/>
+                            </Border>
+                            <TextBox Grid.Column="1" BorderThickness="0" TextAlignment="Right" Padding="8,0"
+                                 Text="{Binding ValoreNumero, UpdateSourceTrigger=LostFocus, StringFormat=N0}"/>
+                        </Grid>
+                    </Border>
+                    <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
+                        Click="PulisciNumero_Click" ToolTip="Svuota">
+                        <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                    </Button>
+                </Grid>
+            </StackPanel>
+
+            <!-- Tendina (+ eventuale importo abbinato) -->
+            <StackPanel Visibility="{Binding TipoCampo, Converter={StaticResource EnumToVisibilityLocale}, ConverterParameter=Tendina}">
+                <TextBlock Text="STATO" Style="{StaticResource FieldLabel}"/>
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding Opzioni}" SelectedItem="{Binding ValoreTendina}"/>
+                    <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
+                        Click="PulisciTendina_Click" ToolTip="Svuota">
+                        <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                    </Button>
+                </Grid>
+
+                <StackPanel Visibility="{Binding TendinaRichiedeImporto, Converter={StaticResource BoolToVisibilityLocale}}">
+                    <TextBlock Text="IMPORTO" Style="{StaticResource FieldLabel}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="5" Height="34">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="{StaticResource BrushSfondoChiaro}" CornerRadius="4,0,0,4" Padding="10,0">
+                                    <TextBlock Text="€" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" FontSize="12"/>
+                                </Border>
+                                <TextBox Grid.Column="1" BorderThickness="0" TextAlignment="Right" Padding="8,0"
+                                     Text="{Binding ValoreNumero, UpdateSourceTrigger=LostFocus, StringFormat=N0}"/>
+                            </Grid>
+                        </Border>
+                        <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
+                            Click="PulisciNumero_Click" ToolTip="Svuota">
+                            <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}"/>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+
+        </StackPanel>
+
+        <!-- Nota: sempre visibile, nessun popup, testo allineato in alto, più grande -->
+        <StackPanel Grid.Column="2" VerticalAlignment="Top">
+            <TextBlock Text="NOTE (facoltativo)" Style="{StaticResource FieldLabel}"/>
+            <TextBox Text="{Binding Commento, UpdateSourceTrigger=LostFocus}"
+                 AcceptsReturn="True" TextWrapping="Wrap" Height="110"
+                 VerticalContentAlignment="Top" Margin="0,4,0,0"/>
+        </StackPanel>
+
+    </Grid>
+</UserControl>

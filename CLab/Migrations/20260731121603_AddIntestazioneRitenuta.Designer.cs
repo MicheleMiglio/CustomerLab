@@ -3,6 +3,7 @@ using System;
 using CLab.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CLab.Migrations
 {
     [DbContext(typeof(ClabDbContext))]
-    partial class ClabDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260731121603_AddIntestazioneRitenuta")]
+    partial class AddIntestazioneRitenuta
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.28");
@@ -200,44 +203,6 @@ namespace CLab.Migrations
                     b.ToTable("Contatti");
                 });
 
-            modelBuilder.Entity("CLab.Models.Fattura", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Annullata")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ClienteId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("DataEmissione")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("DataPagamento")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("DataScadenza")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Importo")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Nota")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Numero")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClienteId");
-
-                    b.ToTable("Fatture");
-                });
-
             modelBuilder.Entity("CLab.Models.RitenutaAcconto", b =>
                 {
                     b.Property<int>("Id")
@@ -324,15 +289,6 @@ namespace CLab.Migrations
                 {
                     b.HasOne("CLab.Models.Cliente", null)
                         .WithMany("Contatti")
-                        .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("CLab.Models.Fattura", b =>
-                {
-                    b.HasOne("CLab.Models.Cliente", null)
-                        .WithMany()
                         .HasForeignKey("ClienteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

@@ -16,13 +16,21 @@
             <DataTemplate DataType="{x:Type vm:ClientiViewModel}">
                 <views:ClientiView/>
             </DataTemplate>
-            
-            <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
-                <views:DashboardView/>
+
+            <DataTemplate DataType="{x:Type vm:HomeViewModel}">
+                <views:HomeView/>
             </DataTemplate>
 
             <DataTemplate DataType="{x:Type vm:AttivitaViewModel}">
                 <views:AttivitaView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:ScadenzarioViewModel}">
+                <views:ScadenzarioView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:FattureViewModel}">
+                <views:FattureView/>
             </DataTemplate>
 
             <conv:IconaBootstrapConverter x:Key="IconaBootstrapConverter"/>

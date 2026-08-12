@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace CLab.Models
 {
@@ -18,6 +19,11 @@ namespace CLab.Models
         public string? CodiceFiscale { get; set; }
         public int? ReferenteId { get; set; }
         public int? ProgrammaId { get; set; }
+
+        // Non mappata: valorizzata a runtime dal ViewModel dopo il caricamento
+        // (join con Referenti), serve solo per griglia e ricerca testuale.
+        [NotMapped]
+        public string ReferenteNome { get; set; } = "—";
         public string? Note { get; set; }
         public string? Intermediario { get; set; }
         public string? TipoContabilita { get; set; }

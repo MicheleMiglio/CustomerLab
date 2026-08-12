@@ -30,35 +30,35 @@
                 </StackPanel>
 
                 <!-- KPI -->
-                <UniformGrid Rows="1" Columns="5" Margin="0,0,0,24">
+                <UniformGrid Rows="1" Columns="4" Margin="0,0,0,12">
                     <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,10,0">
                         <StackPanel>
                             <TextBlock Text="CLIENTI ATTIVI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"/>
                             <TextBlock Text="{Binding ClientiAttivi}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}" Margin="0,8,0,0"/>
                         </StackPanel>
                     </Border>
-                    <Border Background="{StaticResource BrushDangerLight}" CornerRadius="10" Padding="18" Margin="0,0,10,0">
+                    <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,10,0">
+                        <StackPanel>
+                            <TextBlock Text="REFERENTI ATTIVI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"/>
+                            <TextBlock Text="{Binding ReferentiAttiviCount}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <!--<Border Background="{StaticResource BrushDangerLight}" CornerRadius="10" Padding="18" Margin="0,0,10,0">
                         <StackPanel>
                             <TextBlock Text="ADEMPIMENTI IN RITARDO" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushDanger}"/>
                             <TextBlock Text="{Binding AdempimentiInRitardo}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushDanger}" Margin="0,8,0,0"/>
                         </StackPanel>
-                    </Border>
-                    <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,10,0">
+                    </Border>-->
+                    <Border Background="{StaticResource BrushInfoLight}" CornerRadius="10" Padding="18" Margin="0,0,10,0">
                         <StackPanel>
-                            <TextBlock Text="FATTURATO ANNO CORRENTE" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"/>
-                            <TextBlock Text="{Binding FatturatoAnnoTesto}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}" Margin="0,8,0,0"/>
+                            <TextBlock Text="FATTURATO ANNO CORRENTE" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushPrimary}"/>
+                            <TextBlock Text="{Binding FatturatoAnnoTesto}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushPrimary}" Margin="0,8,0,0"/>
                         </StackPanel>
                     </Border>
                     <Border Background="{StaticResource BrushStatoStandByLight}" CornerRadius="10" Padding="18">
                         <StackPanel>
                             <TextBlock Text="DA INCASSARE" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}"/>
                             <TextBlock Text="{Binding DaIncassareAnnoTesto}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}" Margin="0,8,0,0"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18">
-                        <StackPanel>
-                            <TextBlock Text="REFERENTI ATTIVI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"/>
-                            <TextBlock Text="{Binding ReferentiAttiviCount}" FontSize="26" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}" Margin="0,8,0,0"/>
                         </StackPanel>
                     </Border>
                 </UniformGrid>
@@ -188,7 +188,7 @@
                 </Border>
 
                 <!-- Fatture -->
-                <TextBlock Text="FATTURE (ANNO CORRENTE)" Style="{StaticResource FieldLabel}" Margin="0,0,0,10"/>
+                <!--<TextBlock Text="FATTURE (ANNO CORRENTE)" Style="{StaticResource FieldLabel}" Margin="0,0,0,10"/>
                 <UniformGrid Rows="1" Columns="3">
                     <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="10" Padding="18" Margin="0,0,10,0">
                         <StackPanel>
@@ -208,7 +208,7 @@
                             <TextBlock Text="DA INCASSARE" FontSize="9" FontWeight="Medium" Foreground="{StaticResource BrushStatoStandBy}" Margin="0,4,0,0"/>
                         </StackPanel>
                     </Border>
-                </UniformGrid>
+                </UniformGrid>-->
 
             </StackPanel>
         </ScrollViewer>

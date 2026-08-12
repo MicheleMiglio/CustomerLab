@@ -279,7 +279,7 @@
             </StackPanel>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" Visibility="{Binding HaAttivitaConfigurate, Converter={StaticResource BoolToVisibility}}">
-                <StackPanel Margin="28,24,28,24">
+                <StackPanel Margin="28,40,28,24">
 
                     <TextBlock Text="STATO ADEMPIMENTI" Style="{StaticResource FieldLabel}" Margin="0,0,0,10"/>
                     <UniformGrid Rows="1" Columns="3" Margin="0,0,0,16">
@@ -722,7 +722,7 @@
                 </Grid.ColumnDefinitions>
 
                 <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="28,16,20,24">
+                    <StackPanel Margin="28,40,20,24">
 
                         <Border Width="280" HorizontalAlignment="Left" Background="White"
                             BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6" Height="34" Margin="0,0,0,20">
@@ -880,7 +880,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="28,16,28,12">
+                <Grid Grid.Row="0" Margin="28,40,28,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>

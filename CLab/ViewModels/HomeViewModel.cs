@@ -64,6 +64,7 @@ namespace CLab.ViewModels
             CaricaClienti();
             CaricaAdempimenti();
             CaricaFatture();
+            CaricaReferenti();
         }
 
         private void CaricaClienti()

@@ -111,7 +111,7 @@ namespace CLab.ViewModels
                 .Select(f => new RigaFattura
                 {
                     Fattura = f,
-                    ReferenteRagioneSociale = Referenti.TryGetValue(f.ReferenteId, out var nome) ? nome : "—"
+                    ReferenteRagioneSociale = f.ReferenteId.HasValue && Referenti.TryGetValue(f.ReferenteId.Value, out var nome) ? nome : "—"
                 })
                 .ToList();
 

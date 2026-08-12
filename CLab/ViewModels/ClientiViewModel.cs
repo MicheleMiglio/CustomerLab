@@ -78,7 +78,7 @@ namespace CLab.ViewModels
                     _tuttiClienti.Where(c =>
                         c.RagioneSociale.ToLower().Contains(q) ||
                         (c.PartitaIva ?? "").ToLower().Contains(q) ||
-                        (c.Referente ?? "").ToLower().Contains(q)));
+                        c.ReferenteNome.ToLower().Contains(q)));
 
             ClientiFiltrati = lista;
             int n = ClientiFiltrati.Count;
@@ -175,6 +175,13 @@ namespace CLab.ViewModels
         {
             using var db = new ClabDbContext();
             var lista = db.Clienti.Include(c => c.Contatti).ToList();
+
+            var nomiReferenti = db.Referenti.AsNoTracking().ToDictionary(r => r.Id, r => r.Nome);
+            foreach (var c in lista)
+                c.ReferenteNome = c.ReferenteId.HasValue && nomiReferenti.TryGetValue(c.ReferenteId.Value, out var nome)
+                    ? nome
+                    : "—";
+
             _tuttiClienti = new ObservableCollection<Cliente>(lista);
             AggiornaCerca();
         }
@@ -192,6 +199,7 @@ namespace CLab.ViewModels
                 Dettaglio.FormRagioneSociale = string.Empty;
                 Dettaglio.FormPartitaIva = null;
                 Dettaglio.FormReferente = null;
+                Dettaglio.FormProgramma = null;
                 Dettaglio.FormIntermediario = null;
                 Dettaglio.FormTipoContabilita = null;
                 Dettaglio.FormStato = StatoCliente.Attivo;
@@ -243,6 +251,12 @@ namespace CLab.ViewModels
                 return;
             }
 
+            if (Dettaglio.FormReferente == null)
+            {
+                MessageBox.Show("Il referente è obbligatorio.", "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             using var db = new ClabDbContext();
             Cliente clienteSalvato;
 
@@ -252,7 +266,8 @@ namespace CLab.ViewModels
                 {
                     RagioneSociale = Dettaglio.FormRagioneSociale,
                     PartitaIva = Dettaglio.FormPartitaIva,
-                    ReferenteId = Dettaglio.FormReferente,
+                    ReferenteId = Dettaglio.FormReferente.Id,
+                    ProgrammaId = Dettaglio.FormProgramma?.Id,
                     Intermediario = Dettaglio.FormIntermediario,
                     TipoContabilita = Dettaglio.FormTipoContabilita,
                     Stato = Dettaglio.FormStato
@@ -268,11 +283,6 @@ namespace CLab.ViewModels
 
                 esistente.RagioneSociale = Dettaglio.FormRagioneSociale;
                 esistente.PartitaIva = Dettaglio.FormPartitaIva;
-                if (Dettaglio.FormReferente == null)
-                {
-                    MessageBox.Show("Il referente è obbligatorio.", "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
                 esistente.ReferenteId = Dettaglio.FormReferente.Id;
                 esistente.ProgrammaId = Dettaglio.FormProgramma?.Id;
                 esistente.Intermediario = Dettaglio.FormIntermediario;
@@ -493,9 +503,8 @@ namespace CLab.ViewModels
             { errore = $"Il numero '{valore}' contiene caratteri non validi (ammessi: numeri, spazi, '+')."; return false; }
             return true;
         }
-    }
 
-    private void CaricaReferenti()
+        private void CaricaReferenti()
         {
             using var db = new ClabDbContext();
             var tutti = db.Referenti.AsNoTracking().OrderBy(r => r.Nome).ToList();
@@ -566,7 +575,7 @@ namespace CLab.ViewModels
 
             db.SaveChanges();
             CaricaReferenti();
-            CaricaElenco();
+            CaricaClienti();
         }
 
         private void RiattivaReferente(Referente? r)
@@ -595,7 +604,7 @@ namespace CLab.ViewModels
             }
 
             CaricaReferenti();
-            CaricaElenco();
+            CaricaClienti();
         }
 
         private void AggiungiProgramma()
@@ -642,3 +651,4 @@ namespace CLab.ViewModels
             CaricaProgrammi();
         }
     }
+}

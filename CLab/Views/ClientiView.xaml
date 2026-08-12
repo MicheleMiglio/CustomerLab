@@ -165,7 +165,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="REFERENTE" Binding="{Binding Referente}" Width="*">
+                    <DataGridTextColumn Header="REFERENTE" Binding="{Binding ReferenteNome}" Width="*">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontSize"   Value="12"/>
@@ -351,6 +351,10 @@
                                     <TextBlock Text="{Binding Dettaglio.FormIntermediario}" Style="{StaticResource FieldValue}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,16">
+                                    <TextBlock Text="PROGRAMMA" Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Text="{Binding Dettaglio.FormProgramma}" Style="{StaticResource FieldValue}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,16">
                                     <TextBlock Text="STATO" Style="{StaticResource FieldLabel}"/>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <Ellipse Width="6" Height="6" Margin="0,0,6,0"
@@ -748,7 +752,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Text="{Binding NuovoReferenteTesto, UpdateSourceTrigger=PropertyChanged}"
-                                 mah:TextBoxHelper.Watermark="Nuovo referente…"/>
+                                 mah:TextBoxHelper.Watermark="  Nuovo referente…"/>
                             <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Margin="6,0,0,0" Command="{Binding AggiungiReferenteCommand}">
                                 <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="12" Height="12" Foreground="White"/>
                             </Button>
@@ -847,7 +851,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Text="{Binding NuovoProgrammaTesto, UpdateSourceTrigger=PropertyChanged}"
-                                 mah:TextBoxHelper.Watermark="Nuovo programma…"/>
+                                 mah:TextBoxHelper.Watermark="  Nuovo programma…"/>
                             <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Margin="6,0,0,0" Command="{Binding AggiungiProgrammaCommand}">
                                 <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="12" Height="12" Foreground="White"/>
                             </Button>

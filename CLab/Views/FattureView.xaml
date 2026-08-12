@@ -140,7 +140,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="ReferentE" Binding="{Binding ReferenteRagioneSociale}" Width="1.3*">
+                    <DataGridTextColumn Header="REFERENTE" Binding="{Binding ReferenteRagioneSociale}" Width="1.3*">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontSize" Value="12"/>
@@ -270,7 +270,7 @@
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="22,16">
 
-                        <TextBlock Text="ReferentE" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="REFERENTE" Style="{StaticResource FieldLabel}"/>
                         <ComboBox ItemsSource="{Binding ReferentiDisponibili}"
                               TextSearch.TextPath="RagioneSociale"
                               SelectedItem="{Binding FormReferente}"

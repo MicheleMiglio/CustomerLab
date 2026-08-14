@@ -33,6 +33,10 @@
                 <views:FattureView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type vm:ImpostazioniViewModel}">
+                <views:ImpostazioniView/>
+            </DataTemplate>
+
             <conv:IconaBootstrapConverter x:Key="IconaBootstrapConverter"/>
 
             <ResourceDictionary.MergedDictionaries>

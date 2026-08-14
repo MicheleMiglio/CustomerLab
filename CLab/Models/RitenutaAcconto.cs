@@ -17,6 +17,9 @@ namespace CLab.Models
         public DateTime? ScadenzaVersamento { get; set; }
         public decimal? ImportoVersato { get; set; }
 
+        /// <summary>Spuntato dalla griglia quando il versamento è avvenuto con ravvedimento operoso.</summary>
+        public bool Ravvedimento { get; set; }
+
         public bool Versato => ImportoVersato.HasValue && ImportoVersato.Value > 0;
 
         /// <summary>"DaVersare" / "Versato" / "Anomalia" (importo versato diverso da quello trattenuto).</summary>

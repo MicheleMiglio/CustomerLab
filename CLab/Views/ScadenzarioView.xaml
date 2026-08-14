@@ -1047,6 +1047,17 @@
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="RAVV." Width="0.6*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" 
+                IsChecked="{Binding Ravvedimento, Mode=TwoWay}"
+                Command="{Binding DataContext.ToggleRavvedimentoRitenutaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                CommandParameter="{Binding}"
+                ToolTip="Ravvedimento operoso"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="STATO" Width="1.2*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

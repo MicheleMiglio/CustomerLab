@@ -312,22 +312,24 @@
                             </Button.Style>
                         </Button>
                     </StackPanel>
-                    <ComboBox Width="170" Height="34" Margin="0,0,10,0"
-      Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}"
-      IsTextSearchEnabled="True" TextSearch.TextPath="Nome"
-      ItemsSource="{Binding ReferentiFiltroConfigurazione}"
-      SelectedItem="{Binding ReferenteFiltroConfigurazione}"/>
-                    
-                    <ComboBox Grid.Column="1" Width="260" Height="34" HorizontalAlignment="Right"
-                        Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}"
-                        ItemsSource="{Binding ClientiPerConfigurazione}"
-                        TextSearch.TextPath="RagioneSociale"
-                        SelectedItem="{Binding ClienteConfigurazione}"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <ComboBox Width="170" Height="34" Margin="0,0,10,0"
+                            Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}"
+                            IsTextSearchEnabled="True" TextSearch.TextPath="Nome"
+                            ItemsSource="{Binding ReferentiFiltroConfigurazione}"
+                            SelectedItem="{Binding ReferenteFiltroConfigurazione}"/>
 
-                    <ComboBox Grid.Column="1" Width="260" Height="34" HorizontalAlignment="Right"
-                        Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"
-                        ItemsSource="{Binding ElencoFiltrato}"
-                        SelectedItem="{Binding AttivitaConfigurazione}"/>
+                        <ComboBox Width="260" Height="34" Margin="0,0,10,0"
+                            Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}"
+                            ItemsSource="{Binding ClientiPerConfigurazione}"
+                            TextSearch.TextPath="RagioneSociale"
+                            SelectedItem="{Binding ClienteConfigurazione}"/>
+
+                        <ComboBox Width="260" Height="34"
+                            Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"
+                            ItemsSource="{Binding ElencoFiltrato}"
+                            SelectedItem="{Binding AttivitaConfigurazione}"/>
+                    </StackPanel>
                 </Grid>
 
                 <!-- Le due colonne -->

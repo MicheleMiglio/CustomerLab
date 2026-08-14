@@ -13,6 +13,7 @@ namespace CLab.ViewModels
         private MenuItemModel? _attivitaMenu;
         private MenuItemModel? _scadenzarioMenu;
         private MenuItemModel? _fattureMenu;
+        private MenuItemModel? _impostazioniMenu;
 
         public object? VistaCorrente
         {
@@ -122,14 +123,14 @@ namespace CLab.ViewModels
             };
             MenuPrincipale.Add(_fattureMenu);
 
-            MenuFooter.Add(
-                new MenuItemModel
-                {
-                    Titolo = "Impostazioni",
-                    Icona = "Gear",
-                    Comando = null,
-                    Separatore = true
-                });
+            _impostazioniMenu = new MenuItemModel
+            {
+                Titolo = "Impostazioni",
+                Icona = "Gear",
+                Comando = new RelayCommand<MenuItemModel>(ApriImpostazioni),
+                Separatore = true
+            };
+            MenuFooter.Add(_impostazioniMenu);
         }
 
         private void ApriDashboard(MenuItemModel? menu)
@@ -164,6 +165,12 @@ namespace CLab.ViewModels
         {
             SelezionaMenu(menu);
             VistaCorrente = new FattureViewModel();
+        }
+
+        private void ApriImpostazioni(MenuItemModel? menu)
+        {
+            SelezionaMenu(menu);
+            VistaCorrente = new ImpostazioniViewModel();
         }
 
         private void ApriConfigurazioneAttivitaPerCliente(string ragioneSociale)

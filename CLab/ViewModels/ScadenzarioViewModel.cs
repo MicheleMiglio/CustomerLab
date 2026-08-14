@@ -288,6 +288,7 @@ namespace CLab.ViewModels
         public ICommand SalvaRitenutaCommand { get; }
         public ICommand AnnullaRitenutaCommand { get; }
         public ICommand EliminaRitenutaCommand { get; }
+        public ICommand ToggleRavvedimentoRitenutaCommand { get; }
         public ICommand SegnaVersatoInteroCommand { get; }
         public ICommand PulisciDataPagamentoFatturaCommand { get; }
         public ICommand PulisciDataPagamentoRitenutaCommand { get; }
@@ -320,6 +321,7 @@ namespace CLab.ViewModels
             SalvaRitenutaCommand = new RelayCommand(SalvaRitenuta);
             AnnullaRitenutaCommand = new RelayCommand(() => PannelloRitenutaAperto = false);
             EliminaRitenutaCommand = new RelayCommand<RitenutaAcconto>(EliminaRitenuta);
+            ToggleRavvedimentoRitenutaCommand = new RelayCommand<RitenutaAcconto>(ToggleRavvedimentoRitenuta);
             SegnaVersatoInteroCommand = new RelayCommand(SegnaVersatoIntero);
             PulisciDataPagamentoFatturaCommand = new RelayCommand(() => FormDataPagamentoFattura = null);
             PulisciDataPagamentoRitenutaCommand = new RelayCommand(() => FormScadenzaVersamento = null);
@@ -923,6 +925,16 @@ namespace CLab.ViewModels
             db.SaveChanges();
 
             CaricaRitenute();
+        }
+
+        private void ToggleRavvedimentoRitenuta(RitenutaAcconto? r)
+        {
+            if (r == null) return;
+
+            using var db = new ClabDbContext();
+            var entita = db.RitenuteAcconto.First(x => x.Id == r.Id);
+            entita.Ravvedimento = r.Ravvedimento;
+            db.SaveChanges();
         }
 
         private void SegnaVersatoIntero()

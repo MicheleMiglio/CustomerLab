@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using CLab.Models;
+﻿using CLab.Models;
+using Microsoft.EntityFrameworkCore;
+using System.IO;
 
 namespace CLab.Data
 {
@@ -19,8 +20,15 @@ namespace CLab.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            string cartellaDb = System.IO.Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+    "CLab");
+
+            Directory.CreateDirectory(cartellaDb);
+
             string percorsoDb = System.IO.Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory, "clab.db");
+                cartellaDb,
+                "clab.db");
 
             optionsBuilder.UseSqlite($"Data Source={percorsoDb}");
         }

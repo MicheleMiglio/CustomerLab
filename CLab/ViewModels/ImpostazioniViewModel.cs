@@ -44,7 +44,7 @@ namespace CLab.ViewModels
                 ? $"{versioneAssembly.Major}.{versioneAssembly.Minor}.{versioneAssembly.Build}"
                 : "n/d";
 
-            PercorsoDatabase = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "clab.db");
+            PercorsoDatabase = CLab.Data.ClabDbContext.PercorsoDatabase;
 
             DimensioneDatabaseTesto = CalcolaDimensioneTesto(PercorsoDatabase);
 

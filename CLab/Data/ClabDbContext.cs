@@ -18,19 +18,23 @@ namespace CLab.Data
         public DbSet<Referente> Referenti { get; set; }
         public DbSet<Programma> Programmi { get; set; }
 
+        public static string PercorsoDatabase
+        {
+            get
+            {
+                string cartellaDb = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "CLab");
+
+                Directory.CreateDirectory(cartellaDb);
+
+                return System.IO.Path.Combine(cartellaDb, "clab.db");
+            }
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string cartellaDb = System.IO.Path.Combine(
-    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-    "CLab");
-
-            Directory.CreateDirectory(cartellaDb);
-
-            string percorsoDb = System.IO.Path.Combine(
-                cartellaDb,
-                "clab.db");
-
-            optionsBuilder.UseSqlite($"Data Source={percorsoDb}");
+            optionsBuilder.UseSqlite($"Data Source={PercorsoDatabase}");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

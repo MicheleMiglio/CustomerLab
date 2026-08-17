@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Data.Sqlite;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows;
@@ -95,6 +96,8 @@ namespace CLab.ViewModels
 
             try
             {
+                SqliteConnection.ClearAllPools();
+
                 EliminaFileSeEsiste(PercorsoDatabase);
                 EliminaFileSeEsiste(PercorsoDatabase + "-wal");
                 EliminaFileSeEsiste(PercorsoDatabase + "-shm");

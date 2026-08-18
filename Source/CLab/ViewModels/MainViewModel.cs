@@ -1,4 +1,5 @@
-﻿using CLab.Models;
+﻿using CLab.Data;
+using CLab.Models;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -9,6 +10,7 @@ namespace CLab.ViewModels
     {
         private object? _vistaCorrente;
         private MenuItemModel? _dashboardMenu;
+        private MenuItemModel? _promemoriaMenu;
         private MenuItemModel? _clientiMenu;
         private MenuItemModel? _attivitaMenu;
         private MenuItemModel? _scadenzarioMenu;
@@ -76,7 +78,7 @@ namespace CLab.ViewModels
             MenuFooter = new ObservableCollection<MenuItemModel>();
 
             CreaMenu();
-
+            AggiornaBadgePromemoria();
             ApriDashboard(_dashboardMenu);
         }
 
@@ -90,6 +92,14 @@ namespace CLab.ViewModels
                 Comando = new RelayCommand<MenuItemModel>(ApriDashboard)
             };
             MenuPrincipale.Add(_dashboardMenu);
+
+            _promemoriaMenu = new MenuItemModel
+            {
+                Titolo = "Promemoria",
+                Icona = "StickyFill",
+                Comando = new RelayCommand<MenuItemModel>(ApriPromemoria)
+            };
+            MenuPrincipale.Add(_promemoriaMenu);
 
             _scadenzarioMenu = new MenuItemModel
             {
@@ -138,6 +148,22 @@ namespace CLab.ViewModels
             SelezionaMenu(menu);
 
             VistaCorrente = new HomeViewModel();
+        }
+
+        private void ApriPromemoria(MenuItemModel? menu)
+        {
+            SelezionaMenu(menu);
+
+            VistaCorrente = new PromemoriaViewModel(AggiornaBadgePromemoria);
+        }
+
+        private void AggiornaBadgePromemoria()
+        {
+            if (_promemoriaMenu == null)
+                return;
+
+            using var db = new ClabDbContext();
+            _promemoriaMenu.Contatore = db.Promemoria.Count();
         }
 
         private void ApriClienti(MenuItemModel? menu)

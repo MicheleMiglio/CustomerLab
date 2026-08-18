@@ -7,6 +7,7 @@ namespace CLab.Models
     public class MenuItemModel : INotifyPropertyChanged
     {
         private bool _isSelezionato;
+        private int _contatore;
 
 
         public string Titolo { get; set; } = string.Empty;
@@ -34,6 +35,18 @@ namespace CLab.Models
             }
         }
 
+        public int Contatore
+        {
+            get => _contatore;
+            set
+            {
+                if (_contatore == value)
+                    return;
+
+                _contatore = value;
+                OnPropertyChanged();
+            }
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

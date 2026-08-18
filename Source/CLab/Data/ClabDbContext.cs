@@ -17,6 +17,7 @@ namespace CLab.Data
         public DbSet<Fattura> Fatture { get; set; }
         public DbSet<Referente> Referenti { get; set; }
         public DbSet<Programma> Programmi { get; set; }
+        public DbSet<Promemoria> Promemoria { get; set; }
 
         public static string PercorsoDatabase
         {

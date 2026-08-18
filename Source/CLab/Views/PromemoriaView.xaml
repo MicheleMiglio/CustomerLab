@@ -1,0 +1,250 @@
+﻿<UserControl x:Class="CLab.Views.PromemoriaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:conv="clr-namespace:CLab.Converters"
+             xmlns:models="clr-namespace:CLab.Models"
+             x:Name="Root">
+
+    <UserControl.Resources>
+        <conv:PrioritaPromemoriaAColoreConverter x:Key="PrioritaAColore"/>
+
+        <Style x:Key="BtnPrioritaBase" TargetType="Button" BasedOn="{StaticResource BtnOutline}">
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Padding" Value="12,6"/>
+        </Style>
+
+        <Style x:Key="BtnPrioritaBassa" TargetType="Button" BasedOn="{StaticResource BtnPrioritaBase}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding FormPriorita}" Value="Bassa">
+                    <Setter Property="Foreground" Value="{StaticResource BrushPrimaryLight}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource BrushPrimaryLight}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BtnPrioritaMedia" TargetType="Button" BasedOn="{StaticResource BtnPrioritaBase}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding FormPriorita}" Value="Media">
+                    <Setter Property="Foreground" Value="{StaticResource BrushAccent}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BtnPrioritaAlta" TargetType="Button" BasedOn="{StaticResource BtnPrioritaBase}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding FormPriorita}" Value="Alta">
+                    <Setter Property="Foreground" Value="{StaticResource BrushDanger}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource BrushDanger}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid x:Name="RootGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0" Height="64">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Promemoria" Style="{StaticResource ModuleTitleStyle}"/>
+                <TextBlock Text="APPUNTI RAPIDI E POST IT" Style="{StaticResource ModuleSubtitleStyle}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- TOOLBAR: ordinamento + nuovo -->
+        <Grid Grid.Row="1" Margin="28,15,28,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Ordina per" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}"
+                           VerticalAlignment="Center" Margin="0,0,12,0"/>
+
+                <Button Content="Data creazione" Command="{Binding MostraPerDataCommand}"
+                    Padding="4,6" Margin="0,0,16,0" Cursor="Hand" Background="Transparent">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
+                                <ContentPresenter Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="FontSize" Value="12"/>
+                            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                            <Setter Property="BorderBrush" Value="Transparent"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding OrdinamentoPerPriorita}" Value="False">
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                    <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button Content="Priorità" Command="{Binding MostraPerPrioritaCommand}"
+                    Padding="4,6" Cursor="Hand" Background="Transparent">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
+                                <ContentPresenter Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="FontSize" Value="12"/>
+                            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                            <Setter Property="BorderBrush" Value="Transparent"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding OrdinamentoPerPriorita}" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                    <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </StackPanel>
+
+            <Button Grid.Column="2" Style="{StaticResource BtnOutlineGold}" Command="{Binding NuovoCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="11" Height="11"
+                        Margin="0,0,6,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="Nuovo promemoria" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- BACHECA -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="28,0,28,24">
+            <ItemsControl ItemsSource="{Binding Promemoria}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="230" MinHeight="130" Margin="0,0,16,16" CornerRadius="10"
+                            Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1">
+                            <Border.Effect>
+                                <DropShadowEffect Color="Black" Opacity="0.12" BlurRadius="8" ShadowDepth="2" Direction="270"/>
+                            </Border.Effect>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Accento priorità -->
+                                <Rectangle Grid.Column="0" Fill="{Binding Priorita, Converter={StaticResource PrioritaAColore}}"/>
+
+                                <!-- Angolo piegato -->
+                                <Path Grid.Column="1" Data="M 0,0 L 16,0 L 16,16 Z"
+                                    Fill="{StaticResource BrushSfondoChiaro}"
+                                    HorizontalAlignment="Right" VerticalAlignment="Top">
+                                    <Path.Effect>
+                                        <DropShadowEffect Color="Black" Opacity="0.15" BlurRadius="3" ShadowDepth="1" Direction="225"/>
+                                    </Path.Effect>
+                                </Path>
+
+                                <!-- Contenuto -->
+                                <Grid Grid.Column="1" Margin="14,12,10,10">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Text="{Binding Titolo}" FontSize="14" FontWeight="Medium"
+                                        Foreground="{StaticResource BrushTestoPrimario}" TextWrapping="Wrap"
+                                        Margin="0,0,14,6"/>
+
+                                    <TextBlock Grid.Row="1" Text="{Binding Descrizione}" FontSize="13"
+                                        Foreground="{StaticResource BrushTestoSecondario}" TextWrapping="Wrap"/>
+
+                                    <Grid Grid.Row="2" Margin="0,10,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="0" Text="{Binding DataCreazione, StringFormat='d MMM'}"
+                                            FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"
+                                            Opacity="0.7" VerticalAlignment="Center"/>
+
+                                        <Button Grid.Column="1" Style="{StaticResource BtnIconRed}"
+                                            Click="BtnElimina_Click" ToolTip="Butta via">
+                                            <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="13" Height="13"
+                                                Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- POPUP: nuovo promemoria -->
+        <Popup IsOpen="{Binding PopupAperto}" StaysOpen="False" Placement="Center"
+            PlacementTarget="{Binding ElementName=RootGrid}" AllowsTransparency="True" PopupAnimation="Fade">
+            <Border Background="White" CornerRadius="10" Width="360" Padding="20"
+                BorderBrush="{StaticResource BrushBordo}" BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" Opacity="0.25" BlurRadius="20" ShadowDepth="4"/>
+                </Border.Effect>
+
+                <StackPanel>
+                    <TextBlock Text="Nuovo promemoria" FontSize="15" FontWeight="Medium"
+                        Foreground="{StaticResource BrushTestoPrimario}" Margin="0,0,0,14"/>
+
+                    <TextBlock Text="TITOLO" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding FormTitolo, UpdateSourceTrigger=PropertyChanged}"
+                        Height="{StaticResource InputHeight}" Margin="0,0,0,12"
+                        Padding="8,0" VerticalContentAlignment="Center"/>
+
+                    <TextBlock Text="DESCRIZIONE" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding FormDescrizione, UpdateSourceTrigger=PropertyChanged}"
+                        Height="90" Margin="0,0,0,12" Padding="8,6" TextWrapping="Wrap"
+                        AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+
+                    <TextBlock Text="PRIORITÀ" Style="{StaticResource FieldLabel}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                        <Button Content="Bassa" Style="{StaticResource BtnPrioritaBassa}"
+                            Command="{Binding ImpostaPrioritaCommand}"
+                            CommandParameter="{x:Static models:PrioritaPromemoria.Bassa}"/>
+                        <Button Content="Media" Style="{StaticResource BtnPrioritaMedia}"
+                            Command="{Binding ImpostaPrioritaCommand}"
+                            CommandParameter="{x:Static models:PrioritaPromemoria.Media}"/>
+                        <Button Content="Alta" Style="{StaticResource BtnPrioritaAlta}"
+                            Command="{Binding ImpostaPrioritaCommand}"
+                            CommandParameter="{x:Static models:PrioritaPromemoria.Alta}"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Annulla" Command="{Binding AnnullaCommand}"
+                            Style="{StaticResource BtnOutline}" Margin="0,0,10,0"/>
+                        <Button Content="Salva" Command="{Binding SalvaCommand}"
+                            Style="{StaticResource BtnPrimary}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

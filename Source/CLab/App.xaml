@@ -21,6 +21,10 @@
                 <views:HomeView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type vm:PromemoriaViewModel}">
+                <views:PromemoriaView/>
+            </DataTemplate>
+
             <DataTemplate DataType="{x:Type vm:AttivitaViewModel}">
                 <views:AttivitaView/>
             </DataTemplate>

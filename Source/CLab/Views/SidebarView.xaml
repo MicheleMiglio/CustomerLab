@@ -94,14 +94,23 @@
 
 
 
-                                    <!-- TESTO -->
-                                    <TextBlock Grid.Column="1"
-               Text="{Binding Titolo}"
-               Style="{StaticResource MenuText}"
+                                    <!-- TESTO + BADGE CONTATORE -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
                Visibility="{Binding DataContext.SidebarEspansa,
                             RelativeSource={RelativeSource AncestorType=UserControl},
-                            Converter={StaticResource BoolToVisibility}}"/>
+                            Converter={StaticResource BoolToVisibility}}">
 
+                                        <TextBlock Text="{Binding Titolo}" Style="{StaticResource MenuText}"/>
+
+                                        <Border Background="{StaticResource BrushAccentSelected}" CornerRadius="9"
+               MinWidth="18" Height="18" Padding="5,0" Margin="8,0,0,0" VerticalAlignment="Center"
+               Visibility="{Binding Contatore, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock Text="{Binding Contatore}" FontSize="10" FontWeight="Bold"
+               Foreground="{StaticResource BrushAccent}"
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+
+                                    </StackPanel>
 
                                 </Grid>
 

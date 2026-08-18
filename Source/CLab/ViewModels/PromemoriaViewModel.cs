@@ -12,6 +12,7 @@ namespace CLab.ViewModels
     public class PromemoriaViewModel : ViewModelBase
     {
         private readonly Action? _aggiornaBadge;
+        private int _promemoriaInModificaId;
 
         public ObservableCollection<Promemoria> Promemoria { get; set; } = new();
 
@@ -28,10 +29,13 @@ namespace CLab.ViewModels
             }
         }
 
-        // --- Popup nuovo promemoria ---
+        // --- Pannello nuovo/modifica ---
 
-        private bool _popupAperto;
-        public bool PopupAperto { get => _popupAperto; set { _popupAperto = value; OnPropertyChanged(); } }
+        private bool _pannelloAperto;
+        public bool PannelloAperto { get => _pannelloAperto; set { _pannelloAperto = value; OnPropertyChanged(); } }
+
+        private string _titoloPannello = "Nuovo promemoria";
+        public string TitoloPannello { get => _titoloPannello; set { _titoloPannello = value; OnPropertyChanged(); } }
 
         private string _formTitolo = string.Empty;
         public string FormTitolo { get => _formTitolo; set { _formTitolo = value; OnPropertyChanged(); } }
@@ -45,6 +49,7 @@ namespace CLab.ViewModels
         public ICommand MostraPerDataCommand { get; }
         public ICommand MostraPerPrioritaCommand { get; }
         public ICommand NuovoCommand { get; }
+        public ICommand ModificaCommand { get; }
         public ICommand SalvaCommand { get; }
         public ICommand AnnullaCommand { get; }
         public ICommand ImpostaPrioritaCommand { get; }
@@ -56,8 +61,9 @@ namespace CLab.ViewModels
             MostraPerDataCommand = new RelayCommand(() => OrdinamentoPerPriorita = false);
             MostraPerPrioritaCommand = new RelayCommand(() => OrdinamentoPerPriorita = true);
             NuovoCommand = new RelayCommand(Nuovo);
+            ModificaCommand = new RelayCommand<Promemoria>(Modifica);
             SalvaCommand = new RelayCommand(Salva, () => !string.IsNullOrWhiteSpace(FormTitolo));
-            AnnullaCommand = new RelayCommand(() => PopupAperto = false);
+            AnnullaCommand = new RelayCommand(() => PannelloAperto = false);
             ImpostaPrioritaCommand = new RelayCommand<PrioritaPromemoria?>(p =>
             {
                 if (p.HasValue) FormPriorita = p.Value;
@@ -93,10 +99,24 @@ namespace CLab.ViewModels
 
         private void Nuovo()
         {
+            _promemoriaInModificaId = 0;
+            TitoloPannello = "Nuovo promemoria";
             FormTitolo = string.Empty;
             FormDescrizione = string.Empty;
             FormPriorita = PrioritaPromemoria.Media;
-            PopupAperto = true;
+            PannelloAperto = true;
+        }
+
+        private void Modifica(Promemoria? p)
+        {
+            if (p == null) return;
+
+            _promemoriaInModificaId = p.Id;
+            TitoloPannello = "Modifica promemoria";
+            FormTitolo = p.Titolo;
+            FormDescrizione = p.Descrizione ?? string.Empty;
+            FormPriorita = p.Priorita;
+            PannelloAperto = true;
         }
 
         private void Salva()
@@ -106,18 +126,24 @@ namespace CLab.ViewModels
 
             using var db = new ClabDbContext();
 
-            var entita = new Promemoria
+            Promemoria entita;
+            if (_promemoriaInModificaId == 0)
             {
-                Titolo = FormTitolo.Trim(),
-                Descrizione = string.IsNullOrWhiteSpace(FormDescrizione) ? null : FormDescrizione.Trim(),
-                Priorita = FormPriorita,
-                DataCreazione = DateTime.Now
-            };
+                entita = new Promemoria { DataCreazione = DateTime.Now };
+                db.Promemoria.Add(entita);
+            }
+            else
+            {
+                entita = db.Promemoria.First(x => x.Id == _promemoriaInModificaId);
+            }
 
-            db.Promemoria.Add(entita);
+            entita.Titolo = FormTitolo.Trim();
+            entita.Descrizione = string.IsNullOrWhiteSpace(FormDescrizione) ? null : FormDescrizione.Trim();
+            entita.Priorita = FormPriorita;
+
             db.SaveChanges();
 
-            PopupAperto = false;
+            PannelloAperto = false;
             Carica();
             _aggiornaBadge?.Invoke();
         }

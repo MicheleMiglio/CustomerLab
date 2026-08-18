@@ -96,7 +96,7 @@ namespace CLab.ViewModels
             _promemoriaMenu = new MenuItemModel
             {
                 Titolo = "Promemoria",
-                Icona = "StickyFill",
+                Icona = "Bell",
                 Comando = new RelayCommand<MenuItemModel>(ApriPromemoria)
             };
             MenuPrincipale.Add(_promemoriaMenu);

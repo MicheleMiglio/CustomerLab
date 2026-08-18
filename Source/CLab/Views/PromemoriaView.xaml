@@ -3,11 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:conv="clr-namespace:CLab.Converters"
-             xmlns:models="clr-namespace:CLab.Models"
-             x:Name="Root">
+             xmlns:models="clr-namespace:CLab.Models">
 
     <UserControl.Resources>
         <conv:PrioritaPromemoriaAColoreConverter x:Key="PrioritaAColore"/>
+        <conv:PrioritaPromemoriaASfondoConverter x:Key="PrioritaASfondo"/>
 
         <Style x:Key="BtnPrioritaBase" TargetType="Button" BasedOn="{StaticResource BtnOutline}">
             <Setter Property="Margin" Value="0,0,8,0"/>
@@ -42,7 +42,7 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid x:Name="RootGrid">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -50,15 +50,16 @@
         </Grid.RowDefinitions>
 
         <!-- HEADER -->
-        <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0" Height="64">
+        <Border Grid.Row="0" Grid.RowSpan="3" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0" Height="64"
+            VerticalAlignment="Top">
             <StackPanel VerticalAlignment="Center">
                 <TextBlock Text="Promemoria" Style="{StaticResource ModuleTitleStyle}"/>
-                <TextBlock Text="APPUNTI RAPIDI E POST IT" Style="{StaticResource ModuleSubtitleStyle}"/>
+                <TextBlock Text="APPUNTI RAPIDI E POST-IT" Style="{StaticResource ModuleSubtitleStyle}"/>
             </StackPanel>
         </Border>
 
         <!-- TOOLBAR: ordinamento + nuovo -->
-        <Grid Grid.Row="1" Margin="28,15,28,14">
+        <Grid Grid.Row="1" Margin="28,75,28,14">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -122,7 +123,7 @@
                 <StackPanel Orientation="Horizontal">
                     <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="11" Height="11"
                         Margin="0,0,6,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="Nuovo promemoria" VerticalAlignment="Center"/>
+                    <TextBlock Text="Nuovo promemoria" VerticalAlignment="Center" Margin="0,4"/>
                 </StackPanel>
             </Button>
         </Grid>
@@ -139,60 +140,56 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border Width="230" MinHeight="130" Margin="0,0,16,16" CornerRadius="10"
-                            Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1">
+                            Background="White" BorderBrush="{Binding Priorita, Converter={StaticResource PrioritaAColore}}"
+                            BorderThickness="1.3" Padding="14,12,10,10">
                             <Border.Effect>
-                                <DropShadowEffect Color="Black" Opacity="0.12" BlurRadius="8" ShadowDepth="2" Direction="270"/>
+                                <DropShadowEffect Color="Black" Opacity="0.10" BlurRadius="8" ShadowDepth="2" Direction="270"/>
                             </Border.Effect>
-
                             <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="4"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
 
-                                <!-- Accento priorità -->
-                                <Rectangle Grid.Column="0" Fill="{Binding Priorita, Converter={StaticResource PrioritaAColore}}"/>
+                                <!-- Pill priorità -->
+                                <Border Grid.Row="0" HorizontalAlignment="Left" CornerRadius="8" Padding="7,2" Margin="0,0,0,8"
+                                    Background="{Binding Priorita, Converter={StaticResource PrioritaASfondo}}">
+                                    <TextBlock Text="{Binding Priorita}" FontSize="10" FontWeight="Medium"
+                                        Foreground="{Binding Priorita, Converter={StaticResource PrioritaAColore}}"/>
+                                </Border>
 
-                                <!-- Angolo piegato -->
-                                <Path Grid.Column="1" Data="M 0,0 L 16,0 L 16,16 Z"
-                                    Fill="{StaticResource BrushSfondoChiaro}"
-                                    HorizontalAlignment="Right" VerticalAlignment="Top">
-                                    <Path.Effect>
-                                        <DropShadowEffect Color="Black" Opacity="0.15" BlurRadius="3" ShadowDepth="1" Direction="225"/>
-                                    </Path.Effect>
-                                </Path>
+                                <TextBlock Grid.Row="1" Text="{Binding Titolo}" FontSize="14" FontWeight="Medium"
+                                    Foreground="{StaticResource BrushTestoPrimario}" TextWrapping="Wrap" Margin="0,0,0,6"/>
 
-                                <!-- Contenuto -->
-                                <Grid Grid.Column="1" Margin="14,12,10,10">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="2" Text="{Binding Descrizione}" FontSize="13"
+                                    Foreground="{StaticResource BrushTestoSecondario}" TextWrapping="Wrap"
+                                    VerticalAlignment="Top"/>
 
-                                    <TextBlock Grid.Row="0" Text="{Binding Titolo}" FontSize="14" FontWeight="Medium"
-                                        Foreground="{StaticResource BrushTestoPrimario}" TextWrapping="Wrap"
-                                        Margin="0,0,14,6"/>
+                                <Grid Grid.Row="3" Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                                    <TextBlock Grid.Row="1" Text="{Binding Descrizione}" FontSize="13"
-                                        Foreground="{StaticResource BrushTestoSecondario}" TextWrapping="Wrap"/>
+                                    <TextBlock Grid.Column="0" Text="{Binding DataCreazione, StringFormat='d MMM'}"
+                                        FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"
+                                        Opacity="0.7" VerticalAlignment="Center"/>
 
-                                    <Grid Grid.Row="2" Margin="0,10,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock Grid.Column="0" Text="{Binding DataCreazione, StringFormat='d MMM'}"
-                                            FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"
-                                            Opacity="0.7" VerticalAlignment="Center"/>
-
-                                        <Button Grid.Column="1" Style="{StaticResource BtnIconRed}"
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <Button Style="{StaticResource BtnIcon}"
+                                            Command="{Binding DataContext.ModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" ToolTip="Modifica">
+                                            <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="12" Height="12"
+                                                Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        </Button>
+                                        <Button Style="{StaticResource BtnIconRed}" Margin="3,0,0,0"
                                             Click="BtnElimina_Click" ToolTip="Butta via">
                                             <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="13" Height="13"
                                                 Foreground="{StaticResource BrushTestoSecondario}"/>
                                         </Button>
-                                    </Grid>
+                                    </StackPanel>
                                 </Grid>
                             </Grid>
                         </Border>
@@ -201,50 +198,86 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- POPUP: nuovo promemoria -->
-        <Popup IsOpen="{Binding PopupAperto}" StaysOpen="False" Placement="Center"
-            PlacementTarget="{Binding ElementName=RootGrid}" AllowsTransparency="True" PopupAnimation="Fade">
-            <Border Background="White" CornerRadius="10" Width="360" Padding="20"
-                BorderBrush="{StaticResource BrushBordo}" BorderThickness="1">
-                <Border.Effect>
-                    <DropShadowEffect Color="Black" Opacity="0.25" BlurRadius="20" ShadowDepth="4"/>
-                </Border.Effect>
+        <!-- OVERLAY + PANNELLO NUOVO/MODIFICA -->
+        <Border Grid.Row="0" Grid.RowSpan="3" Cursor="Arrow"
+            Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
+            <Border.Background>
+                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
+            </Border.Background>
+            <Border.InputBindings>
+                <MouseBinding MouseAction="LeftClick" Command="{Binding AnnullaCommand}"/>
+            </Border.InputBindings>
+        </Border>
 
-                <StackPanel>
-                    <TextBlock Text="Nuovo promemoria" FontSize="15" FontWeight="Medium"
-                        Foreground="{StaticResource BrushTestoPrimario}" Margin="0,0,0,14"/>
+        <Border Grid.Row="0" Grid.RowSpan="3" Width="380" HorizontalAlignment="Right" Background="White"
+            BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+            Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="0" Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
+            </Border.Effect>
 
-                    <TextBlock Text="TITOLO" Style="{StaticResource FieldLabel}"/>
-                    <TextBox Text="{Binding FormTitolo, UpdateSourceTrigger=PropertyChanged}"
-                        Height="{StaticResource InputHeight}" Margin="0,0,0,12"
-                        Padding="8,0" VerticalContentAlignment="Center"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                    <TextBlock Text="DESCRIZIONE" Style="{StaticResource FieldLabel}"/>
-                    <TextBox Text="{Binding FormDescrizione, UpdateSourceTrigger=PropertyChanged}"
-                        Height="90" Margin="0,0,0,12" Padding="8,6" TextWrapping="Wrap"
-                        AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding TitoloPannello}" Style="{StaticResource ModuleTitleStyle}"/>
+                        <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}"
+                            Command="{Binding AnnullaCommand}" ToolTip="Chiudi" VerticalAlignment="Top">
+                            <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
+                        </Button>
+                    </Grid>
+                </Border>
 
-                    <TextBlock Text="PRIORITÀ" Style="{StaticResource FieldLabel}"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
-                        <Button Content="Bassa" Style="{StaticResource BtnPrioritaBassa}"
-                            Command="{Binding ImpostaPrioritaCommand}"
-                            CommandParameter="{x:Static models:PrioritaPromemoria.Bassa}"/>
-                        <Button Content="Media" Style="{StaticResource BtnPrioritaMedia}"
-                            Command="{Binding ImpostaPrioritaCommand}"
-                            CommandParameter="{x:Static models:PrioritaPromemoria.Media}"/>
-                        <Button Content="Alta" Style="{StaticResource BtnPrioritaAlta}"
-                            Command="{Binding ImpostaPrioritaCommand}"
-                            CommandParameter="{x:Static models:PrioritaPromemoria.Alta}"/>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="22,16">
+
+                        <TextBlock Text="TITOLO" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding FormTitolo, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
+
+                        <TextBlock Text="DESCRIZIONE" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding FormDescrizione, UpdateSourceTrigger=PropertyChanged}"
+                            AcceptsReturn="True" TextWrapping="Wrap" Height="120"
+                            VerticalContentAlignment="Top" Margin="0,4,0,16"/>
+
+                        <TextBlock Text="PRIORITÀ" Style="{StaticResource FieldLabel}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <Button Content="Bassa" Style="{StaticResource BtnPrioritaBassa}"
+                                Command="{Binding ImpostaPrioritaCommand}"
+                                CommandParameter="{x:Static models:PrioritaPromemoria.Bassa}"/>
+                            <Button Content="Media" Style="{StaticResource BtnPrioritaMedia}"
+                                Command="{Binding ImpostaPrioritaCommand}"
+                                CommandParameter="{x:Static models:PrioritaPromemoria.Media}"/>
+                            <Button Content="Alta" Style="{StaticResource BtnPrioritaAlta}"
+                                Command="{Binding ImpostaPrioritaCommand}"
+                                CommandParameter="{x:Static models:PrioritaPromemoria.Alta}"/>
+                        </StackPanel>
+
                     </StackPanel>
+                </ScrollViewer>
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Annulla" Command="{Binding AnnullaCommand}"
+                <Border Grid.Row="2" BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Padding="22,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="1" Content="Annulla" Command="{Binding AnnullaCommand}"
                             Style="{StaticResource BtnOutline}" Margin="0,0,10,0"/>
-                        <Button Content="Salva" Command="{Binding SalvaCommand}"
+                        <Button Grid.Column="2" Content="Salva" Command="{Binding SalvaCommand}"
                             Style="{StaticResource BtnPrimary}"/>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-        </Popup>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

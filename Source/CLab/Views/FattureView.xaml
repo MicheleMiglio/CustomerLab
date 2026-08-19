@@ -160,7 +160,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="IMPORTO" Binding="{Binding Fattura.Importo, StringFormat='€ {0:N0}'}" Width="0.8*">
+                    <DataGridTextColumn Header="IMPORTO" Binding="{Binding Fattura.Importo, StringFormat='€ {0:N2}'}" Width="0.8*">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontSize" Value="12"/>
@@ -293,7 +293,7 @@
                                     <TextBlock Text="€" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" FontSize="12"/>
                                 </Border>
                                 <TextBox Grid.Column="1" BorderThickness="0" TextAlignment="Right" Padding="8,0"
-                                     Text="{Binding FormImporto, UpdateSourceTrigger=PropertyChanged, StringFormat=N0}"/>
+                                     Text="{Binding FormImporto, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"/>
                             </Grid>
                         </Border>
 

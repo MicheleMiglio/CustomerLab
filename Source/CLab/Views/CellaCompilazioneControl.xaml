@@ -56,7 +56,7 @@
                                 <TextBlock Text="€" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" FontSize="12"/>
                             </Border>
                             <TextBox Grid.Column="1" BorderThickness="0" TextAlignment="Right" Padding="8,0"
-                                 Text="{Binding ValoreNumero, UpdateSourceTrigger=LostFocus, StringFormat=N0}"/>
+                                 Text="{Binding ValoreNumero, UpdateSourceTrigger=LostFocus, StringFormat=N2}"/>
                         </Grid>
                     </Border>
                     <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
@@ -98,7 +98,7 @@
                                     <TextBlock Text="€" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" FontSize="12"/>
                                 </Border>
                                 <TextBox Grid.Column="1" BorderThickness="0" TextAlignment="Right" Padding="8,0"
-                                     Text="{Binding ValoreNumero, UpdateSourceTrigger=LostFocus, StringFormat=N0}"/>
+                                     Text="{Binding ValoreNumero, UpdateSourceTrigger=LostFocus, StringFormat=N2}"/>
                             </Grid>
                         </Border>
                         <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"

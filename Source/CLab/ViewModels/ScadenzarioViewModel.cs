@@ -697,6 +697,13 @@ namespace CLab.ViewModels
         {
             if (a - da <= 0.0005) return Geometry.Empty;
 
+            // Se la fetta copre (quasi) l'intero cerchio, l'angolo di arrivo
+            // coinciderebbe esattamente con quello di partenza (0° e 360° sono
+            // lo stesso punto sulla circonferenza): l'ArcSegment diventerebbe
+            // degenere e non verrebbe disegnato nulla. Accorciamo impercettibilmente
+            // l'arco per evitare che i due punti coincidano.
+            if (a - da >= 0.9999) a = da + 0.9999;
+
             const double cx = 50, cy = 50, raggio = 46;
             double angoloDa = da * 360 - 90;
             double angoloA = a * 360 - 90;

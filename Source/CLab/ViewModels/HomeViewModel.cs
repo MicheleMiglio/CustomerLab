@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
-using System.Windows.Media;
+using System.Windows.Input;
 
 namespace CLab.ViewModels
 {
@@ -14,40 +14,18 @@ namespace CLab.ViewModels
     {
         public string Saluto { get; }
         public string DataOggiTesto { get; }
+        public string SintesiGiornata { get; private set; } = string.Empty;
 
-        // --- Clienti ---
-        private int _totaleClienti;
-        public int TotaleClienti { get => _totaleClienti; private set { _totaleClienti = value; OnPropertyChanged(); } }
+        public string ToDoSezioneSottoTitolo { get; private set; } = string.Empty;
+        public string PromemoriaSezioneSottoTitolo { get; private set; } = string.Empty;
 
-        private int _clientiAttivi;
-        public int ClientiAttivi { get => _clientiAttivi; private set { _clientiAttivi = value; OnPropertyChanged(); } }
+        public ObservableCollection<VoceHomeToDo> ProssimiToDo { get; } = new();
+        public ObservableCollection<VoceHomePromemoria> PromemoriaInEvidenza { get; } = new();
 
-        private GraficoTorta _tortaClienti = new();
-        public GraficoTorta TortaClienti { get => _tortaClienti; private set { _tortaClienti = value; OnPropertyChanged(); } }
+        public ICommand ApriToDoCommand { get; }
+        public ICommand ApriPromemoriaCommand { get; }
 
-        // --- Scadenzario, aggregato su tutti i clienti ---
-        private int _adempimentiInRitardo;
-        public int AdempimentiInRitardo { get => _adempimentiInRitardo; private set { _adempimentiInRitardo = value; OnPropertyChanged(); } }
-
-        private GraficoTorta _tortaAdempimenti = new();
-        public GraficoTorta TortaAdempimenti { get => _tortaAdempimenti; private set { _tortaAdempimenti = value; OnPropertyChanged(); } }
-
-        public ObservableCollection<ClienteDaControllare> ClientiDaControllare { get; set; } = new();
-
-        // --- Fatture, anno corrente ---
-        private string _fatturatoAnnoTesto = "€ 0";
-        public string FatturatoAnnoTesto { get => _fatturatoAnnoTesto; private set { _fatturatoAnnoTesto = value; OnPropertyChanged(); } }
-
-        private string _incassatoAnnoTesto = "€ 0";
-        public string IncassatoAnnoTesto { get => _incassatoAnnoTesto; private set { _incassatoAnnoTesto = value; OnPropertyChanged(); } }
-
-        private string _daIncassareAnnoTesto = "€ 0";
-        public string DaIncassareAnnoTesto { get => _daIncassareAnnoTesto; private set { _daIncassareAnnoTesto = value; OnPropertyChanged(); } }
-
-        private int _fattureScaduteAnno;
-        public int FattureScaduteAnno { get => _fattureScaduteAnno; private set { _fattureScaduteAnno = value; OnPropertyChanged(); } }
-
-        public HomeViewModel()
+        public HomeViewModel(Action? apriToDo = null, Action? apriPromemoria = null)
         {
             var ora = DateTime.Now;
             Saluto = ora.Hour switch
@@ -59,46 +37,115 @@ namespace CLab.ViewModels
 
             var cultura = new CultureInfo("it-IT");
             var testoData = ora.ToString("dddd d MMMM yyyy", cultura);
-            DataOggiTesto = char.ToUpper(testoData[0]) + testoData.Substring(1);
+            DataOggiTesto = char.ToUpper(testoData[0]) + testoData[1..];
 
-            CaricaClienti();
-            CaricaAdempimenti();
-            CaricaFatture();
-            CaricaReferenti();
+            ApriToDoCommand = new RelayCommand(() => apriToDo?.Invoke());
+            ApriPromemoriaCommand = new RelayCommand(() => apriPromemoria?.Invoke());
+
+            int todoScaduti = CaricaToDo();
+            int promemoriaAlta = CaricaPromemoria();
+            int adempimentiInRitardo = ContaAdempimentiInRitardo();
+            int fattureScadute = ContaFattureScadute();
+
+            var parti = new List<string>();
+            if (todoScaduti > 0) parti.Add($"{todoScaduti} ToDo scaduti");
+            if (adempimentiInRitardo > 0) parti.Add($"{adempimentiInRitardo} adempimenti in ritardo");
+            if (fattureScadute > 0) parti.Add($"{fattureScadute} fatture scadute");
+            if (promemoriaAlta > 0) parti.Add($"{promemoriaAlta} promemoria ad alta priorità");
+
+            SintesiGiornata = parti.Count == 0
+                ? "Niente in ritardo per oggi."
+                : string.Join(" · ", parti) + ".";
         }
 
-        private void CaricaClienti()
+        private int CaricaToDo()
         {
             using var db = new ClabDbContext();
-            var clienti = db.Clienti.AsNoTracking().ToList();
+            var elenco = db.ToDo.AsNoTracking().ToList();
 
-            TotaleClienti = clienti.Count;
+            var nomiClienti = db.Clienti.AsNoTracking().ToDictionary(c => c.Id, c => c.RagioneSociale);
+            var nomiReferenti = db.Referenti.AsNoTracking().ToDictionary(r => r.Id, r => r.Nome);
 
-            int attivi = clienti.Count(c => c.Stato == StatoCliente.Attivo);
-            int standBy = clienti.Count(c => c.Stato == StatoCliente.StandBy);
-            int cessati = clienti.Count(c => c.Stato == StatoCliente.Cessato);
+            var aperti = elenco.Where(t => !t.Completato).ToList();
+            int scaduti = aperti.Count(t => t.IsScaduto);
 
-            ClientiAttivi = attivi;
-            TortaClienti = CostruisciTorta(attivi, standBy, cessati);
+            ToDoSezioneSottoTitolo = aperti.Count == 0
+                ? "Nessun ToDo aperto"
+                : scaduti > 0
+                    ? $"{aperti.Count} aperti · {scaduti} scaduti"
+                    : $"{aperti.Count} aperti";
+
+            foreach (var t in aperti
+                         .OrderBy(t => t.DataScadenza.HasValue ? 0 : 1)
+                         .ThenBy(t => t.DataScadenza ?? DateTime.MaxValue)
+                         .ThenByDescending(t => t.Priorita)
+                         .Take(8))
+            {
+                string cliente = t.ClienteId.HasValue && nomiClienti.TryGetValue(t.ClienteId.Value, out var cn)
+                    ? cn
+                    : (t.ClienteNomeStorico
+                        ?? (t.ReferenteId.HasValue && nomiReferenti.TryGetValue(t.ReferenteId.Value, out var rn) ? rn : "—"));
+
+                ProssimiToDo.Add(new VoceHomeToDo
+                {
+                    Titolo = t.Titolo,
+                    ScadenzaTesto = t.DataScadenza.HasValue ? t.DataScadenza.Value.ToString("dd/MM/yyyy") : "Senza scadenza",
+                    Cliente = cliente,
+                    Priorita = t.Priorita,
+                    IsScaduto = t.IsScaduto
+                });
+            }
+
+            return scaduti;
         }
 
-        private void CaricaAdempimenti()
+        private int CaricaPromemoria()
+        {
+            using var db = new ClabDbContext();
+            var elenco = db.Promemoria.AsNoTracking().ToList();
+            int alta = elenco.Count(p => p.Priorita == PrioritaPromemoria.Alta);
+
+            PromemoriaSezioneSottoTitolo = elenco.Count == 0
+                ? "Nessun promemoria"
+                : alta > 0
+                    ? $"{elenco.Count} aperti · {alta} alta priorità"
+                    : $"{elenco.Count} aperti";
+
+            foreach (var p in elenco
+                         .OrderByDescending(p => p.Priorita)
+                         .ThenByDescending(p => p.DataCreazione)
+                         .Take(8))
+            {
+                string? desc = string.IsNullOrWhiteSpace(p.Descrizione) ? null : p.Descrizione.Trim();
+                if (desc != null && desc.Length > 90)
+                    desc = desc[..87] + "…";
+
+                PromemoriaInEvidenza.Add(new VoceHomePromemoria
+                {
+                    Titolo = p.Titolo,
+                    Descrizione = desc ?? string.Empty,
+                    Priorita = p.Priorita,
+                    HaDescrizione = !string.IsNullOrEmpty(desc)
+                });
+            }
+
+            return alta;
+        }
+
+        private static int ContaAdempimentiInRitardo()
         {
             using var db = new ClabDbContext();
             int anno = DateTime.Now.Year;
 
-            var clienti = db.Clienti.AsNoTracking().ToDictionary(c => c.Id, c => c.RagioneSociale);
             var attivitaCatalogo = db.Attivita.AsNoTracking().ToDictionary(a => a.Id, a => a);
             var assegnazioni = db.ClientiAttivita.AsNoTracking().ToList();
             var compilazioni = db.Compilazioni.AsNoTracking().Where(c => c.Anno == anno).ToList();
 
-            int compilate = 0, inCorso = 0, inRitardo = 0;
-            var ritardoPerCliente = new Dictionary<int, int>();
-
+            int inRitardo = 0;
             foreach (var assegnazione in assegnazioni)
             {
                 if (!attivitaCatalogo.TryGetValue(assegnazione.AttivitaId, out var attivita)) continue;
-                if (attivita.TipoCampo == TipoCampoAttivita.TestoLibero) continue; // opzionale, escluso come in Scadenzario
+                if (attivita.TipoCampo == TipoCampoAttivita.TestoLibero) continue;
 
                 int numeroPeriodi = attivita.Periodicita switch
                 {
@@ -120,35 +167,14 @@ namespace CLab.ViewModels
                         _ => false
                     };
 
-                    string stato = CalcolaStato(attivita.Periodicita, anno, periodo, compilato);
-
-                    switch (stato)
-                    {
-                        case "Compilato": compilate++; break;
-                        case "InCorso": inCorso++; break;
-                        case "Ritardo":
-                            inRitardo++;
-                            ritardoPerCliente[assegnazione.ClienteId] = ritardoPerCliente.GetValueOrDefault(assegnazione.ClienteId) + 1;
-                            break;
-                    }
+                    if (CalcolaStato(attivita.Periodicita, anno, periodo, compilato) == "Ritardo")
+                        inRitardo++;
                 }
             }
 
-            AdempimentiInRitardo = inRitardo;
-            TortaAdempimenti = CostruisciTorta(compilate, inCorso, inRitardo);
-
-            ClientiDaControllare.Clear();
-            foreach (var kv in ritardoPerCliente.OrderByDescending(k => k.Value).Take(6))
-            {
-                ClientiDaControllare.Add(new ClienteDaControllare
-                {
-                    RagioneSociale = clienti.TryGetValue(kv.Key, out var nome) ? nome : "—",
-                    NumeroInRitardo = kv.Value
-                });
-            }
+            return inRitardo;
         }
 
-        // Stessa identica logica del calcolo stato già usata in Scadenzario.
         private static string CalcolaStato(Periodicita periodicita, int anno, int periodo, bool compilato)
         {
             if (compilato) return "Compilato";
@@ -167,114 +193,33 @@ namespace CLab.ViewModels
             return "Futuro";
         }
 
-        private void CaricaFatture()
+        private static int ContaFattureScadute()
         {
             using var db = new ClabDbContext();
             int anno = DateTime.Now.Year;
-
-            var fatture = db.Fatture.AsNoTracking()
-                .Where(f => !f.Annullata && f.DataEmissione.Year == anno)
-                .ToList();
-
-            decimal totale = fatture.Sum(f => f.Importo);
-            decimal incassato = fatture.Where(f => f.DataPagamento.HasValue).Sum(f => f.Importo);
-
-            FatturatoAnnoTesto = $"€ {totale:N0}";
-            IncassatoAnnoTesto = $"€ {incassato:N0}";
-            DaIncassareAnnoTesto = $"€ {(totale - incassato):N0}";
-            FattureScaduteAnno = fatture.Count(f =>
-                f.DataScadenza.HasValue && f.DataScadenza.Value.Date < DateTime.Now.Date && !f.DataPagamento.HasValue);
-        }
-
-        // Riusa GraficoTorta (già definita in ScadenzarioViewModel.cs, stesso namespace):
-        // qui è solo una torta generica a 3 fette, i nomi delle proprietà non sono legati al significato.
-        private static GraficoTorta CostruisciTorta(int fetta1, int fetta2, int fetta3)
-        {
-            var torta = new GraficoTorta { Completate = fetta1, InCorso = fetta2, InRitardo = fetta3 };
-            int totale = fetta1 + fetta2 + fetta3;
-
-            if (totale == 0)
-            {
-                torta.Vuoto = true;
-                return torta;
-            }
-
-            double p1 = fetta1 / (double)totale;
-            double p2 = p1 + fetta2 / (double)totale;
-
-            torta.FettaCompletate = CreaSettore(0, p1);
-            torta.FettaInCorso = CreaSettore(p1, p2);
-            torta.FettaInRitardo = CreaSettore(p2, 1.0);
-            return torta;
-        }
-
-        private static Geometry CreaSettore(double da, double a)
-        {
-            if (a - da <= 0.0005) return Geometry.Empty;
-
-            // Se la fetta copre (quasi) l'intero cerchio, l'angolo di arrivo
-            // coinciderebbe esattamente con quello di partenza (0° e 360° sono
-            // lo stesso punto sulla circonferenza): l'ArcSegment diventerebbe
-            // degenere e non verrebbe disegnato nulla. Accorciamo impercettibilmente
-            // l'arco per evitare che i due punti coincidano.
-            if (a - da >= 0.9999) a = da + 0.9999;
-
-            const double cx = 50, cy = 50, raggio = 46;
-            double angoloDa = da * 360 - 90;
-            double angoloA = a * 360 - 90;
-            var p0 = PuntoSuCirconferenza(cx, cy, raggio, angoloDa);
-            var p1 = PuntoSuCirconferenza(cx, cy, raggio, angoloA);
-            bool grandeArco = (angoloA - angoloDa) > 180;
-
-            var figura = new System.Windows.Media.PathFigure { StartPoint = new System.Windows.Point(cx, cy), IsClosed = true };
-            figura.Segments.Add(new LineSegment(p0, true));
-            figura.Segments.Add(new ArcSegment(p1, new System.Windows.Size(raggio, raggio), 0, grandeArco, SweepDirection.Clockwise, true));
-
-            var geometria = new PathGeometry();
-            geometria.Figures.Add(figura);
-            return geometria;
-        }
-
-        private static System.Windows.Point PuntoSuCirconferenza(double cx, double cy, double r, double angoloGradi)
-        {
-            double rad = angoloGradi * Math.PI / 180.0;
-            return new System.Windows.Point(cx + r * Math.Cos(rad), cy + r * Math.Sin(rad));
-        }
-
-        private int _referentiAttiviCount;
-        public int ReferentiAttiviCount { get => _referentiAttiviCount; private set { _referentiAttiviCount = value; OnPropertyChanged(); } }
-
-        public ObservableCollection<ClientiPerReferente> TopReferenti { get; set; } = new();
-
-        private void CaricaReferenti()
-        {
-            using var db = new ClabDbContext();
-            var referentiAttivi = db.Referenti.AsNoTracking().Where(r => r.Attivo).ToList();
-            ReferentiAttiviCount = referentiAttivi.Count;
-
-            var clienti = db.Clienti.AsNoTracking().ToList();
-
-            TopReferenti.Clear();
-            foreach (var r in referentiAttivi
-                         .Select(r => new ClientiPerReferente { Nome = r.Nome, NumeroClienti = clienti.Count(c => c.ReferenteId == r.Id) })
-                         .Where(x => x.NumeroClienti > 0)
-                         .OrderByDescending(x => x.NumeroClienti)
-                         .Take(6))
-            {
-                TopReferenti.Add(r);
-            }
+            return db.Fatture.AsNoTracking().Count(f =>
+                !f.Annullata
+                && f.DataEmissione.Year == anno
+                && f.DataScadenza.HasValue
+                && f.DataScadenza.Value.Date < DateTime.Now.Date
+                && !f.DataPagamento.HasValue);
         }
     }
 
-    public class ClienteDaControllare
+    public class VoceHomeToDo
     {
-        public string RagioneSociale { get; set; } = string.Empty;
-        public int NumeroInRitardo { get; set; }
+        public string Titolo { get; set; } = string.Empty;
+        public string ScadenzaTesto { get; set; } = string.Empty;
+        public string Cliente { get; set; } = string.Empty;
+        public PrioritaToDo Priorita { get; set; }
+        public bool IsScaduto { get; set; }
     }
 
-    public class ClientiPerReferente
+    public class VoceHomePromemoria
     {
-        public string Nome { get; set; } = string.Empty;
-        public int NumeroClienti { get; set; }
+        public string Titolo { get; set; } = string.Empty;
+        public string Descrizione { get; set; } = string.Empty;
+        public PrioritaPromemoria Priorita { get; set; }
+        public bool HaDescrizione { get; set; }
     }
 }

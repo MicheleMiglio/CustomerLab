@@ -1,6 +1,7 @@
 ﻿using CLab.Data;
 using CLab.Models;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -15,6 +16,7 @@ namespace CLab.ViewModels
         private MenuItemModel? _attivitaMenu;
         private MenuItemModel? _scadenzarioMenu;
         private MenuItemModel? _fattureMenu;
+        private MenuItemModel? _todoMenu;
         private MenuItemModel? _impostazioniMenu;
 
         public object? VistaCorrente
@@ -72,7 +74,7 @@ namespace CLab.ViewModels
         public MainViewModel()
         {
             ToggleSidebarCommand = new RelayCommand(ToggleSidebar);
-        
+
             MenuPrincipale = new ObservableCollection<MenuItemModel>();
 
             MenuFooter = new ObservableCollection<MenuItemModel>();
@@ -133,6 +135,14 @@ namespace CLab.ViewModels
             };
             MenuPrincipale.Add(_fattureMenu);
 
+            _todoMenu = new MenuItemModel
+            {
+                Titolo = "ToDo",
+                Icona = "CheckSquare",
+                Comando = new RelayCommand<MenuItemModel>(ApriToDo)
+            };
+            MenuPrincipale.Add(_todoMenu);
+
             _impostazioniMenu = new MenuItemModel
             {
                 Titolo = "Impostazioni",
@@ -147,7 +157,9 @@ namespace CLab.ViewModels
         {
             SelezionaMenu(menu);
 
-            VistaCorrente = new HomeViewModel();
+            VistaCorrente = new HomeViewModel(
+                () => ApriToDo(_todoMenu),
+                () => ApriPromemoria(_promemoriaMenu));
         }
 
         private void ApriPromemoria(MenuItemModel? menu)
@@ -191,6 +203,12 @@ namespace CLab.ViewModels
         {
             SelezionaMenu(menu);
             VistaCorrente = new FattureViewModel();
+        }
+
+        private void ApriToDo(MenuItemModel? menu)
+        {
+            SelezionaMenu(menu);
+            VistaCorrente = new ToDoViewModel();
         }
 
         private void ApriImpostazioni(MenuItemModel? menu)

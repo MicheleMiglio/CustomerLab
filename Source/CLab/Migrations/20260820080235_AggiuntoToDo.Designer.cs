@@ -3,6 +3,7 @@ using System;
 using CLab.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CLab.Migrations
 {
     [DbContext(typeof(ClabDbContext))]
-    partial class ClabDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820080235_AggiuntoToDo")]
+    partial class AggiuntoToDo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.28");
@@ -360,9 +363,6 @@ namespace CLab.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("DataCompletamento")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("DataCreazione")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("DataScadenza")

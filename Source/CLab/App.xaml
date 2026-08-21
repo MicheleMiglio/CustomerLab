@@ -37,6 +37,10 @@
                 <views:FattureView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type vm:ToDoViewModel}">
+                <views:ToDoView/>
+            </DataTemplate>
+
             <DataTemplate DataType="{x:Type vm:ImpostazioniViewModel}">
                 <views:ImpostazioniView/>
             </DataTemplate>

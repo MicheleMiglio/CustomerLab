@@ -18,6 +18,8 @@ namespace CLab.Data
         public DbSet<Referente> Referenti { get; set; }
         public DbSet<Programma> Programmi { get; set; }
         public DbSet<Promemoria> Promemoria { get; set; }
+        public DbSet<ToDo> ToDo { get; set; }
+        public DbSet<ToDoSottoAttivita> ToDoSottoAttivita { get; set; }
 
         public static string PercorsoDatabase
         {
@@ -78,6 +80,27 @@ namespace CLab.Data
                 .WithMany()
                 .HasForeignKey(c => c.ProgrammaId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ToDo: collegamenti opzionali a Cliente/Referente, gestiti "a mano"
+            // dal ViewModel (conferma popup + orfanamento dei completati) —
+            // Restrict evita che EF cancelli o orfani i ToDo di nascosto.
+            modelBuilder.Entity<ToDo>()
+                .HasOne<Cliente>()
+                .WithMany()
+                .HasForeignKey(t => t.ClienteId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ToDo>()
+                .HasOne<Referente>()
+                .WithMany()
+                .HasForeignKey(t => t.ReferenteId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ToDoSottoAttivita>()
+                .HasOne<ToDo>()
+                .WithMany(t => t.SottoAttivita)
+                .HasForeignKey(s => s.ToDoId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Eliminare un'Attivita dal catalogo elimina a cascata le sue
             // opzioni, le assegnazioni ai clienti e tutte le compilazioni:

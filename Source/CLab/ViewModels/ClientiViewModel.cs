@@ -325,16 +325,38 @@ namespace CLab.ViewModels
         {
             if (cliente == null) return;
 
-            var ris = MessageBox.Show(
-                $"Eliminare il cliente '{cliente.RagioneSociale}'?",
-                "Conferma eliminazione",
+            using var db = new ClabDbContext();
+
+            var todoCollegati = db.ToDo.Where(t => t.ClienteId == cliente.Id).ToList();
+            var todoAperti = todoCollegati.Where(t => !t.Completato).ToList();
+
+            string messaggio = $"Eliminare il cliente '{cliente.RagioneSociale}'?";
+            if (todoAperti.Count > 0)
+            {
+                messaggio += $"\n\nSono collegati {todoAperti.Count} ToDo non completat{(todoAperti.Count == 1 ? "o" : "i")}: " +
+                             "verranno eliminati insieme al cliente.";
+            }
+
+            var ris = MessageBox.Show(messaggio, "Conferma eliminazione",
                 MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (ris != MessageBoxResult.Yes) return;
 
-            using var db = new ClabDbContext();
+            if (todoAperti.Count > 0)
+                db.ToDo.RemoveRange(todoAperti);
+
+            // I ToDo già completati restano nello storico, ma slegati dal
+            // cliente: lo snapshot del nome preserva il contesto.
+            foreach (var t in todoCollegati.Where(t => t.Completato))
+            {
+                t.ClienteId = null;
+                t.ClienteNomeStorico = cliente.RagioneSociale;
+            }
+
             var da = db.Clienti.Find(cliente.Id);
-            if (da != null) { db.Clienti.Remove(da); db.SaveChanges(); }
+            if (da != null) db.Clienti.Remove(da);
+
+            db.SaveChanges();
 
             CaricaClienti();
         }
@@ -549,8 +571,9 @@ namespace CLab.ViewModels
 
             using var db = new ClabDbContext();
             int numeroClienti = db.Clienti.Count(c => c.ReferenteId == r.Id);
+            int numeroToDo = db.ToDo.Count(t => t.ReferenteId == r.Id);
 
-            if (numeroClienti == 0)
+            if (numeroClienti == 0 && numeroToDo == 0)
             {
                 var entita = db.Referenti.First(x => x.Id == r.Id);
                 db.Referenti.Remove(entita);

@@ -1,0 +1,100 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================ -->
+    <!-- STILI DATAGRID STANDARD DEI MODULI.                           -->
+    <!-- FASE 2: le View usano ancora gli stili inline duplicati;      -->
+    <!-- queste chiavi sono il punto di arrivo della FASE 3.           -->
+    <!--                                                               -->
+    <!-- Nota sulle varianti di riga: le quattro griglie esistenti     -->
+    <!-- (Clienti, Fatture, Attività, Scadenzario/Ritenute) NON sono   -->
+    <!-- identiche al 100%:                                            -->
+    <!--  - Clienti: riga cliccabile + sfondo selezione BrushAccentSelected -->
+    <!--  - Fatture/Scadenzario: riga cliccabile, nessun trigger di selezione -->
+    <!--  - Attività: riga NON cliccabile (nessun cursore a mano)      -->
+    <!-- Non è stata forzata una generalizzazione: in FASE 3 ogni      -->
+    <!-- griglia sceglie la variante di RowStyle corretta.             -->
+    <!-- ============================================================ -->
+
+    <!-- Header di colonna: alias del kit ModulePage, così le griglie
+         referenziano un'unica chiave del sistema DataGrid. -->
+    <Style x:Key="ModuleDataGridColumnHeaderStyle"
+           TargetType="DataGridColumnHeader"
+           BasedOn="{StaticResource ModuleColumnHeaderStyle}"/>
+
+    <!-- Cella: niente bordi, contenuto centrato verticalmente, nessun
+         evidenziazione di selezione a livello cella (la gestisce la riga).
+         La variante più completa (Clienti/Attività) include anche il
+         Foreground in selezione: visivamente equivalente per le altre
+         griglie, il cui contenuto imposta sempre un Foreground esplicito. -->
+    <Style x:Key="ModuleDataGridCellStyle" TargetType="DataGridCell">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridCell">
+                    <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Riga base: trasparente, hover tenue ambra. -->
+    <Style x:Key="ModuleDataGridRowStyle" TargetType="DataGridRow">
+        <Setter Property="Background" Value="Transparent"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource BrushAccentHover}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Variante cliccabile (doppio click / cursore a mano):
+         Fatture, Scadenzario, Clienti. -->
+    <Style x:Key="ModuleDataGridRowClickableStyle"
+           TargetType="DataGridRow"
+           BasedOn="{StaticResource ModuleDataGridRowStyle}">
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+
+    <!-- Variante cliccabile con evidenziazione della riga selezionata:
+         usata oggi solo da Clienti. -->
+    <Style x:Key="ModuleDataGridRowClickableSelectedStyle"
+           TargetType="DataGridRow"
+           BasedOn="{StaticResource ModuleDataGridRowClickableStyle}">
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource BrushAccentSelected}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Impostazioni comuni del DataGrid di modulo. RowStyle NON è fissato
+         qui: le griglie differiscono (cliccabile o meno, selezione evidenziata
+         o meno) e la scelta resta alla singola View in FASE 3. -->
+    <Style x:Key="ModuleDataGridStyle" TargetType="DataGrid">
+        <Setter Property="AutoGenerateColumns" Value="False"/>
+        <Setter Property="IsReadOnly" Value="True"/>
+        <Setter Property="CanUserAddRows" Value="False"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
+        <Setter Property="HeadersVisibility" Value="Column"/>
+        <Setter Property="GridLinesVisibility" Value="None"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="RowBackground" Value="White"/>
+        <Setter Property="AlternatingRowBackground" Value="{StaticResource BrushSfondoAlternato}"/>
+        <Setter Property="ColumnHeaderStyle" Value="{StaticResource ModuleDataGridColumnHeaderStyle}"/>
+        <Setter Property="CellStyle" Value="{StaticResource ModuleDataGridCellStyle}"/>
+    </Style>
+
+</ResourceDictionary>

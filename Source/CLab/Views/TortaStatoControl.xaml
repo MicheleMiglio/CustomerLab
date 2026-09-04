@@ -1,0 +1,41 @@
+<UserControl x:Class="CLab.Views.TortaStatoControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================ -->
+    <!-- TORTA "DONUT" DI STATO (riutilizzabile).                      -->
+    <!-- FASE 2: solo creato; le quattro copie attualmente inline in   -->
+    <!-- ScadenzarioView (TortaMensili/Trimestrali/Annuali/Ritenute)   -->
+    <!-- verranno sostituite in FASE 3.                                -->
+    <!--                                                               -->
+    <!-- Replica 1:1 del blocco esistente (Canvas 100x100, buco bianco -->
+    <!-- 56x56 a 22/22, testo percentuale centrato). VM-agnostic: le   -->
+    <!-- geometrie, i brush e il testo arrivano da DependencyProperty, -->
+    <!-- così la FASE 3 potrà bindare senza toccare i ViewModel.       -->
+    <!--                                                               -->
+    <!-- Differenza nota tra le copie attuali: la torta Ritenute usa   -->
+    <!-- BrushStatoStandBy per la fetta "in corso" invece di           -->
+    <!-- BrushPrimary. Il componente lo supporta via BrushInCorso      -->
+    <!-- (default BrushPrimary, sovrascrivibile a uso).                -->
+    <!-- ============================================================ -->
+
+    <Grid>
+        <Viewbox>
+            <Canvas Width="100" Height="100">
+                <Ellipse Width="100" Height="100" Fill="{StaticResource BrushSfondoChiaro}"
+                     Visibility="{Binding Vuoto, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}}"/>
+                <Path Data="{Binding FettaCompletate, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                  Fill="{Binding BrushCompletate, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource BrushSuccess}}"/>
+                <Path Data="{Binding FettaInCorso, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                  Fill="{Binding BrushInCorso, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource BrushPrimary}}"/>
+                <Path Data="{Binding FettaInRitardo, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                  Fill="{Binding BrushInRitardo, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource BrushDanger}}"/>
+                <Ellipse Canvas.Left="22" Canvas.Top="22" Width="56" Height="56" Fill="White"/>
+            </Canvas>
+        </Viewbox>
+        <TextBlock Text="{Binding TestoCentro, RelativeSource={RelativeSource AncestorType=UserControl}}"
+               FontSize="17" FontWeight="Medium"
+               Foreground="{StaticResource BrushTestoPrimario}"
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Grid>
+</UserControl>

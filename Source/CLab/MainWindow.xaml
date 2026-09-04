@@ -1,13 +1,55 @@
-﻿<Window x:Class="CLab.MainWindow"
+﻿<mah:MetroWindow x:Class="CLab.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:views="clr-namespace:CLab.Views"
         Title="CustomerLab"
         Height="800"
         Width="1200"
+        WindowTitleBrush="{StaticResource BrushSidebarBackground}"
+        NonActiveWindowTitleBrush="{StaticResource BrushSidebarBackground}"
+        GlowBrush="{StaticResource BrushSidebarBackground}"
+        TitleForeground="{StaticResource BrushTestoSuScuro}"
+        TitleCharacterCasing="Normal"
+        ShowIconOnTitleBar="True"
+        ShowTitleBar="True"
+        SaveWindowPosition="True"
         WindowState="Maximized">
 
-    <Grid>
+    <!-- Titolo di finestra più piccolo e discreto, separato dall'icona: testo
+         secondario invece del titolo bianco pieno di default. -->
+    <mah:MetroWindow.TitleTemplate>
+        <DataTemplate>
+            <TextBlock Text="{Binding RelativeSource={RelativeSource AncestorType=mah:MetroWindow}, Path=Title}"
+                       FontSize="11" FontWeight="SemiBold"
+                       Foreground="{StaticResource BrushTestoSuScuroSecondario}"
+                       Margin="10,0,0,0" VerticalAlignment="Center"
+                       Opacity="0.85"/>
+        </DataTemplate>
+    </mah:MetroWindow.TitleTemplate>
+
+    <!-- Icona di sistema in titlebar: stesso marchio "C" a gradiente della sidebar,
+         cosi' titlebar e app sono un unico blocco visivo, non "finestra di Windows
+         sopra app tematizzata". -->
+    <mah:MetroWindow.IconTemplate>
+        <DataTemplate>
+            <Border Width="16" Height="16" CornerRadius="4" Margin="6,0,0,0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{StaticResource ColorPrimaryLight}" Offset="0"/>
+                        <GradientStop Color="{StaticResource ColorPrimary}" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <TextBlock Text="C" FontSize="9" FontWeight="Bold" Foreground="White"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+        </DataTemplate>
+    </mah:MetroWindow.IconTemplate>
+
+    <!-- Sfondo navy: dove il pannello di contenuto (arrotondato in alto a
+         sinistra) non copre tutto, si vede il navy dietro - dà l'idea di un
+         pannello "incastonato" nella cornice scura, non incollato di netto. -->
+    <Grid Background="{StaticResource BrushSidebarBackground}">
 
         <Grid.ColumnDefinitions>
 
@@ -22,15 +64,38 @@
         <views:SidebarView Grid.Column="0"/>
 
 
-        <!-- Area contenuto -->
+        <!-- Area contenuto: angolo in alto a sinistra arrotondato (il punto in
+             cui sidebar e titlebar navy si incontrano), più una sfumatura
+             azzurro-chiaro→grigio-chiaro nella fascia della testata pagina.
+             Prima l'header di ogni modulo era una scatola grigia scollegata,
+             incollata di netto sotto una titlebar ora colorata: qui invece il
+             colore della cornice "prosegue" morbidamente dentro il modulo e
+             sfuma nello sfondo normale, un solo punto di codice che vale per
+             tutti gli 8 moduli (l'header di ciascuno è trasparente, vedi
+             Theme/ModulePage.xaml → ModuleHeaderBorderStyle). -->
         <Border Grid.Column="1"
-        Background="{StaticResource BrushSfondoChiaro}">
+        Background="{StaticResource BrushSfondoChiaro}"
+        CornerRadius="16,0,0,0"
+        ClipToBounds="True">
 
-            <ContentControl
+            <Grid>
+
+                <Border VerticalAlignment="Top" Height="150" CornerRadius="16,0,0,0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#E6F1FB" Offset="0"/>
+                            <GradientStop Color="{StaticResource ColorSfondoChiaro}" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <ContentControl
         Content="{Binding VistaCorrente}"/>
+
+            </Grid>
 
         </Border>
 
     </Grid>
 
-</Window>
+</mah:MetroWindow>

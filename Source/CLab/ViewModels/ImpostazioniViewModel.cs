@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -36,6 +37,7 @@ namespace CLab.ViewModels
         public bool PuoEliminare => TestoConferma.Trim().Equals(TestoConfermaRichiesto, StringComparison.Ordinal);
 
         public ICommand ApriCartellaDatiCommand { get; }
+        public ICommand EseguiBackupCommand { get; }
         public ICommand EliminaDatiCommand { get; }
 
         public ImpostazioniViewModel()
@@ -50,6 +52,7 @@ namespace CLab.ViewModels
             DimensioneDatabaseTesto = CalcolaDimensioneTesto(PercorsoDatabase);
 
             ApriCartellaDatiCommand = new RelayCommand(ApriCartellaDati);
+            EseguiBackupCommand = new RelayCommand(EseguiBackup);
             EliminaDatiCommand = new RelayCommand(EliminaDati, () => PuoEliminare);
         }
 
@@ -76,6 +79,54 @@ namespace CLab.ViewModels
                 Arguments = $"/select,\"{PercorsoDatabase}\"",
                 UseShellExecute = true
             });
+        }
+
+        /// <summary>
+        /// FASE 9 — Backup manuale del database. Usa l'API di backup di SQLite
+        /// (SqliteConnection.BackupDatabase, già disponibile con Microsoft.Data.Sqlite
+        /// usato dal progetto): copia coerente anche con connessioni attive e journaling,
+        /// senza modificare il database originale né chiudere l'applicazione.
+        /// </summary>
+        private void EseguiBackup()
+        {
+            var dialogo = new SaveFileDialog
+            {
+                Title = "Esegui backup del database CLab",
+                FileName = $"clab_backup_{DateTime.Now:yyyyMMdd_HHmmss}.db",
+                DefaultExt = ".db",
+                Filter = "Database CLab (*.db)|*.db|Tutti i file (*.*)|*.*",
+                AddExtension = true,
+                OverwritePrompt = true
+            };
+
+            if (dialogo.ShowDialog() != true)
+                return;
+
+            try
+            {
+                using var origine = new SqliteConnection($"Data Source={PercorsoDatabase}");
+                origine.Open();
+
+                using var destinazione = new SqliteConnection($"Data Source={dialogo.FileName}");
+                destinazione.Open();
+
+                origine.BackupDatabase(destinazione);
+
+                MessageBox.Show(
+                    "Backup completato correttamente.",
+                    "Backup database",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Impossibile completare il backup. Verifica di avere i permessi di scrittura nella cartella selezionata.\n\n" +
+                    $"Dettaglio: {ex.Message}",
+                    "Backup database",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
 
         private void EliminaDati()

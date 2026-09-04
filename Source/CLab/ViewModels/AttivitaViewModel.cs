@@ -632,14 +632,22 @@ namespace CLab.ViewModels
         }
 
         /// <summary>
-        /// Chiamato da fuori (es. Scadenzario) per aprire la Configurazione
-        /// già impostata in modalità "per cliente" con un cliente preselezionato.
+        /// Chiamato da fuori (es. Scadenzario, tramite MainViewModel) per aprire
+        /// la Configurazione già impostata in modalità "per cliente" con un
+        /// cliente preselezionato. FASE 4: la selezione avviene per Id, non più
+        /// per ragione sociale.
         /// </summary>
-        public void ApriConfigurazionePerCliente(string ragioneSociale)
+        public void ApriConfigurazionePerCliente(int clienteId)
         {
             ModalitaPerCliente = true;
 
-            var cliente = ClientiPerConfigurazione.FirstOrDefault(c => c.RagioneSociale == ragioneSociale);
+            // Il filtro referente potrebbe nascondere il cliente richiesto:
+            // lo azzero così la selezione contestuale è sempre possibile.
+            if (ReferenteFiltroConfigurazione != null)
+                ReferenteFiltroConfigurazione = null;
+
+            var cliente = ClientiPerConfigurazione.FirstOrDefault(c => c.Id == clienteId)
+                          ?? _clientiConfigurazioneCompleti.FirstOrDefault(c => c.Id == clienteId);
             if (cliente != null)
                 ClienteConfigurazione = cliente;
         }

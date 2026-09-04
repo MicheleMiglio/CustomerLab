@@ -7,10 +7,22 @@
     <!-- di ridisegnare header/griglia da zero.                       -->
     <!-- ============================================================ -->
 
-    <!-- Header di pagina (in alto) e header del pannello di dettaglio:
-         stessa identità, chiara e sobria. Il colore forte del brand
-         resta demandato alla Sidebar, qui serve solo leggibilità. -->
+    <!-- Header di PAGINA (in cima al modulo, Height="64", sempre il primo
+         Grid.Row="0" del modulo). Prima era una scatola grigia con riga netta
+         sotto - staccata dal resto, "buttata lì" sotto la titlebar navy.
+         Ora è trasparente: si fonde con lo sfondo del modulo, che a sua volta
+         (vedi MainWindow.xaml) ha una sfumatura chiara proprio in cima -
+         nessuna scatola, nessuna riga, la testata "respira" nel resto della
+         pagina invece di essere un pannello separato incollato sopra. -->
     <Style x:Key="ModuleHeaderBorderStyle" TargetType="Border">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <!-- Header di PANNELLO interno (dettaglio cliente, form laterali...):
+         qui la scatola ha ancora senso, perché deve separare visivamente un
+         sotto-pannello dal resto del modulo - contesto diverso dall'header
+         di pagina, quindi stile diverso. -->
+    <Style x:Key="PanelHeaderBorderStyle" TargetType="Border">
         <Setter Property="Background" Value="#FFF3F6FB"/>
         <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>

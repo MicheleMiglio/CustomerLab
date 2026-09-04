@@ -25,6 +25,7 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -44,15 +45,78 @@
                                         </iconPacks:PackIconBootstrapIcons>
                                         <TextBlock Grid.Column="1" Text="{Binding Nome}" FontSize="13" VerticalAlignment="Center"
                                                Foreground="{StaticResource BrushTestoPrimario}" TextTrimming="CharacterEllipsis"/>
-                                        <Ellipse Grid.Column="2" Width="7" Height="7" Margin="0,0,8,0" VerticalAlignment="Center"
+                                        <!-- FASE 6: tipo di compilazione attesa (informazione già disponibile) -->
+                                        <TextBlock Grid.Column="2" Text="{Binding TipoCampo, Converter={StaticResource TipoCampoLabel}}" FontSize="10"
+                                               Foreground="{StaticResource BrushTestoSecondario}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+                                        <Ellipse Grid.Column="3" Width="7" Height="7" Margin="0,0,8,0" VerticalAlignment="Center"
                                              Fill="{Binding StatoRiepilogo, Converter={StaticResource StatoAColore}}"/>
-                                        <TextBlock Grid.Column="3" Text="{Binding TestoRiepilogo}" FontSize="11"
-                                               Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="4" Text="{Binding TestoRiepilogo}" FontSize="11"
+                                               Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                     </Grid>
                                 </Border>
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
+
+                    <!-- FASE 6: fila pillole SEMPRE visibile — la matrice dei periodi.
+                         Click sulla pill = seleziona ed espande la compilazione;
+                         ✓ = compilazione rapida Sì/No (stesso percorso di persistenza). -->
+                    <ItemsControl ItemsSource="{Binding Pillole}" Margin="16,0,12,10" HorizontalAlignment="Right"
+                              Visibility="{Binding Pillole.Count, Converter={StaticResource BoolToVisibility}}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,4,0">
+                                    <Button Command="{Binding SelezionaCommand}" CommandParameter="{Binding Indice}"
+                                        Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="bd" CornerRadius="5" Width="46" BorderThickness="1.5"
+                                                    Background="{Binding StatoColore, Converter={StaticResource StatoASfondo}}">
+                                                    <TextBlock Text="{Binding Etichetta}" FontSize="11" TextAlignment="Center" Padding="0,4"
+                                                        Foreground="{Binding StatoColore, Converter={StaticResource StatoAColore}}"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding Selezionato}" Value="True">
+                                                        <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Selezionato}" Value="False">
+                                                        <Setter TargetName="bd" Property="BorderBrush" Value="Transparent"/>
+                                                    </DataTrigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <!-- Toggle compilazione rapida Sì/No (sopra la pill, a destra) -->
+                                    <Button Command="{Binding ToggleRapidoCommand}" Cursor="Hand" Focusable="False"
+                                        BorderThickness="0" Background="Transparent" Padding="0"
+                                        HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,2,0"
+                                        Visibility="{Binding MostraToggleRapido, Converter={StaticResource BoolToVisibility}}"
+                                        ToolTip="Compilazione rapida Sì/No">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="tg" CornerRadius="4" Padding="4,1" Background="Transparent">
+                                                    <TextBlock Text="✓" FontSize="10" FontWeight="Bold" TextAlignment="Center"
+                                                        Foreground="{Binding StatoColore, Converter={StaticResource StatoAColore}}"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="tg" Property="Background" Value="{StaticResource BrushAccentHover}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
                     <StackPanel Visibility="{Binding Espansa, Converter={StaticResource BoolToVisibility}}">
                         <Border BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0">
@@ -61,38 +125,7 @@
                                 Background="{StaticResource BrushSfondoChiaro}">
                                 <StackPanel Margin="16,16,16,20">
 
-                                    <ItemsControl ItemsSource="{Binding Pillole}" Margin="0,0,0,16"
-                                              Visibility="{Binding Pillole.Count, Converter={StaticResource BoolToVisibility}}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel/>
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Button Command="{Binding SelezionaCommand}" CommandParameter="{Binding Indice}"
-                                                    Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,6,6">
-                                                    <Button.Template>
-                                                        <ControlTemplate TargetType="Button">
-                                                            <Border x:Name="bd" CornerRadius="5" Padding="9,5" BorderThickness="1.5"
-                                                                Background="{Binding StatoColore, Converter={StaticResource StatoASfondo}}">
-                                                                <TextBlock Text="{Binding Etichetta}" FontSize="11"
-                                                                       Foreground="{Binding StatoColore, Converter={StaticResource StatoAColore}}"/>
-                                                            </Border>
-                                                            <ControlTemplate.Triggers>
-                                                                <DataTrigger Binding="{Binding Selezionato}" Value="True">
-                                                                    <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Selezionato}" Value="False">
-                                                                    <Setter TargetName="bd" Property="BorderBrush" Value="Transparent"/>
-                                                                </DataTrigger>
-                                                            </ControlTemplate.Triggers>
-                                                        </ControlTemplate>
-                                                    </Button.Template>
-                                                </Button>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                    <!-- FASE 6: le pillole sono ora sempre visibili nella matrice sopra -->
 
                                     <local:CellaCompilazioneControl DataContext="{Binding CellaSelezionata}"/>
 
@@ -132,19 +165,9 @@
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="Dashboard" Command="{Binding MostraDashboardCommand}"
-                        Padding="4,8" Margin="0,0,16,0" Cursor="Hand" Background="Transparent">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
-                                    <ContentPresenter Margin="{TemplateBinding Padding}"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
+                        Margin="0,0,16,0">
                         <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="FontSize" Value="12"/>
-                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-                                <Setter Property="BorderBrush" Value="Transparent"/>
+                            <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding MostraDashboard}" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
@@ -155,19 +178,9 @@
                         </Button.Style>
                     </Button>
                     <Button Content="Adempimenti" Command="{Binding MostraAdempimentiCommand}"
-                        Padding="4,8" Margin="0,0,16,0" Cursor="Hand" Background="Transparent">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
-                                    <ContentPresenter Margin="{TemplateBinding Padding}"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
+                        Margin="0,0,16,0">
                         <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="FontSize" Value="12"/>
-                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-                                <Setter Property="BorderBrush" Value="Transparent"/>
+                            <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding MostraAdempimenti}" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
@@ -177,20 +190,9 @@
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Content="Ritenute d'acconto" Command="{Binding MostraRitenuteCommand}"
-                        Padding="4,8" Cursor="Hand" Background="Transparent">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
-                                    <ContentPresenter Margin="{TemplateBinding Padding}"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
+                    <Button Content="Ritenute d'acconto" Command="{Binding MostraRitenuteCommand}">
                         <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="FontSize" Value="12"/>
-                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-                                <Setter Property="BorderBrush" Value="Transparent"/>
+                            <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding MostraRitenute}" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
@@ -286,21 +288,12 @@
 
                         <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,10,0">
                             <StackPanel HorizontalAlignment="Center">
-                                <Grid HorizontalAlignment="Center" Width="120" Height="120">
-                                    <Viewbox Width="120" Height="120">
-                                        <Canvas Width="100" Height="100">
-                                            <Ellipse Width="100" Height="100" Fill="{StaticResource BrushSfondoChiaro}"
-                                                 Visibility="{Binding TortaMensili.Vuoto, Converter={StaticResource BoolToVisibility}}"/>
-                                            <Path Data="{Binding TortaMensili.FettaCompletate}" Fill="{StaticResource BrushSuccess}"/>
-                                            <Path Data="{Binding TortaMensili.FettaInCorso}" Fill="{StaticResource BrushPrimary}"/>
-                                            <Path Data="{Binding TortaMensili.FettaInRitardo}" Fill="{StaticResource BrushDanger}"/>
-                                            <Ellipse Canvas.Left="22" Canvas.Top="22" Width="56" Height="56" Fill="White"/>
-                                        </Canvas>
-                                    </Viewbox>
-                                    <TextBlock Text="{Binding CompletamentoMensiliTesto}" FontSize="17" FontWeight="Medium"
-                                           Foreground="{StaticResource BrushTestoPrimario}"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
+                                <local:TortaStatoControl Width="120" Height="120"
+                                    FettaCompletate="{Binding TortaMensili.FettaCompletate}"
+                                    FettaInCorso="{Binding TortaMensili.FettaInCorso}"
+                                    FettaInRitardo="{Binding TortaMensili.FettaInRitardo}"
+                                    Vuoto="{Binding TortaMensili.Vuoto}"
+                                    TestoCentro="{Binding CompletamentoMensiliTesto}"/>
                                 <TextBlock Text="MENSILI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"
                                        HorizontalAlignment="Center" Margin="0,10,0,10"/>
                                 <StackPanel>
@@ -340,21 +333,12 @@
 
                         <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,10,0">
                             <StackPanel HorizontalAlignment="Center">
-                                <Grid HorizontalAlignment="Center" Width="120" Height="120">
-                                    <Viewbox Width="120" Height="120">
-                                        <Canvas Width="100" Height="100">
-                                            <Ellipse Width="100" Height="100" Fill="{StaticResource BrushSfondoChiaro}"
-                                                 Visibility="{Binding TortaTrimestrali.Vuoto, Converter={StaticResource BoolToVisibility}}"/>
-                                            <Path Data="{Binding TortaTrimestrali.FettaCompletate}" Fill="{StaticResource BrushSuccess}"/>
-                                            <Path Data="{Binding TortaTrimestrali.FettaInCorso}" Fill="{StaticResource BrushPrimary}"/>
-                                            <Path Data="{Binding TortaTrimestrali.FettaInRitardo}" Fill="{StaticResource BrushDanger}"/>
-                                            <Ellipse Canvas.Left="22" Canvas.Top="22" Width="56" Height="56" Fill="White"/>
-                                        </Canvas>
-                                    </Viewbox>
-                                    <TextBlock Text="{Binding CompletamentoTrimestraliTesto}" FontSize="17" FontWeight="Medium"
-                                           Foreground="{StaticResource BrushTestoPrimario}"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
+                                <local:TortaStatoControl Width="120" Height="120"
+                                    FettaCompletate="{Binding TortaTrimestrali.FettaCompletate}"
+                                    FettaInCorso="{Binding TortaTrimestrali.FettaInCorso}"
+                                    FettaInRitardo="{Binding TortaTrimestrali.FettaInRitardo}"
+                                    Vuoto="{Binding TortaTrimestrali.Vuoto}"
+                                    TestoCentro="{Binding CompletamentoTrimestraliTesto}"/>
                                 <TextBlock Text="TRIMESTRALI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"
                                        HorizontalAlignment="Center" Margin="0,10,0,10"/>
                                 <StackPanel>
@@ -394,21 +378,12 @@
 
                         <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="10" Padding="18">
                             <StackPanel HorizontalAlignment="Center">
-                                <Grid HorizontalAlignment="Center" Width="120" Height="120">
-                                    <Viewbox Width="120" Height="120">
-                                        <Canvas Width="100" Height="100">
-                                            <Ellipse Width="100" Height="100" Fill="{StaticResource BrushSfondoChiaro}"
-                                                 Visibility="{Binding TortaAnnuali.Vuoto, Converter={StaticResource BoolToVisibility}}"/>
-                                            <Path Data="{Binding TortaAnnuali.FettaCompletate}" Fill="{StaticResource BrushSuccess}"/>
-                                            <Path Data="{Binding TortaAnnuali.FettaInCorso}" Fill="{StaticResource BrushPrimary}"/>
-                                            <Path Data="{Binding TortaAnnuali.FettaInRitardo}" Fill="{StaticResource BrushDanger}"/>
-                                            <Ellipse Canvas.Left="22" Canvas.Top="22" Width="56" Height="56" Fill="White"/>
-                                        </Canvas>
-                                    </Viewbox>
-                                    <TextBlock Text="{Binding CompletamentoAnnualiTesto}" FontSize="17" FontWeight="Medium"
-                                           Foreground="{StaticResource BrushTestoPrimario}"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
+                                <local:TortaStatoControl Width="120" Height="120"
+                                    FettaCompletate="{Binding TortaAnnuali.FettaCompletate}"
+                                    FettaInCorso="{Binding TortaAnnuali.FettaInCorso}"
+                                    FettaInRitardo="{Binding TortaAnnuali.FettaInRitardo}"
+                                    Vuoto="{Binding TortaAnnuali.Vuoto}"
+                                    TestoCentro="{Binding CompletamentoAnnualiTesto}"/>
                                 <TextBlock Text="ANNUALI" FontSize="10" FontWeight="Medium" Foreground="{StaticResource BrushTestoSecondario}"
                                        HorizontalAlignment="Center" Margin="0,10,0,10"/>
                                 <StackPanel>
@@ -501,43 +476,13 @@
 
                             <StackPanel HorizontalAlignment="Center">
 
-                                <Grid HorizontalAlignment="Center" Width="120" Height="120">
-
-                                    <Viewbox Width="120" Height="120">
-                                        <Canvas Width="100" Height="100">
-
-                                            <Ellipse Width="100" Height="100"
-                                 Fill="{StaticResource BrushSfondoChiaro}"
-                                 Visibility="{Binding TortaRitenute.Vuoto, Converter={StaticResource BoolToVisibility}}"/>
-
-                                            <Path Data="{Binding TortaRitenute.FettaCompletate}"
-                              Fill="{StaticResource BrushSuccess}"/>
-
-                                            <Path Data="{Binding TortaRitenute.FettaInCorso}"
-                              Fill="{StaticResource BrushStatoStandBy}"/>
-
-                                            <Path Data="{Binding TortaRitenute.FettaInRitardo}"
-                              Fill="{StaticResource BrushDanger}"/>
-
-                                            <Ellipse Canvas.Left="22"
-                                 Canvas.Top="22"
-                                 Width="56"
-                                 Height="56"
-                                 Fill="White"/>
-
-                                        </Canvas>
-                                    </Viewbox>
-
-
-                                    <!-- Percentuale al centro -->
-                                    <TextBlock Text="{Binding CompletamentoRitenuteTesto}"
-                           FontSize="17"
-                           FontWeight="Medium"
-                           Foreground="{StaticResource BrushTestoPrimario}"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"/>
-
-                                </Grid>
+                                <local:TortaStatoControl Width="120" Height="120"
+                                    FettaCompletate="{Binding TortaRitenute.FettaCompletate}"
+                                    FettaInCorso="{Binding TortaRitenute.FettaInCorso}"
+                                    FettaInRitardo="{Binding TortaRitenute.FettaInRitardo}"
+                                    BrushInCorso="{StaticResource BrushStatoStandBy}"
+                                    Vuoto="{Binding TortaRitenute.Vuoto}"
+                                    TestoCentro="{Binding CompletamentoRitenuteTesto}"/>
 
 
                                 <TextBlock Text="RITENUTE"
@@ -724,24 +669,46 @@
                 <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="28,40,20,24">
 
-                        <Border Width="280" HorizontalAlignment="Left" Background="White"
-                            BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6" Height="34" Margin="0,0,0,20">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <iconPacks:PackIconBootstrapIcons Grid.Column="0"
-                                Kind="Search" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"
-                                Margin="10,0,6,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <TextBox Grid.Column="1"
-                                     Text="{Binding FiltroAttivitaTesto, UpdateSourceTrigger=PropertyChanged}"
-                                     BorderThickness="0" Background="Transparent"
-                                     FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
-                                     VerticalContentAlignment="Center" Height="32"
-                                     mah:TextBoxHelper.Watermark="Cerca attività…"/>
-                            </Grid>
-                        </Border>
+                        <!-- Filtro testuale + eventuale filtro "solo ritardi" (navigazione contestuale) -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                            <Border Width="280" Background="White"
+                                BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6" Height="34">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <iconPacks:PackIconBootstrapIcons Grid.Column="0"
+                                    Kind="Search" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"
+                                    Margin="10,0,6,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1"
+                                         Text="{Binding FiltroAttivitaTesto, UpdateSourceTrigger=PropertyChanged}"
+                                         BorderThickness="0" Background="Transparent"
+                                         FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
+                                         VerticalContentAlignment="Center" Height="32"
+                                         mah:TextBoxHelper.Watermark="Cerca attività…"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Chip filtro attivo: click = torna a vedere tutte le righe -->
+                            <Button Margin="10,0,0,0" VerticalAlignment="Center" Cursor="Hand"
+                                Command="{Binding RimuoviSoloRitardiCommand}"
+                                Visibility="{Binding SoloRitardi, Converter={StaticResource BoolToVisibility}}"
+                                Background="{StaticResource BrushAccentSelected}" BorderThickness="0" Padding="10,5">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Solo ritardi" FontSize="11" FontWeight="Medium"
+                                                    Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="  ×" FontSize="11" FontWeight="Medium"
+                                                    Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
 
                         <!-- MENSILI -->
                         <StackPanel Visibility="{Binding HaRigheMensili, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,10">
@@ -766,7 +733,32 @@
                                     </ControlTemplate>
                                 </Button.Template>
                             </Button>
-                            <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding RigheMensiliFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
+                            <!-- FASE 6: intestazione colonne matrice -->
+                            <Grid Margin="0,8,13,4"
+                                Visibility="{Binding SezioneMensiliEspansa, Converter={StaticResource BoolToVisibility}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="ADEMPIMENTO" FontSize="9" FontWeight="Bold"
+                                    Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Bottom" Margin="16,0,0,5"/>
+                                <ItemsControl Grid.Column="1" ItemsSource="{Binding ColonneMensili}" VerticalAlignment="Bottom">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="46" Margin="0,0,4,0">
+                                                <TextBlock Text="{Binding}" FontSize="9" FontWeight="Bold" TextAlignment="Center"
+                                                    Foreground="{StaticResource BrushTestoSecondario}"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding RigheMensiliFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
                                       Visibility="{Binding SezioneMensiliEspansa, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
 
@@ -793,21 +785,33 @@
                                     </ControlTemplate>
                                 </Button.Template>
                             </Button>
-                            <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding RigheTrimestraliFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
-                                      Visibility="{Binding SezioneTrimestraliEspansa, Converter={StaticResource BoolToVisibility}}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemContainerStyle>
-                                    <Style TargetType="ContentPresenter">
-                                        <Setter Property="Width" Value="540"/>
-                                        <Setter Property="VerticalAlignment" Value="Top"/>
-                                        <Setter Property="Margin" Value="0,0,10,10"/>
-                                    </Style>
-                                </ItemsControl.ItemContainerStyle>
-                            </ItemsControl>
+                            <!-- FASE 6: intestazione colonne matrice -->
+                            <Grid Margin="0,8,13,4"
+                                Visibility="{Binding SezioneTrimestraliEspansa, Converter={StaticResource BoolToVisibility}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="ADEMPIMENTO" FontSize="9" FontWeight="Bold"
+                                    Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Bottom" Margin="16,0,0,5"/>
+                                <ItemsControl Grid.Column="1" ItemsSource="{Binding ColonneTrimestrali}" VerticalAlignment="Bottom">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="46" Margin="0,0,4,0">
+                                                <TextBlock Text="{Binding}" FontSize="9" FontWeight="Bold" TextAlignment="Center"
+                                                    Foreground="{StaticResource BrushTestoSecondario}"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding RigheTrimestraliFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
+                                      Visibility="{Binding SezioneTrimestraliEspansa, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
 
                         <!-- ANNUALI -->
@@ -833,21 +837,33 @@
                                     </ControlTemplate>
                                 </Button.Template>
                             </Button>
-                            <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding RigheAnnualiFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
-                                      Visibility="{Binding SezioneAnnualiEspansa, Converter={StaticResource BoolToVisibility}}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemContainerStyle>
-                                    <Style TargetType="ContentPresenter">
-                                        <Setter Property="Width" Value="540"/>
-                                        <Setter Property="VerticalAlignment" Value="Top"/>
-                                        <Setter Property="Margin" Value="0,0,10,10"/>
-                                    </Style>
-                                </ItemsControl.ItemContainerStyle>
-                            </ItemsControl>
+                            <!-- FASE 6: intestazione colonne matrice -->
+                            <Grid Margin="0,8,13,4"
+                                Visibility="{Binding SezioneAnnualiEspansa, Converter={StaticResource BoolToVisibility}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="ADEMPIMENTO" FontSize="9" FontWeight="Bold"
+                                    Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Bottom" Margin="16,0,0,5"/>
+                                <ItemsControl Grid.Column="1" ItemsSource="{Binding ColonneAnnuali}" VerticalAlignment="Bottom">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="46" Margin="0,0,4,0">
+                                                <TextBlock Text="{Binding}" FontSize="9" FontWeight="Bold" TextAlignment="Center"
+                                                    Foreground="{StaticResource BrushTestoSecondario}"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding RigheAnnualiFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
+                                      Visibility="{Binding SezioneAnnualiEspansa, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
 
                         <Grid Margin="0px, 20px" HorizontalAlignment="Left">
@@ -940,39 +956,13 @@
                       Margin="28,0,28,24"
                       MouseDoubleClick="gridRitenute_MouseDoubleClick">
                     <DataGrid.ColumnHeaderStyle>
-                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModuleColumnHeaderStyle}"/>
+                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModuleDataGridColumnHeaderStyle}"/>
                     </DataGrid.ColumnHeaderStyle>
                     <DataGrid.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Padding" Value="0"/>
-                            <Setter Property="VerticalAlignment" Value="Stretch"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="DataGridCell">
-                                        <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
-                                            <ContentPresenter VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Background" Value="Transparent"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
+                        <Style TargetType="DataGridCell" BasedOn="{StaticResource ModuleDataGridCellStyle}"/>
                     </DataGrid.CellStyle>
                     <DataGrid.RowStyle>
-                        <Style TargetType="DataGridRow">
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="Cursor" Value="Hand"/>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="{StaticResource BrushAccentHover}"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource ModuleDataGridRowClickableStyle}"/>
                     </DataGrid.RowStyle>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="INTESTAZIONE" Binding="{Binding Intestazione}" Width="1.2*">
@@ -1097,21 +1087,15 @@
             </Grid>
 
             <!-- OVERLAY + PANNELLO NUOVA/MODIFICA RITENUTA -->
-            <Border Cursor="Arrow" Visibility="{Binding PannelloRitenutaAperto, Converter={StaticResource BoolToVisibility}}">
-                <Border.Background>
-                    <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
-                </Border.Background>
+            <Border Style="{StaticResource OverlayScuroStyle}" Visibility="{Binding PannelloRitenutaAperto, Converter={StaticResource BoolToVisibility}}">
                 <Border.InputBindings>
                     <MouseBinding MouseAction="LeftClick" Command="{Binding AnnullaRitenutaCommand}"/>
                 </Border.InputBindings>
             </Border>
 
-            <Border Width="380" HorizontalAlignment="Right" Background="White"
-                BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+            <Border Width="380" HorizontalAlignment="Right"
+                Style="{StaticResource PanelLateraleStyle}"
                 Visibility="{Binding PannelloRitenutaAperto, Converter={StaticResource BoolToVisibility}}">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="24" ShadowDepth="0" Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
-                </Border.Effect>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -1119,7 +1103,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                    <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -1248,11 +1232,8 @@
         </Grid>
 
         <!-- OVERLAY DUPLICA -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Cursor="Arrow"
+        <Border Grid.Row="0" Grid.RowSpan="2" Style="{StaticResource OverlayScuroStyle}"
             Visibility="{Binding PannelloDuplicaAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.Background>
-                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
-            </Border.Background>
             <Border.InputBindings>
                 <MouseBinding MouseAction="LeftClick" Command="{Binding AnnullaDuplicaCommand}"/>
             </Border.InputBindings>
@@ -1260,12 +1241,8 @@
 
         <!-- PANNELLO DUPLICA -->
         <Border Grid.Row="0" Grid.RowSpan="2" Width="380" HorizontalAlignment="Right"
-            Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+            Style="{StaticResource PanelLateraleStyle}"
             Visibility="{Binding PannelloDuplicaAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="24" ShadowDepth="0"
-                              Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
-            </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -1273,7 +1250,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>

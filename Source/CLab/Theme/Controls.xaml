@@ -4,7 +4,8 @@
 
 
     <!-- ========================= -->
-    <!-- Base Button -->
+    <!-- Base Button (i bottoni concreti - Primary/Outline/Icon - sono -->
+    <!-- in Theme/Buttons.xaml: quello è lo standard usato ovunque)     -->
     <!-- ========================= -->
 
     <Style x:Key="BaseButton"
@@ -32,43 +33,6 @@
 
 
     <!-- ========================= -->
-    <!-- Primary Button -->
-    <!-- ========================= -->
-
-    <Style x:Key="PrimaryButton"
-           TargetType="Button"
-           BasedOn="{StaticResource BaseButton}">
-
-        <Setter Property="Background"
-                Value="{StaticResource BrushPrimary}"/>
-
-        <Setter Property="Foreground"
-                Value="White"/>
-
-    </Style>
-
-
-    <!-- ========================= -->
-    <!-- Secondary Button -->
-    <!-- ========================= -->
-
-    <Style x:Key="SecondaryButton"
-           TargetType="Button"
-           BasedOn="{StaticResource BaseButton}">
-
-        <Setter Property="Foreground"
-                Value="{StaticResource BrushPrimary}"/>
-
-        <Setter Property="BorderThickness"
-                Value="1"/>
-
-        <Setter Property="BorderBrush"
-                Value="{StaticResource BrushBordo}"/>
-
-    </Style>
-
-
-    <!-- ========================= -->
     <!-- Sidebar -->
     <!-- ========================= -->
 
@@ -83,6 +47,52 @@
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
 
+    </Style>
+
+
+    <!-- ============================================================ -->
+    <!-- CARD: unico contenitore condiviso da tutti i moduli. Prima    -->
+    <!-- ogni vista reinventava "Border bianco + BrushBordo + un       -->
+    <!-- CornerRadius diverso" a mano - ora è tutto qui.                -->
+    <!-- ============================================================ -->
+
+    <Style x:Key="CardStyle" TargetType="Border">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMedium}"/>
+        <Setter Property="Padding" Value="16"/>
+    </Style>
+
+    <!-- Variante per righe cliccabili dentro una card (liste, tab) -->
+    <Style x:Key="CardRowStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource BrushSfondoChiaro}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}"/>
+        <Setter Property="Padding" Value="10,9"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+
+
+    <!-- ============================================================ -->
+    <!-- PALLINO DI STATO: verde/giallo/rosso, usato per riassumere lo -->
+    <!-- stato di una sezione senza dover leggere il dettaglio. Mai    -->
+    <!-- usato in sidebar/navigazione: lì l'accento resta blu.         -->
+    <!-- ============================================================ -->
+
+    <Style x:Key="StatusDot" TargetType="Ellipse">
+        <Setter Property="Width" Value="6"/>
+        <Setter Property="Height" Value="6"/>
+    </Style>
+
+    <!-- Badge/pillola con testo, per stati come "scaduto", "da versare", "completata" -->
+    <Style x:Key="StatusPill" TargetType="Border">
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}"/>
+        <Setter Property="Padding" Value="8,2"/>
+    </Style>
+
+    <Style x:Key="StatusPillText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
 
 

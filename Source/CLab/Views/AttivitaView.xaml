@@ -52,19 +52,9 @@
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="Catalogo" Command="{Binding MostraCatalogoCommand}"
-                        Padding="4,8" Margin="0,0,20,0" Cursor="Hand" Background="Transparent">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
-                                    <ContentPresenter Margin="{TemplateBinding Padding}"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
+                        Margin="0,0,20,0">
                         <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="FontSize" Value="12"/>
-                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-                                <Setter Property="BorderBrush" Value="Transparent"/>
+                            <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding ConfigurazioneAttiva}" Value="False">
                                         <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
@@ -74,20 +64,9 @@
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Content="Configurazione" Command="{Binding MostraConfigurazioneCommand}"
-                        Padding="4,8" Cursor="Hand" Background="Transparent">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
-                                    <ContentPresenter Margin="{TemplateBinding Padding}"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
+                    <Button Content="Configurazione" Command="{Binding MostraConfigurazioneCommand}">
                         <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="FontSize" Value="12"/>
-                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-                                <Setter Property="BorderBrush" Value="Transparent"/>
+                            <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding ConfigurazioneAttiva}" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
@@ -161,39 +140,13 @@
                   Margin="28,0,28,24"
                   Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
                 <DataGrid.ColumnHeaderStyle>
-                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModuleColumnHeaderStyle}"/>
+                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModuleDataGridColumnHeaderStyle}"/>
                 </DataGrid.ColumnHeaderStyle>
                 <DataGrid.CellStyle>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="BorderThickness" Value="0"/>
-                        <Setter Property="Padding" Value="0"/>
-                        <Setter Property="VerticalAlignment" Value="Stretch"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="DataGridCell">
-                                    <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
-                                        <ContentPresenter VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
+                    <Style TargetType="DataGridCell" BasedOn="{StaticResource ModuleDataGridCellStyle}"/>
                 </DataGrid.CellStyle>
                 <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource BrushAccentHover}"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
+                    <Style TargetType="DataGridRow" BasedOn="{StaticResource ModuleDataGridRowStyle}"/>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="NOME" Binding="{Binding Nome}" Width="2*" SortMemberPath="Nome">
@@ -266,19 +219,9 @@
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Content="Per cliente" Command="{Binding MostraConfigPerClienteCommand}"
-                            Padding="4,6" Margin="0,0,16,0" Cursor="Hand" Background="Transparent">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
-                                        <ContentPresenter Margin="{TemplateBinding Padding}"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
+                            Padding="4,6" Margin="0,0,16,0">
                             <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="FontSize" Value="12"/>
-                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding ModalitaPerCliente}" Value="True">
                                             <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
@@ -289,19 +232,9 @@
                             </Button.Style>
                         </Button>
                         <Button Content="Per attività" Command="{Binding MostraConfigPerAttivitaCommand}"
-                            Padding="4,6" Cursor="Hand" Background="Transparent">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
-                                        <ContentPresenter Margin="{TemplateBinding Padding}"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
+                            Padding="4,6">
                             <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="FontSize" Value="12"/>
-                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding ModalitaPerCliente}" Value="False">
                                             <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
@@ -553,11 +486,8 @@
 
         <!-- OVERLAY -->
         <Border Grid.Row="0" Grid.RowSpan="2"
-            Cursor="Arrow"
+            Style="{StaticResource OverlayScuroStyle}"
             Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.Background>
-                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
-            </Border.Background>
             <Border.InputBindings>
                 <MouseBinding MouseAction="LeftClick" Command="{Binding AnnullaCommand}"/>
             </Border.InputBindings>
@@ -565,13 +495,8 @@
 
         <!-- PANNELLO NUOVA/MODIFICA ATTIVITÀ -->
         <Border Grid.Row="0" Grid.RowSpan="2" Width="400" HorizontalAlignment="Right"
-            Background="White"
-            BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+            Style="{StaticResource PanelLateraleStyle}"
             Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="24" ShadowDepth="0"
-                              Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
-            </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -579,7 +504,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>

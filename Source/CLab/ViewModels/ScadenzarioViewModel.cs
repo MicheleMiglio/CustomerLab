@@ -1,5 +1,6 @@
 ﻿using CLab.Data;
 using CLab.Models;
+using CLab.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -74,7 +75,7 @@ namespace CLab.ViewModels
             set { _mostraEmptyState = value; OnPropertyChanged(); }
         }
 
-        private readonly Action<string> _apriConfigurazioneAttivita;
+        private readonly Action<int> _apriConfigurazioneAttivita;
 
         public ICommand ConfiguraAttivitaCommand { get; }
         public ICommand AnnoPrecedenteCommand { get; }
@@ -151,6 +152,24 @@ namespace CLab.ViewModels
             get => _filtroAttivitaTesto;
             set { _filtroAttivitaTesto = value; OnPropertyChanged(); ApplicaFiltroAttivita(); }
         }
+
+        // --- Filtro operativo "solo ritardi" (navigazione contestuale dalla Home).
+        //     Non cambia il significato degli stati: filtra solo le righe il cui
+        //     riepilogo aggregato è "Ritardo". ---
+
+        private bool _soloRitardi;
+        public bool SoloRitardi
+        {
+            get => _soloRitardi;
+            set { _soloRitardi = value; OnPropertyChanged(); ApplicaFiltroAttivita(); }
+        }
+
+        public ICommand RimuoviSoloRitardiCommand { get; }
+
+        // --- FASE 6: intestazioni di colonna della matrice periodi ---
+        public List<string> ColonneMensili { get; } = Enumerable.Range(1, 12).Select(NomeMese).ToList();
+        public List<string> ColonneTrimestrali { get; } = new List<string> { "Q1", "Q2", "Q3", "Q4" };
+        public List<string> ColonneAnnuali { get; } = new List<string> { "ANNO" };
 
         // --- Sezioni: chiuse di default, con stato aggregato ---
 
@@ -294,7 +313,7 @@ namespace CLab.ViewModels
         public ICommand PulisciDataPagamentoRitenutaCommand { get; }
         public ICommand PulisciImportoVersatoCommand { get; }
 
-        public ScadenzarioViewModel(Action<string> apriConfigurazioneAttivita)
+        public ScadenzarioViewModel(Action<int> apriConfigurazioneAttivita)
         {
             _apriConfigurazioneAttivita = apriConfigurazioneAttivita;
 
@@ -326,6 +345,7 @@ namespace CLab.ViewModels
             PulisciDataPagamentoFatturaCommand = new RelayCommand(() => FormDataPagamentoFattura = null);
             PulisciDataPagamentoRitenutaCommand = new RelayCommand(() => FormScadenzaVersamento = null);
             PulisciImportoVersatoCommand = new RelayCommand(() => FormImportoVersato = null);
+            RimuoviSoloRitardiCommand = new RelayCommand(() => SoloRitardi = false);
 
             CaricaClienti();
         }
@@ -359,7 +379,8 @@ namespace CLab.ViewModels
         private void ConfiguraAttivita()
         {
             if (ClienteSelezionato == null) return;
-            _apriConfigurazioneAttivita(ClienteSelezionato.RagioneSociale);
+            // FASE 4: navigazione contestuale per ClienteId (non più per nome).
+            _apriConfigurazioneAttivita(ClienteSelezionato.Id);
         }
 
         // --- Caricamento unico per cliente+anno ---
@@ -433,7 +454,7 @@ namespace CLab.ViewModels
 
                 var opzioni = opzioniPerAttivita.TryGetValue(attivita.Id, out var lista) ? lista : new List<string>();
 
-                var riga = new RigaAttivitaCompilazione { AttivitaId = attivita.Id, Nome = attivita.Nome, Periodicita = attivita.Periodicita };
+                var riga = new RigaAttivitaCompilazione { AttivitaId = attivita.Id, Nome = attivita.Nome, Periodicita = attivita.Periodicita, TipoCampo = attivita.TipoCampo };
 
                 for (int periodo = 1; periodo <= numeroPeriodi; periodo++)
                 {
@@ -459,24 +480,38 @@ namespace CLab.ViewModels
                         else cella.ValoreTesto = esistente.ValoreTesto;
                     }
 
-                    cella.Stato = CalcolaStato(attivita.Periodicita, periodo, cella.Compilato);
+                    cella.Stato = CalcoloStatoAdempimenti.Calcola(attivita.Periodicita, AnnoSelezionato, periodo, cella.Compilato);
                     cella.OnCambiata = c => SalvaCompilazione(riga, c);
                     riga.Celle.Add(cella);
                 }
 
-                if (numeroPeriodi > 1)
+                // FASE 6: pillole sempre presenti (anche per l'annuale, 1 periodo):
+                // la matrice mostra lo stato di ogni periodo senza espandere la riga.
+                for (int i = 0; i < riga.Celle.Count; i++)
                 {
-                    for (int i = 0; i < riga.Celle.Count; i++)
+                    var c = riga.Celle[i];
+                    var pillola = new PeriodoPill
                     {
-                        var c = riga.Celle[i];
-                        riga.Pillole.Add(new PeriodoPill
+                        Indice = i,
+                        Etichetta = numeroPeriodi > 1
+                            ? (attivita.Periodicita == Periodicita.Trimestrale ? $"Q{c.Periodo}" : EtichettaPeriodo(attivita.Periodicita, c.Periodo))
+                            : "ANNO",
+                        StatoColore = c.Stato,
+                        SelezionaCommand = riga.SelezionaPeriodoCommand,
+                        MostraToggleRapido = attivita.TipoCampo == TipoCampoAttivita.SiNo
+                    };
+
+                    if (pillola.MostraToggleRapido)
+                    {
+                        // Compilazione rapida Sì/No: passa dallo stesso identico
+                        // percorso di persistenza (setter cella → SalvaCompilazione).
+                        pillola.ToggleRapidoCommand = new RelayCommand(() =>
                         {
-                            Indice = i,
-                            Etichetta = EtichettaPeriodo(attivita.Periodicita, c.Periodo),
-                            StatoColore = c.Stato,
-                            SelezionaCommand = riga.SelezionaPeriodoCommand
+                            c.ValoreBooleano = c.ValoreBooleano != true;
                         });
                     }
+
+                    riga.Pillole.Add(pillola);
                 }
 
                 int indiceDefault = 0;
@@ -512,6 +547,10 @@ namespace CLab.ViewModels
                 var filtrate = string.IsNullOrWhiteSpace(FiltroAttivitaTesto)
                     ? origine
                     : origine.Where(r => r.Nome.Contains(FiltroAttivitaTesto, StringComparison.OrdinalIgnoreCase));
+
+                if (SoloRitardi)
+                    filtrate = filtrate.Where(r => r.StatoRiepilogo == CalcoloStatoAdempimenti.Ritardo);
+
                 foreach (var r in filtrate) destinazione.Add(r);
             }
 
@@ -549,7 +588,7 @@ namespace CLab.ViewModels
 
             db.SaveChanges();
 
-            cella.Stato = CalcolaStato(riga.Periodicita, cella.Periodo, cella.Compilato);
+            cella.Stato = CalcoloStatoAdempimenti.Calcola(riga.Periodicita, AnnoSelezionato, cella.Periodo, cella.Compilato);
             var pillola = riga.Pillole.FirstOrDefault(p => p.Indice == cella.Periodo - 1);
             if (pillola != null) pillola.StatoColore = cella.Stato;
             riga.NotificaRiepilogoCambiato();
@@ -567,25 +606,8 @@ namespace CLab.ViewModels
             db.SaveChanges();
         }
 
-        // --- Calcolo stato periodo: 4 stati, "Futuro" escluso da ogni conteggio ---
-
-        private string CalcolaStato(Periodicita periodicita, int periodo, bool compilato)
-        {
-            if (compilato) return "Compilato";
-
-            var oggi = DateTime.Now;
-
-            if (periodicita == Periodicita.Annuale)
-                return AnnoSelezionato < oggi.Year ? "Ritardo" : "InCorso";
-
-            if (AnnoSelezionato < oggi.Year) return "Ritardo";
-            if (AnnoSelezionato > oggi.Year) return "Futuro";
-
-            int correnteIndice = periodicita == Periodicita.Mensile ? oggi.Month : ((oggi.Month - 1) / 3) + 1;
-            if (periodo < correnteIndice) return "Ritardo";
-            if (periodo == correnteIndice) return "InCorso";
-            return "Futuro";
-        }
+        // --- Calcolo stato periodo: logica condivisa in CLab.Services
+        //     (CalcoloStatoAdempimenti). "Futuro" resta escluso dai conteggi. ---
 
         private static string EtichettaPeriodo(Periodicita p, int periodo) => p switch
         {
@@ -950,9 +972,38 @@ namespace CLab.ViewModels
             FormScadenzaVersamento = DateTime.Now;
         }
 
-        public void ApriConfigurazionePerCliente(string ragioneSociale)
+        /// <summary>
+        /// Navigazione contestuale (FASE 4): apre il modulo già posizionato sul
+        /// cliente indicato, con eventuale scheda preimpostata ("adempimenti",
+        /// "ritenute") e filtro operativo "solo ritardi" per la scheda
+        /// Adempimenti. Il caricamento resta quello esistente (passeggia da
+        /// ClienteSelezionato): nessuna logica duplicata.
+        /// </summary>
+        public void ApriPerCliente(int clienteId, string? scheda = null, bool soloRitardi = false)
         {
-            // Punto di aggancio per MainViewModel; ConfiguraAttivita usa sempre il cliente già selezionato.
+            // Il filtro referente potrebbe nascondere il cliente richiesto.
+            if (ReferenteFiltro != null)
+                ReferenteFiltro = null;
+
+            var cliente = _clientiCompleti.FirstOrDefault(c => c.Id == clienteId);
+            if (cliente == null) return;
+
+            SoloRitardi = soloRitardi;
+            if (soloRitardi)
+            {
+                SezioneMensiliEspansa = true;
+                SezioneTrimestraliEspansa = true;
+                SezioneAnnualiEspansa = true;
+            }
+
+            ClienteSelezionato = cliente;
+
+            switch ((scheda ?? string.Empty).Trim().ToLowerInvariant())
+            {
+                case "adempimenti": CambiaScheda(Scheda.Adempimenti); break;
+                case "ritenute": CambiaScheda(Scheda.Ritenute); break;
+                default: CambiaScheda(Scheda.Dashboard); break;
+            }
         }
     }
 
@@ -961,6 +1012,7 @@ namespace CLab.ViewModels
         public int AttivitaId { get; set; }
         public string Nome { get; set; } = string.Empty;
         public Periodicita Periodicita { get; set; }
+        public TipoCampoAttivita TipoCampo { get; set; }
         public ObservableCollection<CellaCompilazione> Celle { get; set; } = new();
         public ObservableCollection<PeriodoPill> Pillole { get; set; } = new();
 
@@ -988,7 +1040,13 @@ namespace CLab.ViewModels
         public RigaAttivitaCompilazione()
         {
             ToggleEspansaCommand = new RelayCommand(() => Espansa = !Espansa);
-            SelezionaPeriodoCommand = new RelayCommand<int>(i => IndiceSelezionato = i);
+            SelezionaPeriodoCommand = new RelayCommand<int>(i =>
+            {
+                IndiceSelezionato = i;
+                // FASE 6: il click sulla pill porta alla compilazione del periodo
+                // anche quando la riga è chiusa.
+                if (!Espansa) Espansa = true;
+            });
         }
 
         // "Futuro" escluso: una riga con tutto il passato/presente compilato è verde
@@ -1026,6 +1084,11 @@ namespace CLab.ViewModels
         public bool Selezionato { get => _selezionato; set { _selezionato = value; OnPropertyChanged(); } }
 
         public ICommand? SelezionaCommand { get; set; }
+
+        // --- FASE 6: compilazione rapida Sì/No direttamente dalla pill (solo
+        //     adempimenti Sì/No): passa dallo stesso percorso di persistenza. ---
+        public bool MostraToggleRapido { get; set; }
+        public ICommand? ToggleRapidoCommand { get; set; }
     }
 
     public class CellaCompilazione : ViewModelBase

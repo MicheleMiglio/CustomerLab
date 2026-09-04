@@ -7,7 +7,12 @@ using System.Windows.Input;
 
 namespace CLab.ViewModels
 {
-    public class MainViewModel : ViewModelBase
+    /// <summary>
+    /// Dispatcher centrale della navigazione CLab 2.0 (FASE 4): implementa
+    /// INavigatore, così le sorgenti di navigazione (es. la Home) aprono i
+    /// moduli in modo contestuale senza dipendere direttamente da MainViewModel.
+    /// </summary>
+    public class MainViewModel : ViewModelBase, INavigatore
     {
         private object? _vistaCorrente;
         private MenuItemModel? _dashboardMenu;
@@ -157,14 +162,15 @@ namespace CLab.ViewModels
         {
             SelezionaMenu(menu);
 
-            VistaCorrente = new HomeViewModel(
-                () => ApriToDo(_todoMenu),
-                () => ApriPromemoria(_promemoriaMenu));
+            // FASE 4B: la Home riceve il navigatore per la navigazione contestuale.
+            VistaCorrente = new HomeViewModel(this);
         }
 
-        private void ApriPromemoria(MenuItemModel? menu)
+        private void ApriPromemoria(MenuItemModel? menu) => ApriPromemoria();
+
+        public void ApriPromemoria()
         {
-            SelezionaMenu(menu);
+            SelezionaMenu(_promemoriaMenu);
 
             VistaCorrente = new PromemoriaViewModel(AggiornaBadgePromemoria);
         }
@@ -178,18 +184,28 @@ namespace CLab.ViewModels
             _promemoriaMenu.Contatore = db.Promemoria.Count();
         }
 
-        private void ApriClienti(MenuItemModel? menu)
-        {
-            SelezionaMenu(menu);
+        private void ApriClienti(MenuItemModel? menu) => ApriClienti();
 
-            VistaCorrente = new ClientiViewModel();
+        public void ApriClienti()
+        {
+            SelezionaMenu(_clientiMenu);
+
+            // FASE 5: il navigatore abilita i collegamenti operativi dalla
+            // Situazione Cliente (Scadenzario/ToDo/Ritenute per Id).
+            VistaCorrente = new ClientiViewModel(this);
         }
 
-        private void ApriScadenzario(MenuItemModel? menu)
-        {
-            SelezionaMenu(menu);
+        private void ApriScadenzario(MenuItemModel? menu) => ApriScadenzario();
 
-            VistaCorrente = new ScadenzarioViewModel(ApriConfigurazioneAttivitaPerCliente);
+        public void ApriScadenzario(int? clienteId = null, string? scheda = null, bool soloRitardi = false)
+        {
+            SelezionaMenu(_scadenzarioMenu);
+
+            var vm = new ScadenzarioViewModel(ApriConfigurazioneAttivitaPerCliente);
+            if (clienteId.HasValue)
+                vm.ApriPerCliente(clienteId.Value, scheda, soloRitardi);
+
+            VistaCorrente = vm;
         }
 
         private void ApriAttivita(MenuItemModel? menu)
@@ -199,16 +215,30 @@ namespace CLab.ViewModels
             VistaCorrente = new AttivitaViewModel();
         }
 
-        private void ApriFatture(MenuItemModel? menu)
+        private void ApriFatture(MenuItemModel? menu) => ApriFatture();
+
+        public void ApriFatture(int? anno = null)
         {
-            SelezionaMenu(menu);
-            VistaCorrente = new FattureViewModel();
+            SelezionaMenu(_fattureMenu);
+
+            var vm = new FattureViewModel();
+            if (anno.HasValue)
+                vm.ApriSuAnno(anno.Value);
+
+            VistaCorrente = vm;
         }
 
-        private void ApriToDo(MenuItemModel? menu)
+        private void ApriToDo(MenuItemModel? menu) => ApriToDo();
+
+        public void ApriToDo(int? clienteId = null, bool soloScaduti = false, bool prioritaAlta = false)
         {
-            SelezionaMenu(menu);
-            VistaCorrente = new ToDoViewModel();
+            SelezionaMenu(_todoMenu);
+
+            var vm = new ToDoViewModel();
+            if (clienteId.HasValue || soloScaduti || prioritaAlta)
+                vm.ApriConFiltri(clienteId, soloScaduti, prioritaAlta);
+
+            VistaCorrente = vm;
         }
 
         private void ApriImpostazioni(MenuItemModel? menu)
@@ -217,13 +247,13 @@ namespace CLab.ViewModels
             VistaCorrente = new ImpostazioniViewModel();
         }
 
-        private void ApriConfigurazioneAttivitaPerCliente(string ragioneSociale)
+        private void ApriConfigurazioneAttivitaPerCliente(int clienteId)
         {
             SelezionaMenu(_attivitaMenu);
 
             var vm = new AttivitaViewModel();
             vm.MostraConfigurazioneCommand.Execute(null);
-            vm.ApriConfigurazionePerCliente(ragioneSociale);
+            vm.ApriConfigurazionePerCliente(clienteId);
 
             VistaCorrente = vm;
         }

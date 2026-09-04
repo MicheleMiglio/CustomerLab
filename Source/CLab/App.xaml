@@ -66,11 +66,18 @@
 
                 <ResourceDictionary Source="Theme/Controls.xaml"/>
 
+                <!-- Sistema bottoni/campi standard di tutta l'app -->
+                <ResourceDictionary Source="Theme/Buttons.xaml"/>
+
                 <ResourceDictionary Source="Theme/Sidebar.xaml"/>
                 <ResourceDictionary Source="Theme/ModulePage.xaml"/>
 
-                <!-- Stili di modulo (estendono il Theme, non lo sostituiscono) -->
-                <ResourceDictionary Source="Styles/ClientiStyles.xaml"/>
+                <!-- Griglie standard dei moduli (dipende da ModulePage.xaml) -->
+                <ResourceDictionary Source="Theme/DataGrid.xaml"/>
+
+                <!-- Pattern di layout condivisi: overlay, pannelli laterali,
+                     header pannello, tab-switch (dipende da Colors/ModulePage) -->
+                <ResourceDictionary Source="Theme/Panels.xaml"/>
 
             </ResourceDictionary.MergedDictionaries>
 

@@ -1,0 +1,85 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================ -->
+    <!-- PATTERN COMUNI DI LAYOUT DEI MODULI.                          -->
+    <!-- FASE 2: le View usano ancora il markup inline duplicato;      -->
+    <!-- queste chiavi sono il punto di arrivo della FASE 3.           -->
+    <!--                                                               -->
+    <!-- Pattern centralizzati:                                        -->
+    <!--  1. overlay scuro dietro i pannelli (click = chiudi)          -->
+    <!--  2. pannello laterale (colonna bianca agganciata a destra)    -->
+    <!--  3. header del pannello laterale                              -->
+    <!--  4. tab-switch con underline                                  -->
+    <!--                                                               -->
+    <!-- Cosa NON è centralizzabile qui:                               -->
+    <!--  - il Command di chiusura dell'overlay (MouseBinding): ogni   -->
+    <!--    View usa un comando diverso, resta nel markup della View;  -->
+    <!--  - i DataTrigger attivi/inattivi dei tab: legano a proprietà  -->
+    <!--    ViewModel diverse, in FASE 3 ogni tab farà BasedOn di      -->
+    <!--    TabUnderlineButtonStyle e aggiungerà solo il suo trigger.  -->
+    <!-- ============================================================ -->
+
+    <!-- Ombra standard del pannello laterale (identica in tutti i moduli:
+         BlurRadius 24, ShadowDepth 0, Direction 180, Opacity 0.12, navy). -->
+    <DropShadowEffect x:Key="PanelShadowEffect"
+                      BlurRadius="24" ShadowDepth="0"
+                      Direction="180" Opacity="0.12"
+                      Color="{StaticResource ColorPrimaryDark}"/>
+
+    <!-- 1. OVERLAY SCURO: copre il modulo dietro al pannello laterale.
+         La larghezza/altezza (RowSpan) e il MouseBinding di chiusura
+         restano nella View. -->
+    <Style x:Key="OverlayScuroStyle" TargetType="Border">
+        <Setter Property="Cursor" Value="Arrow"/>
+        <Setter Property="Background">
+            <Setter.Value>
+                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 2. PANNELLO LATERALE: colonna bianca agganciata a destra con
+         bordo sinistro e ombra standard. La larghezza (360/380/400) e
+         l'eventuale RenderTransform di animazione restano nella View,
+         perché variano per contenuto. -->
+    <Style x:Key="PanelLateraleStyle" TargetType="Border">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
+        <Setter Property="BorderThickness" Value="1,0,0,0"/>
+        <Setter Property="Effect" Value="{StaticResource PanelShadowEffect}"/>
+    </Style>
+
+    <!-- 3. HEADER DEL PANNELLO: stesso stile dell'header di pagina
+         (trasparente, si fonde nel pannello) con il padding standard
+         dei pannelli interni. -->
+    <Style x:Key="PanelHeaderStyle"
+           TargetType="Border"
+           BasedOn="{StaticResource ModuleHeaderBorderStyle}">
+        <Setter Property="Padding" Value="22,18"/>
+    </Style>
+
+    <!-- 4. TAB-SWITCH CON UNDERLINE: voce di navigazione a schede
+         (Dashboard/Adempimenti/Ritenute, Catalogo/Configurazione...).
+         Il template disegna solo la sottolineatura; lo stato attivo è
+         un DataTrigger della View (BorderBrush → BrushAccent quando la
+         scheda è attiva), da aggiungere in FASE 3 con BasedOn. -->
+    <Style x:Key="TabUnderlineButtonStyle" TargetType="Button">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Padding" Value="4,8"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

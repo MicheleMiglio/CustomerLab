@@ -59,14 +59,30 @@
                 <Button Grid.Column="1" Content="Apri cartella" Style="{StaticResource BtnOutline}" Margin="0,10,0,30"
         Command="{Binding ApriCartellaDatiCommand}" VerticalAlignment="Top" HorizontalAlignment="Left" Width="120"/>
                 
-                <TextBlock Text="DIMENSIONE" Style="{StaticResource SectionTitle}"/>
-                <TextBlock Text="{Binding DimensioneDatabaseTesto}" Style="{StaticResource FieldValue}" TextWrapping="Wrap" Margin="0,0,0,15"/>
+                <TextBlock Text="DIMENSIONE DATABASE" Style="{StaticResource SectionTitle}"/>
+                <TextBlock Text="{Binding DimensioneDatabaseTesto}" Style="{StaticResource FieldValue}" TextWrapping="Wrap" Margin="0,0,0,24"/>
 
-                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,0,100">
+                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,0,24">
     Tutti i dati sono salvati in questo unico file, sul computer. Non esiste un backup automatico:
-    per essere al sicuro, copia periodicamente questo file (es. su una chiavetta o su un cloud
-    come Google Drive/OneDrive), specialmente prima di aggiornare il programma.
+    per essere al sicuro, crea periodicamente un backup di questo file (es. su una chiavetta o su
+    un cloud come Google Drive/OneDrive), specialmente prima di aggiornare il programma.
                 </TextBlock>
+
+                <!-- FASE 9: MANUTENZIONE — backup database -->
+                <TextBlock Text="MANUTENZIONE" Style="{StaticResource SectionTitle}"/>
+                <Border Background="{StaticResource BrushSfondoChiaro}" BorderBrush="{StaticResource BrushBordo}"
+                        BorderThickness="1" CornerRadius="10" Padding="20" Margin="0,0,0,24">
+                    <StackPanel>
+                        <TextBlock Text="Backup database" FontSize="14" FontWeight="Medium"
+                                   Foreground="{StaticResource BrushTestoPrimario}" Margin="0,0,0,6"/>
+                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,0,14">
+                            Crea una copia completa e sicura del database CLab in una cartella a tua scelta.
+                            Il backup non modifica i dati correnti.
+                        </TextBlock>
+                        <Button Style="{StaticResource BtnPrimary}" Content="Esegui backup"
+                                Command="{Binding EseguiBackupCommand}" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </Border>
 
                 <!-- Zona pericolosa -->
                 <Border Background="{StaticResource BrushDangerLight}" BorderBrush="{StaticResource BrushDanger}"

@@ -7,7 +7,7 @@ using System.Windows.Media;
 
 namespace CLab.Converters
 {
-    /// <summary>Priorità del promemoria → sfondo tenue della pill (stessa logica di StatoBadgeBackConverter).</summary>
+    /// <summary>Priorità del promemoria → sfondo tenue della pill (wash semantico per priorità).</summary>
     public class PrioritaPromemoriaASfondoConverter : IValueConverter
     {
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

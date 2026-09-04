@@ -10,7 +10,14 @@
     <Color x:Key="ColorPrimaryDark">#0F2D4A</Color>
     <Color x:Key="ColorPrimary">#185FA5</Color>
     <Color x:Key="ColorPrimaryLight">#378ADD</Color>
-    <Color x:Key="ColorAccent">#BA7517</Color>
+    <!-- Il bronzo/oro storico (#BA7517) è stato ritirato ovunque: stessa
+         tinta ambra già usata per lo stato "in stand-by" dei clienti,
+         chiave semantica diversa (stesso pattern già in uso per
+         Danger/Success che riprendono i colori di stato). Un solo accento
+         "caldo" in tutta l'app, non più due ambre diverse. -->
+    <Color x:Key="ColorAccent">#EF9F27</Color>
+    <!-- Variante più scura, per testo leggibile su un riempimento chiaro -->
+    <Color x:Key="ColorAccentDark">#B87817</Color>
     <Color x:Key="ColorTestoSuScuro">#E6F1FB</Color>
     <Color x:Key="ColorTestoSuScuroSecondario">#8FA3C0</Color>
     <Color x:Key="ColorTestoPrimario">#212529</Color>
@@ -20,6 +27,11 @@
 
     <!-- Sidebar: rail scura piena, stessa tinta del navy di brand -->
     <Color x:Key="ColorSidebarBackground">#0F2D4A</Color>
+
+    <!-- Accento di navigazione della sidebar: blu, in linea con i bottoni/link del
+         contenuto. L'oro (ColorAccent) resta riservato al marchio/logo, non è più
+         usato per stati selezionato/hover o badge di navigazione. -->
+    <Color x:Key="ColorSidebarAccent">#378ADD</Color>
 
     <!-- Stato cliente -->
     <Color x:Key="ColorStatoAttivo">#1D9E75</Color>
@@ -39,6 +51,7 @@
     <SolidColorBrush x:Key="BrushPrimary" Color="{StaticResource ColorPrimary}"/>
     <SolidColorBrush x:Key="BrushPrimaryLight" Color="{StaticResource ColorPrimaryLight}"/>
     <SolidColorBrush x:Key="BrushAccent" Color="{StaticResource ColorAccent}"/>
+    <SolidColorBrush x:Key="BrushAccentDark" Color="{StaticResource ColorAccentDark}"/>
 
     <SolidColorBrush x:Key="BrushStatoAttivo" Color="{StaticResource ColorStatoAttivo}"/>
     <SolidColorBrush x:Key="BrushStatoStandBy" Color="{StaticResource ColorStatoStandBy}"/>
@@ -58,12 +71,19 @@
 
     <SolidColorBrush x:Key="BrushSidebarBackground" Color="{StaticResource ColorSidebarBackground}"/>
     <SolidColorBrush x:Key="BrushSidebarHover" Color="White" Opacity="0.06"/>
-    <SolidColorBrush x:Key="BrushSidebarSelected" Color="{StaticResource ColorAccent}" Opacity="0.18"/>
     <SolidColorBrush x:Key="BrushDivisoreSuScuro" Color="White" Opacity="0.08"/>
+
+    <!-- Stato selezionato/hover della sidebar: blu, coerente col resto dell'app.
+         Niente più rosso/oro in navigazione: quei colori restano riservati al
+         contenuto (severità, brand). -->
+    <SolidColorBrush x:Key="BrushSidebarAccent" Color="{StaticResource ColorSidebarAccent}"/>
+    <SolidColorBrush x:Key="BrushSidebarSelected" Color="{StaticResource ColorSidebarAccent}" Opacity="0.20"/>
+    <SolidColorBrush x:Key="BrushSidebarSelectedBadge" Color="{StaticResource ColorSidebarAccent}" Opacity="0.30"/>
 
     <!-- Accent: stati hover/selected (wash trasparente, si adatta a qualsiasi sfondo) -->
     <SolidColorBrush x:Key="BrushAccentHover" Color="{StaticResource ColorAccent}" Opacity="0.08"/>
     <SolidColorBrush x:Key="BrushAccentSelected" Color="{StaticResource ColorAccent}" Opacity="0.16"/>
+    <SolidColorBrush x:Key="BrushAccentHoverForte" Color="{StaticResource ColorAccent}" Opacity="0.24"/>
 
     <!-- Danger (azioni distruttive: elimina, rimuovi) -->
     <SolidColorBrush x:Key="BrushDanger" Color="{StaticResource ColorDanger}"/>
@@ -76,5 +96,9 @@
     <!-- Info (box informativi, icone neutre es. telefono) -->
     <SolidColorBrush x:Key="BrushInfoLight" Color="{StaticResource ColorPrimaryLight}" Opacity="0.12"/>
     <SolidColorBrush x:Key="BrushInfoBorder" Color="{StaticResource ColorPrimaryLight}" Opacity="0.4"/>
+    <!-- Hover più marcato per pillole a sfondo "info" (es. bottone azione
+         secondaria tipo "Nuovo promemoria/cliente/..."), stessa logica di
+         BrushAccentHoverForte ma sulla tinta blu invece che oro. -->
+    <SolidColorBrush x:Key="BrushInfoHoverForte" Color="{StaticResource ColorPrimaryLight}" Opacity="0.22"/>
 
 </ResourceDictionary>

@@ -1,5 +1,6 @@
 ﻿using CLab.Data;
 using CLab.Models;
+using CLab.Services;
 using CLab.ViewModels.Dettaglio;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
@@ -129,8 +130,118 @@ namespace CLab.ViewModels
         public RelayCommand ChiudiOverlayCommand { get; }
         public RelayCommand AttivaModificaCommand { get; }
 
-        public ClientiViewModel()
+        // --- FASE 5: schede del pannello dettaglio (Anagrafica | Situazione) ---
+
+        public ICommand MostraSchedaAnagraficaCommand { get; }
+        public ICommand MostraSchedaSituazioneCommand { get; }
+        public ICommand ApriScadenzarioClienteCommand { get; }
+        public ICommand ApriRitardiClienteCommand { get; }
+        public ICommand ApriToDoClienteCommand { get; }
+        public ICommand ApriRitenuteClienteCommand { get; }
+
+        private bool _mostraSituazioneCliente;
+        public bool MostraSituazioneCliente
         {
+            get => _mostraSituazioneCliente;
+            set { _mostraSituazioneCliente = value; OnPropertyChanged(); }
+        }
+
+        // Situazione Cliente: aggregazioni read-only calcolate in memoria dai
+        // dati esistenti. Nessuna proprietà persistente, nessuna modifica al DB.
+        private string _situazioneAnno = DateTime.Now.Year.ToString();
+        public string SituazioneAnno
+        {
+            get => _situazioneAnno;
+            private set { _situazioneAnno = value; OnPropertyChanged(); }
+        }
+
+        private int _situazioneAdempimentiRitardo;
+        public int SituazioneAdempimentiRitardo
+        {
+            get => _situazioneAdempimentiRitardo;
+            private set { _situazioneAdempimentiRitardo = value; OnPropertyChanged(); }
+        }
+
+        private int _situazioneAdempimentiInCorso;
+        public int SituazioneAdempimentiInCorso
+        {
+            get => _situazioneAdempimentiInCorso;
+            private set { _situazioneAdempimentiInCorso = value; OnPropertyChanged(); }
+        }
+
+        private int _situazioneAdempimentiCompletati;
+        public int SituazioneAdempimentiCompletati
+        {
+            get => _situazioneAdempimentiCompletati;
+            private set { _situazioneAdempimentiCompletati = value; OnPropertyChanged(); }
+        }
+
+        public bool SituazioneHaAdempimenti =>
+            SituazioneAdempimentiRitardo + SituazioneAdempimentiInCorso + SituazioneAdempimentiCompletati > 0;
+        public bool SituazioneHaRitardi => SituazioneAdempimentiRitardo > 0;
+
+        private int _situazioneToDoAperti;
+        public int SituazioneToDoAperti
+        {
+            get => _situazioneToDoAperti;
+            private set { _situazioneToDoAperti = value; OnPropertyChanged(); }
+        }
+
+        private int _situazioneToDoScaduti;
+        public int SituazioneToDoScaduti
+        {
+            get => _situazioneToDoScaduti;
+            private set { _situazioneToDoScaduti = value; OnPropertyChanged(); }
+        }
+
+        public bool SituazioneHaToDo => SituazioneToDoAperti + SituazioneToDoScaduti > 0;
+        public bool SituazioneHaToDoScaduti => SituazioneToDoScaduti > 0;
+        public string SituazioneToDoTesto => SituazioneToDoAperti == 0
+            ? "Nessun ToDo aperto."
+            : (SituazioneToDoScaduti > 0
+                ? $"{SituazioneToDoAperti} apert{(SituazioneToDoAperti == 1 ? "o" : "i")} · {SituazioneToDoScaduti} scadut{(SituazioneToDoScaduti == 1 ? "o" : "i")}"
+                : $"{SituazioneToDoAperti} apert{(SituazioneToDoAperti == 1 ? "o" : "i")}");
+
+        private int _situazioneRitenuteDaVersare;
+        public int SituazioneRitenuteDaVersare
+        {
+            get => _situazioneRitenuteDaVersare;
+            private set { _situazioneRitenuteDaVersare = value; OnPropertyChanged(); }
+        }
+
+        private int _situazioneRitenuteVersate;
+        public int SituazioneRitenuteVersate
+        {
+            get => _situazioneRitenuteVersate;
+            private set { _situazioneRitenuteVersate = value; OnPropertyChanged(); }
+        }
+
+        private int _situazioneRitenuteAnomalie;
+        public int SituazioneRitenuteAnomalie
+        {
+            get => _situazioneRitenuteAnomalie;
+            private set { _situazioneRitenuteAnomalie = value; OnPropertyChanged(); }
+        }
+
+        public bool SituazioneHaRitenute =>
+            SituazioneRitenuteDaVersare + SituazioneRitenuteVersate + SituazioneRitenuteAnomalie > 0;
+        public string SituazioneRitenuteTesto => SituazioneRitenuteDaVersare == 0
+            ? "Nessuna ritenuta da versare nell'anno."
+            : $"{SituazioneRitenuteDaVersare} da versar{(SituazioneRitenuteDaVersare == 1 ? "e" : "i")}";
+
+        private readonly INavigatore? _navigatore;
+
+        public ClientiViewModel(INavigatore? navigatore = null)
+        {
+            _navigatore = navigatore;
+
+            MostraSchedaAnagraficaCommand = new RelayCommand(() => MostraSituazioneCliente = false);
+            MostraSchedaSituazioneCommand = new RelayCommand(() => { MostraSituazioneCliente = true; CaricaSituazione(); });
+            ApriScadenzarioClienteCommand = new RelayCommand(() => { if (_formId != 0) _navigatore?.ApriScadenzario(_formId, "adempimenti"); });
+            ApriRitardiClienteCommand = new RelayCommand(() => { if (_formId != 0) _navigatore?.ApriScadenzario(_formId, "adempimenti", true); });
+            ApriToDoClienteCommand = new RelayCommand(() => { if (_formId != 0) _navigatore?.ApriToDo(_formId); });
+            ApriRitenuteClienteCommand = new RelayCommand(() => { if (_formId != 0) _navigatore?.ApriScadenzario(_formId, "ritenute"); });
+
             CaricaClienti();
 
             ApriGestioneReferentiCommand = new RelayCommand(() => { CaricaReferenti(); PannelloReferentiAperto = true; });
@@ -167,6 +278,7 @@ namespace CLab.ViewModels
             AttivaModificaCommand = new RelayCommand(() =>
             {
                 ModalitaModifica = true;
+                MostraSituazioneCliente = false;
                 PannelloSottoTitolo = "MODIFICA CLIENTE";
             });
         }
@@ -230,6 +342,7 @@ namespace CLab.ViewModels
         private void Nuovo()
         {
             CaricaNelForm(null);
+            MostraSituazioneCliente = false;
             ModalitaModifica = true;
             PannelloSottoTitolo = "NUOVO CLIENTE";
             OverlayAperto = true;
@@ -318,6 +431,12 @@ namespace CLab.ViewModels
             CaricaNelForm(cliente);
             ModalitaModifica = false;
             PannelloSottoTitolo = $"{cliente.TipoContabilita ?? "Senza contabilità"} · {cliente.Stato}";
+
+            // FASE 5: il dettaglio apre sulla scheda Situazione, per comunicare
+            // immediatamente lo stato operativo del cliente.
+            MostraSituazioneCliente = true;
+            CaricaSituazione();
+
             OverlayAperto = true;
         }
 
@@ -365,6 +484,95 @@ namespace CLab.ViewModels
         {
             OverlayAperto = false;
             ModalitaModifica = false;
+        }
+
+        /// <summary>
+        /// FASE 5 — Situazione Cliente: aggregazioni read-only calcolate in
+        /// memoria dai dati esistenti. Adempimenti con la stessa semantica della
+        /// vista Scadenzario (incluso il testo libero, 1 periodo) e stato dal
+        /// servizio condiviso CLab.Services; ToDo collegati al cliente; ritenute
+        /// d'acconto dell'anno corrente. Nessuna modifica al DB.
+        /// </summary>
+        private void CaricaSituazione()
+        {
+            SituazioneAdempimentiRitardo = 0;
+            SituazioneAdempimentiInCorso = 0;
+            SituazioneAdempimentiCompletati = 0;
+            SituazioneToDoAperti = 0;
+            SituazioneToDoScaduti = 0;
+            SituazioneRitenuteDaVersare = 0;
+            SituazioneRitenuteVersate = 0;
+            SituazioneRitenuteAnomalie = 0;
+
+            if (_formId == 0) return;
+
+            int anno = DateTime.Now.Year;
+            SituazioneAnno = anno.ToString();
+
+            using var db = new ClabDbContext();
+
+            var idAttivitaAssegnate = db.ClientiAttivita.AsNoTracking()
+                .Where(ca => ca.ClienteId == _formId)
+                .Select(ca => ca.AttivitaId)
+                .ToList();
+
+            var attivitaAssegnate = db.Attivita.AsNoTracking()
+                .Where(a => idAttivitaAssegnate.Contains(a.Id))
+                .ToList();
+
+            var compilazioni = db.Compilazioni.AsNoTracking()
+                .Where(c => c.ClienteId == _formId && c.Anno == anno)
+                .ToList();
+
+            foreach (var a in attivitaAssegnate)
+            {
+                int numeroPeriodi = a.Periodicita switch
+                {
+                    Periodicita.Mensile => 12,
+                    Periodicita.Trimestrale => 4,
+                    _ => 1
+                };
+
+                for (int periodo = 1; periodo <= numeroPeriodi; periodo++)
+                {
+                    var comp = compilazioni.FirstOrDefault(c => c.AttivitaId == a.Id && c.Periodo == periodo);
+
+                    bool compilato = comp != null && a.TipoCampo switch
+                    {
+                        TipoCampoAttivita.SiNo => comp.ValoreBooleano == true,
+                        TipoCampoAttivita.Numero => comp.ValoreNumero.HasValue,
+                        TipoCampoAttivita.Tendina => !string.IsNullOrWhiteSpace(comp.ValoreTesto),
+                        TipoCampoAttivita.TestoLibero => !string.IsNullOrWhiteSpace(comp.ValoreTesto),
+                        _ => false
+                    };
+
+                    switch (CalcoloStatoAdempimenti.Calcola(a.Periodicita, anno, periodo, compilato))
+                    {
+                        case CalcoloStatoAdempimenti.Compilato: SituazioneAdempimentiCompletati++; break;
+                        case CalcoloStatoAdempimenti.InCorso: SituazioneAdempimentiInCorso++; break;
+                        case CalcoloStatoAdempimenti.Ritardo: SituazioneAdempimentiRitardo++; break;
+                    }
+                }
+            }
+
+            var todo = db.ToDo.AsNoTracking().Where(t => t.ClienteId == _formId).ToList();
+            SituazioneToDoAperti = todo.Count(t => !t.Completato);
+            SituazioneToDoScaduti = todo.Count(t => t.IsScaduto);
+
+            var ritenute = db.RitenuteAcconto.AsNoTracking()
+                .Where(r => r.ClienteId == _formId && r.DataFattura.Year == anno)
+                .ToList();
+            SituazioneRitenuteDaVersare = ritenute.Count(r => r.StatoVersamento == "DaVersare");
+            SituazioneRitenuteVersate = ritenute.Count(r => r.StatoVersamento == "Versato");
+            SituazioneRitenuteAnomalie = ritenute.Count(r => r.HaAnomalie);
+
+            OnPropertyChanged(nameof(SituazioneHaAdempimenti));
+            OnPropertyChanged(nameof(SituazioneHaRitardi));
+            OnPropertyChanged(nameof(SituazioneHaToDo));
+            OnPropertyChanged(nameof(SituazioneHaToDoScaduti));
+            OnPropertyChanged(nameof(SituazioneToDoTesto));
+            OnPropertyChanged(nameof(SituazioneHaRitenute));
+            OnPropertyChanged(nameof(SituazioneRitenuteTesto));
         }
 
         private void SalvaTelefono()

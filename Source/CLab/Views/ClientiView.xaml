@@ -26,6 +26,31 @@
         <converters:StatoBadgeConverter       x:Key="StatoBadge"/>
         <converters:StatoBadgeForeConverter   x:Key="StatoBadgeFore"/>
 
+        <!-- FASE 5 — Situazione Cliente: card di sezione e CTA leggere -->
+        <Style x:Key="CardSituazione" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource BrushSfondoChiaro}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}"/>
+            <Setter Property="Padding" Value="12,10"/>
+        </Style>
+
+        <Style x:Key="LinkAzione" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushPrimary}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
 
         </ResourceDictionary>
     </UserControl.Resources>
@@ -112,44 +137,13 @@
                   Margin="28,0,28,24"
                   MouseDoubleClick="gridClienti_MouseDoubleClick">
                 <DataGrid.ColumnHeaderStyle>
-                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModuleColumnHeaderStyle}"/>
+                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModuleDataGridColumnHeaderStyle}"/>
                 </DataGrid.ColumnHeaderStyle>
                 <DataGrid.CellStyle>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="BorderThickness" Value="0"/>
-                        <Setter Property="Padding"         Value="0"/>
-                        <Setter Property="VerticalAlignment" Value="Stretch"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="DataGridCell">
-                                    <Border Padding="{TemplateBinding Padding}"
-                                        Background="{TemplateBinding Background}">
-                                        <ContentPresenter VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
+                    <Style TargetType="DataGridCell" BasedOn="{StaticResource ModuleDataGridCellStyle}"/>
                 </DataGrid.CellStyle>
                 <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="Cursor"     Value="Hand"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource BrushAccentHover}"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="{StaticResource BrushAccentSelected}"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
+                    <Style TargetType="DataGridRow" BasedOn="{StaticResource ModuleDataGridRowClickableSelectedStyle}"/>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
                     <DataGridTemplateColumn Header="RAGIONE SOCIALE" Width="1.6*" SortMemberPath="RagioneSociale">
@@ -241,10 +235,7 @@
     Grid.Column="0"
     x:Name="OverlayScuro"
     Visibility="Collapsed"
-    Cursor="Arrow">
-            <Border.Background>
-                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
-            </Border.Background>
+    Style="{StaticResource OverlayScuroStyle}">
             <Border.InputBindings>
                 <MouseBinding MouseAction="LeftClick" Command="{Binding ChiudiOverlayCommand}"/>
             </Border.InputBindings>
@@ -257,17 +248,11 @@
     VerticalAlignment="Stretch"
     Visibility="Collapsed"
     Width="400"
-    Background="White"
-    BorderBrush="{StaticResource BrushBordo}"
-    BorderThickness="1,0,0,0"
+    Style="{StaticResource PanelLateraleStyle}"
     RenderTransformOrigin="1,0.5">
             <Border.RenderTransform>
                 <TranslateTransform x:Name="PannelloTranslate" X="400"/>
             </Border.RenderTransform>
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="24" ShadowDepth="0"
-                              Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
-            </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -276,8 +261,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header pannello -->
-                <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}"
-                    Padding="22,18">
+                <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -301,10 +285,44 @@
                                 Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
                             </Button>
                         </Grid>
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,14,0,0">
-                            <Button Style="{StaticResource BtnOutlineGold}"
-                                Command="{Binding AttivaModificaCommand}"
-                                Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                        <Grid Grid.Row="1" Margin="0,14,0,0"
+                            Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- FASE 5: schede del dettaglio cliente -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Anagrafica" Command="{Binding MostraSchedaAnagraficaCommand}"
+                                    Margin="0,0,16,0">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding MostraSituazioneCliente}" Value="False">
+                                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                                    <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Content="Situazione" Command="{Binding MostraSchedaSituazioneCommand}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding MostraSituazioneCliente}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                                    <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </StackPanel>
+
+                            <Button Grid.Column="1" Style="{StaticResource BtnOutlineGold}"
+                                Command="{Binding AttivaModificaCommand}">
                                 <StackPanel Orientation="Horizontal">
                                     <iconPacks:PackIconBootstrapIcons Kind="Pencil"
                                     Width="11" Height="11" Foreground="{StaticResource BrushAccent}"
@@ -312,13 +330,16 @@
                                     <TextBlock Text="Modifica" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                        </StackPanel>
+                        </Grid>
                     </Grid>
                 </Border>
 
                 <!-- Corpo scrollabile -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="22,20,22,4">
                     <StackPanel>
+
+                        <!-- FASE 5: le schede Anagrafica (lettura + modifica) sono nascoste sulla scheda Situazione -->
+                        <StackPanel Visibility="{Binding MostraSituazioneCliente, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
 
                         <!-- VISTA SOLA LETTURA -->
                         <StackPanel Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
@@ -686,6 +707,131 @@
                             </Border>
 
                         </StackPanel>
+                        </StackPanel>
+
+                        <!-- FASE 5: SITUAZIONE CLIENTE — riepilogo operativo read-only -->
+                        <StackPanel Visibility="{Binding MostraSituazioneCliente, Converter={StaticResource BoolToVisibility}}">
+
+                            <!-- Stato del cliente -->
+                            <Border Background="{StaticResource BrushSfondoChiaro}" BorderBrush="{StaticResource BrushBordo}"
+                                BorderThickness="1" CornerRadius="{StaticResource RadiusSmall}" Padding="12,10" Margin="0,0,0,16">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="8" Height="8" VerticalAlignment="Center" Margin="0,0,8,0"
+                                         Fill="{Binding Dettaglio.FormStato, Converter={StaticResource StatoBadgeFore}}"/>
+                                    <TextBlock Text="{Binding Dettaglio.FormStato, Converter={StaticResource StatoBadge}}" FontSize="13" FontWeight="Medium"
+                                           Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Adempimenti: stessa semantica dello Scadenzario -->
+                            <TextBlock Style="{StaticResource SectionTitle}">
+                                <Run Text="ADEMPIMENTI · ANNO "/><Run Text="{Binding SituazioneAnno, Mode=OneWay}"/>
+                            </TextBlock>
+                            <Border Style="{StaticResource CardSituazione}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="Nessuna attività configurata per questo cliente." FontSize="12"
+                                        Foreground="{StaticResource BrushTestoSecondario}"
+                                        Visibility="{Binding SituazioneHaAdempimenti, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+
+                                    <StackPanel Visibility="{Binding SituazioneHaAdempimenti, Converter={StaticResource BoolToVisibility}}">
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="8" Height="8" Fill="{StaticResource BrushDanger}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <TextBlock Text="In ritardo" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding SituazioneAdempimentiRitardo}" FontSize="13" FontWeight="Medium"
+                                                Foreground="{StaticResource BrushDanger}" VerticalAlignment="Center"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="8" Height="8" Fill="{StaticResource BrushPrimaryLight}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <TextBlock Text="In corso" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding SituazioneAdempimentiInCorso}" FontSize="13" FontWeight="Medium"
+                                                Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="8" Height="8" Fill="{StaticResource BrushSuccess}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Completati" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding SituazioneAdempimentiCompletati}" FontSize="13" FontWeight="Medium"
+                                                Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Style="{StaticResource LinkAzione}" HorizontalAlignment="Left" Margin="4,0,0,10"
+                                Command="{Binding ApriScadenzarioClienteCommand}"
+                                Visibility="{Binding SituazioneHaAdempimenti, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="Apri Scadenzario →"/>
+                            </Button>
+                            <Button Style="{StaticResource LinkAzione}" HorizontalAlignment="Left" Margin="4,0,0,14"
+                                Command="{Binding ApriRitardiClienteCommand}"
+                                Visibility="{Binding SituazioneHaRitardi, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="Vedi solo i ritardi →" Foreground="{StaticResource BrushDanger}" FontWeight="Medium"/>
+                            </Button>
+
+                            <Border BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Margin="0,0,0,16"/>
+
+                            <!-- ToDo collegati al cliente -->
+                            <TextBlock Text="TODO" Style="{StaticResource SectionTitle}"/>
+                            <Border Style="{StaticResource CardSituazione}" Margin="0,0,0,8">
+                                <TextBlock Text="{Binding SituazioneToDoTesto}" FontSize="12"
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SituazioneHaToDoScaduti}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource BrushDanger}"/>
+                                                    <Setter Property="FontWeight" Value="Medium"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
+                            <Button Style="{StaticResource LinkAzione}" HorizontalAlignment="Left" Margin="4,0,0,14"
+                                Command="{Binding ApriToDoClienteCommand}">
+                                <TextBlock Text="Apri ToDo →"/>
+                            </Button>
+
+                            <Border BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Margin="0,0,0,16"/>
+
+                            <!-- Ritenute d'acconto dell'anno corrente -->
+                            <TextBlock Style="{StaticResource SectionTitle}">
+                                <Run Text="RITENUTE · ANNO "/><Run Text="{Binding SituazioneAnno, Mode=OneWay}"/>
+                            </TextBlock>
+                            <Border Style="{StaticResource CardSituazione}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding SituazioneRitenuteTesto}" FontSize="12" TextWrapping="Wrap"
+                                        Foreground="{StaticResource BrushTestoSecondario}"/>
+                                    <TextBlock FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap"
+                                        Visibility="{Binding SituazioneHaRitenute, Converter={StaticResource BoolToVisibility}}">
+                                        <Run Text="{Binding SituazioneRitenuteVersate, Mode=OneWay}"/><Run Text=" versate · "/><Run Text="{Binding SituazioneRitenuteAnomalie, Mode=OneWay}"/><Run Text=" anomalie"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                            <Button Style="{StaticResource LinkAzione}" HorizontalAlignment="Left" Margin="4,0,0,4"
+                                Command="{Binding ApriRitenuteClienteCommand}">
+                                <TextBlock Text="Apri Ritenute →"/>
+                            </Button>
+
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
 
@@ -712,26 +858,21 @@
             </Grid>
         </Border>
         <!-- GESTIONE REFERENTI -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Cursor="Arrow" Visibility="{Binding PannelloReferentiAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.Background>
-                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
-            </Border.Background>
+        <Border Grid.Row="0" Grid.RowSpan="2" Style="{StaticResource OverlayScuroStyle}"
+            Visibility="{Binding PannelloReferentiAperto, Converter={StaticResource BoolToVisibility}}">
             <Border.InputBindings>
                 <MouseBinding MouseAction="LeftClick" Command="{Binding ChiudiGestioneReferentiCommand}"/>
             </Border.InputBindings>
         </Border>
-        <Border Grid.Row="0" Grid.RowSpan="2" Width="360" HorizontalAlignment="Right" Background="White"
-            BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+        <Border Grid.Row="0" Grid.RowSpan="2" Width="360" HorizontalAlignment="Right"
+            Style="{StaticResource PanelLateraleStyle}"
             Visibility="{Binding PannelloReferentiAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="24" ShadowDepth="0" Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
-            </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -812,26 +953,21 @@
         </Border>
 
         <!-- GESTIONE PROGRAMMI -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Cursor="Arrow" Visibility="{Binding PannelloProgrammiAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.Background>
-                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
-            </Border.Background>
+        <Border Grid.Row="0" Grid.RowSpan="2" Style="{StaticResource OverlayScuroStyle}"
+            Visibility="{Binding PannelloProgrammiAperto, Converter={StaticResource BoolToVisibility}}">
             <Border.InputBindings>
                 <MouseBinding MouseAction="LeftClick" Command="{Binding ChiudiGestioneProgrammiCommand}"/>
             </Border.InputBindings>
         </Border>
-        <Border Grid.Row="0" Grid.RowSpan="2" Width="360" HorizontalAlignment="Right" Background="White"
-            BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+        <Border Grid.Row="0" Grid.RowSpan="2" Width="360" HorizontalAlignment="Right"
+            Style="{StaticResource PanelLateraleStyle}"
             Visibility="{Binding PannelloProgrammiAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="24" ShadowDepth="0" Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
-            </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>

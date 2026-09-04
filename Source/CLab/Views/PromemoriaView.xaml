@@ -71,19 +71,9 @@
                            VerticalAlignment="Center" Margin="0,0,12,0"/>
 
                 <Button Content="Data creazione" Command="{Binding MostraPerDataCommand}"
-                    Padding="4,6" Margin="0,0,16,0" Cursor="Hand" Background="Transparent">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
-                                <ContentPresenter Margin="{TemplateBinding Padding}"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
+                    Margin="0,0,16,0" Padding="4,6">
                     <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="FontSize" Value="12"/>
-                            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-                            <Setter Property="BorderBrush" Value="Transparent"/>
+                        <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding OrdinamentoPerPriorita}" Value="False">
                                     <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
@@ -95,19 +85,9 @@
                 </Button>
 
                 <Button Content="Priorità" Command="{Binding MostraPerPrioritaCommand}"
-                    Padding="4,6" Cursor="Hand" Background="Transparent">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2">
-                                <ContentPresenter Margin="{TemplateBinding Padding}"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
+                    Padding="4,6">
                     <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="FontSize" Value="12"/>
-                            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-                            <Setter Property="BorderBrush" Value="Transparent"/>
+                        <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding OrdinamentoPerPriorita}" Value="True">
                                     <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
@@ -199,22 +179,16 @@
         </ScrollViewer>
 
         <!-- OVERLAY + PANNELLO NUOVO/MODIFICA -->
-        <Border Grid.Row="0" Grid.RowSpan="3" Cursor="Arrow"
+        <Border Grid.Row="0" Grid.RowSpan="3" Style="{StaticResource OverlayScuroStyle}"
             Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.Background>
-                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
-            </Border.Background>
             <Border.InputBindings>
                 <MouseBinding MouseAction="LeftClick" Command="{Binding AnnullaCommand}"/>
             </Border.InputBindings>
         </Border>
 
-        <Border Grid.Row="0" Grid.RowSpan="3" Width="380" HorizontalAlignment="Right" Background="White"
-            BorderBrush="{StaticResource BrushBordo}" BorderThickness="1,0,0,0"
+        <Border Grid.Row="0" Grid.RowSpan="3" Width="380" HorizontalAlignment="Right"
+            Style="{StaticResource PanelLateraleStyle}"
             Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="24" ShadowDepth="0" Direction="180" Opacity="0.12" Color="{StaticResource ColorPrimaryDark}"/>
-            </Border.Effect>
 
             <Grid>
                 <Grid.RowDefinitions>
@@ -223,7 +197,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="22,18">
+                <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>

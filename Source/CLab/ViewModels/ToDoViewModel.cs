@@ -164,6 +164,7 @@ namespace CLab.ViewModels
         private DateTime? _filtroDataDa;
         private DateTime? _filtroDataA;
         private bool _filtroMostraTuttiCompletati;
+        private bool _filtroSoloScaduti;
 
         // --- Bozza pannello filtri ---
 
@@ -194,9 +195,29 @@ namespace CLab.ViewModels
         private bool _bozzaMostraTuttiCompletati;
         public bool BozzaMostraTuttiCompletati { get => _bozzaMostraTuttiCompletati; set { _bozzaMostraTuttiCompletati = value; OnPropertyChanged(); } }
 
+        private bool _bozzaSoloScaduti;
+        public bool BozzaSoloScaduti { get => _bozzaSoloScaduti; set { _bozzaSoloScaduti = value; OnPropertyChanged(); } }
+
         public int NumeroFiltriAttivi { get; private set; }
         public bool HaChipFiltri => ChipFiltri.Count > 0;
         public bool ListaVuota { get; private set; }
+
+        /// <summary>FASE 8: messaggio empty state distinguente filtri attivi / tutto completato.</summary>
+        public string EmptyStateTesto
+        {
+            get
+            {
+                if (HaChipFiltri)
+                    return "Nessun ToDo corrisponde ai filtri attivi.";
+
+                bool soloCompletati = SezioneScaduti.Conteggio == 0
+                    && SezioneInProgramma.Conteggio == 0
+                    && SezioneSenzaScadenza.Conteggio == 0
+                    && SezioneCompletati.Conteggio > 0;
+
+                return soloCompletati ? "Tutto completato!" : "Nessun ToDo da mostrare.";
+            }
+        }
 
         public string TestoBottoneFiltri => NumeroFiltriAttivi > 0
             ? $"Filtri ({NumeroFiltriAttivi})"
@@ -483,6 +504,7 @@ namespace CLab.ViewModels
             BozzaDataDa = _filtroDataDa;
             BozzaDataA = _filtroDataA;
             BozzaMostraTuttiCompletati = _filtroMostraTuttiCompletati;
+            BozzaSoloScaduti = _filtroSoloScaduti;
         }
 
         private void AzzeraBozzaFiltri()
@@ -496,6 +518,7 @@ namespace CLab.ViewModels
             BozzaDataDa = null;
             BozzaDataA = null;
             BozzaMostraTuttiCompletati = false;
+            BozzaSoloScaduti = false;
         }
 
         private void ApplicaFiltri()
@@ -511,9 +534,42 @@ namespace CLab.ViewModels
             _filtroDataDa = BozzaDataDa;
             _filtroDataA = BozzaDataA;
             _filtroMostraTuttiCompletati = BozzaMostraTuttiCompletati;
+            _filtroSoloScaduti = BozzaSoloScaduti;
 
             FiltriAperti = false;
             AggiornaLista();
+        }
+
+        /// <summary>
+        /// Navigazione contestuale (FASE 4): apre il modulo con i filtri già
+        /// applicati. Passa dal sistema filtri esistente (bozza → applicati):
+        /// nessun sistema di filtraggio parallelo.
+        /// </summary>
+        public void ApriConFiltri(int? clienteId = null, bool soloScaduti = false, bool prioritaAlta = false)
+        {
+            if (clienteId.HasValue)
+            {
+                var cliente = ClientiPerFiltro.FirstOrDefault(c => c.Id == clienteId.Value);
+                if (cliente == null)
+                {
+                    // Il cliente potrebbe non essere più "Attivo": lo carico
+                    // comunque, così il filtro contestuale resta applicabile.
+                    using var db = new ClabDbContext();
+                    cliente = db.Clienti.AsNoTracking().FirstOrDefault(c => c.Id == clienteId.Value);
+                    if (cliente != null)
+                        ClientiPerFiltro.Add(cliente);
+                }
+
+                if (cliente != null)
+                    BozzaCliente = cliente;
+            }
+
+            if (prioritaAlta)
+                BozzaPriorita = "alta";
+
+            BozzaSoloScaduti = soloScaduti;
+
+            ApplicaFiltri();
         }
 
         private void RimuoviChip(string? chiave)
@@ -544,6 +600,9 @@ namespace CLab.ViewModels
                     break;
                 case "completati":
                     _filtroMostraTuttiCompletati = false;
+                    break;
+                case "soloScaduti":
+                    _filtroSoloScaduti = false;
                     break;
             }
 
@@ -576,6 +635,8 @@ namespace CLab.ViewModels
             }
             if (_filtroMostraTuttiCompletati)
                 ChipFiltri.Add(new ChipFiltroToDo { Chiave = "completati", Testo = "Completati · tutti ×" });
+            if (_filtroSoloScaduti)
+                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "soloScaduti", Testo = "Solo scaduti ×" });
 
             NumeroFiltriAttivi = ChipFiltri.Count;
             OnPropertyChanged(nameof(NumeroFiltriAttivi));
@@ -667,6 +728,9 @@ namespace CLab.ViewModels
                 _ => baseLista
             };
 
+            if (_filtroSoloScaduti)
+                baseLista = baseLista.Where(t => t.IsScaduto);
+
             if (_filtroDataDa.HasValue || _filtroDataA.HasValue)
             {
                 baseLista = baseLista.Where(t =>
@@ -714,6 +778,7 @@ namespace CLab.ViewModels
 
             ListaVuota = filtrati.Count == 0;
             OnPropertyChanged(nameof(ListaVuota));
+            OnPropertyChanged(nameof(EmptyStateTesto));
             SezioneCompletati.Nota = NotaCompletati;
             AggiornaChipFiltri();
         }

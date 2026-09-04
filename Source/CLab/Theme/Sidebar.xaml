@@ -29,10 +29,18 @@
 
                     <Border x:Name="ButtonBorder"
                             Background="{TemplateBinding Background}"
-                            CornerRadius="{StaticResource RadiusMedium}">
+                            CornerRadius="0,10,10,0"
+                            ClipToBounds="True">
 
 
                         <Grid>
+
+                            <Border x:Name="AccentBar"
+                                    Width="3"
+                                    HorizontalAlignment="Left"
+                                    Margin="0"
+                                    Background="{StaticResource BrushSidebarAccent}"
+                                    Visibility="Collapsed"/>
 
                             <ContentPresenter
                                 Margin="16,0,0,0"
@@ -45,6 +53,23 @@
                     </Border>
 
 
+                    <ControlTemplate.Triggers>
+
+                        <!-- Hover -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ButtonBorder" Property="Background"
+                                    Value="{StaticResource BrushSidebarHover}"/>
+                        </Trigger>
+
+                        <!-- Selezionato: sfondo blu tenue + barretta di accento -->
+                        <DataTrigger Binding="{Binding IsSelezionato}" Value="True">
+                            <Setter TargetName="ButtonBorder" Property="Background"
+                                    Value="{StaticResource BrushSidebarSelected}"/>
+                            <Setter TargetName="AccentBar" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+
+                    </ControlTemplate.Triggers>
+
                 </ControlTemplate>
 
             </Setter.Value>
@@ -54,29 +79,10 @@
 
         <Style.Triggers>
 
-
-            <!-- Hover -->
-            <Trigger Property="IsMouseOver"
-                     Value="True">
-
-                <Setter Property="Background"
-                        Value="{StaticResource BrushSidebarHover}"/>
-
-            </Trigger>
-
-
-            <!-- Selezionato -->
-            <DataTrigger Binding="{Binding IsSelezionato}"
-                         Value="True">
-
-                <Setter Property="Background"
-                        Value="{StaticResource BrushSidebarSelected}"/>
-
-                <Setter Property="Foreground"
-                        Value="{StaticResource BrushAccent}"/>
-
+            <!-- Selezionato: testo più chiaro (non passa dal template, va sulla Style) -->
+            <DataTrigger Binding="{Binding IsSelezionato}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource BrushTestoSuScuro}"/>
             </DataTrigger>
-
 
         </Style.Triggers>
 

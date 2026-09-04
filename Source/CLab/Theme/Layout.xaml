@@ -47,15 +47,15 @@
     <!-- ========================= -->
 
     <CornerRadius x:Key="RadiusSmall">
-        6
+        8
     </CornerRadius>
 
     <CornerRadius x:Key="RadiusMedium">
-        10
+        12
     </CornerRadius>
 
     <CornerRadius x:Key="RadiusLarge">
-        16
+        20
     </CornerRadius>
 
     <!-- ========================= -->

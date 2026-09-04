@@ -32,21 +32,30 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Marchio -->
-                    <Border Grid.Column="0" Width="28" Height="28" CornerRadius="6"
-                        Background="{StaticResource BrushAccentHover}" VerticalAlignment="Center">
+                    <!-- Marchio: unico punto dell'app in cui compare l'oro, come
+                         tocco di brand puntuale. -->
+                    <Border Grid.Column="0" Width="28" Height="28" CornerRadius="7"
+                        VerticalAlignment="Center">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="{StaticResource ColorPrimaryLight}" Offset="0"/>
+                                <GradientStop Color="{StaticResource ColorPrimary}" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
                         <TextBlock Text="C" FontSize="13" FontWeight="Bold"
-                               Foreground="{StaticResource BrushAccent}"
+                               Foreground="White"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
 
                     <!-- Wordmark, solo a sidebar espansa -->
                     <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"
                         Visibility="{Binding SidebarEspansa, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="CLab" FontSize="15" FontWeight="Medium"
+                        <TextBlock Text="CLab" FontSize="14" FontWeight="SemiBold" FontFamily="Segoe UI Semibold"
                                Foreground="{StaticResource BrushTestoSuScuro}"/>
-                        <TextBlock Text="Customer Lab" FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource BrushTestoSuScuroSecondario}" Margin="0,1,0,0"/>
+                        <TextBlock Text="CUSTOMER LAB" FontSize="9" FontWeight="Medium" FontFamily="Segoe UI"
+                               Foreground="{StaticResource BrushTestoSuScuroSecondario}" Margin="0,2,0,0"
+                               TextOptions.TextFormattingMode="Ideal">
+                        </TextBlock>
                     </StackPanel>
 
                     <!-- Indicatore di collassa, solo a sidebar espansa -->
@@ -103,7 +112,7 @@
                                                         <Setter Property="Background" Value="{StaticResource BrushTestoSuScuroSecondario}"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsSelezionato}" Value="True">
-                                                                <Setter Property="Background" Value="{StaticResource BrushAccent}"/>
+                                                                <Setter Property="Background" Value="{StaticResource BrushSidebarAccent}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -130,7 +139,7 @@
                                                     <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsSelezionato}" Value="True">
-                                                            <Setter Property="Background" Value="{StaticResource BrushAccentSelected}"/>
+                                                            <Setter Property="Background" Value="{StaticResource BrushSidebarSelectedBadge}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -142,7 +151,7 @@
                                                         <Setter Property="Foreground" Value="{StaticResource BrushTestoSuScuroSecondario}"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsSelezionato}" Value="True">
-                                                                <Setter Property="Foreground" Value="{StaticResource BrushAccent}"/>
+                                                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSuScuro}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>

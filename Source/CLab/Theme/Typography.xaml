@@ -3,62 +3,116 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-    <!-- Dimensioni font -->
+    <!-- ============================================================ -->
+    <!-- TYPOGRAPHY SYSTEM CLab 2.0                                    -->
+    <!-- Punto centrale della tipografia: dimensione, peso, colore.    -->
+    <!-- La gerarchia nasce dalla COMBINAZIONE dei tre, non dal bold.  -->
+    <!-- Nessun uppercase impostato qui: maiuscolo solo dove il testo  -->
+    <!-- lo prevede semanticamente (label tecniche).                   -->
+    <!-- ============================================================ -->
+
+    <!-- Font -->
+    <!-- DECISIONE FONT: Inter NON è presente nel repository e introdurre
+         risorse esterne/NuGet è escluso dalla specifica. Si usa Segoe UI
+         Variable (Windows 11) con fallback automatico a Segoe UI (Win 10):
+         WPF risolve la prima famiglia disponibile, zero rischi su vecchi OS.
+         Viene propagato da MainWindow.xaml (TextElement.FontFamily sul root):
+         un solo punto, nessun override locale nelle View. -->
+    <FontFamily x:Key="FontFamilyBase">Segoe UI Variable Text, Segoe UI Variable Display, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontFamilyNumeric">Segoe UI Variable Display, Segoe UI</FontFamily>
+
+    <!-- Scala dimensioni -->
+    <sys:Double x:Key="FontSizeCaption">11</sys:Double>
     <sys:Double x:Key="FontSizeSmall">12</sys:Double>
     <sys:Double x:Key="FontSizeBody">14</sys:Double>
-    <sys:Double x:Key="FontSizeMenu">15</sys:Double>
-    <sys:Double x:Key="FontSizeSubtitle">18</sys:Double>
+    <sys:Double x:Key="FontSizeMenu">14</sys:Double>
+    <sys:Double x:Key="FontSizeSectionTitle">15</sys:Double>
+    <sys:Double x:Key="FontSizePageSubtitle">13</sys:Double>
     <sys:Double x:Key="FontSizeTitle">28</sys:Double>
 
     <!-- ========================= -->
-    <!-- Text Styles -->
+    <!-- Titolo pagina (es. "Clienti", "Scadenzario") -->
     <!-- ========================= -->
-
-    <Style x:Key="PageTitleText"
-       TargetType="TextBlock">
-
-        <Setter Property="FontSize"
-            Value="{StaticResource FontSizeTitle}"/>
-
-        <Setter Property="FontWeight"
-            Value="SemiBold"/>
-
-        <Setter Property="Foreground"
-            Value="{StaticResource BrushTestoPrimario}"/>
-
+    <Style x:Key="PageTitleText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource FontSizeTitle}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
     </Style>
 
-
-    <Style x:Key="PageSubtitleText"
-       TargetType="TextBlock">
-
-        <Setter Property="FontSize"
-            Value="{StaticResource FontSizeSubtitle}"/>
-
-        <Setter Property="Foreground"
-            Value="{StaticResource BrushTestoSecondario}"/>
-
+    <!-- Sottotitolo pagina: data, contesto, descrizione -->
+    <Style x:Key="PageSubtitleText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource FontSizePageSubtitle}"/>
+        <Setter Property="FontWeight" Value="Regular"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
     </Style>
 
-
-    <Style x:Key="BodyText"
-       TargetType="TextBlock">
-
-        <Setter Property="FontSize"
-            Value="{StaticResource FontSizeBody}"/>
-
-        <Setter Property="Foreground"
-            Value="{StaticResource BrushTestoPrimario}"/>
-
+    <!-- Titolo di sezione ("Richiede attenzione", "Prossime scadenze") -->
+    <Style x:Key="SectionTitleTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSectionTitle}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
     </Style>
 
+    <!-- Alias storico H2 = titolo di sezione -->
+    <Style x:Key="H2Style" TargetType="TextBlock"
+           BasedOn="{StaticResource SectionTitleTextStyle}"/>
 
-    <Style x:Key="MenuText"
-       TargetType="TextBlock">
+    <!-- ========================= -->
+    <!-- Corpo -->
+    <!-- ========================= -->
+    <Style x:Key="BodyText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}"/>
+        <Setter Property="FontWeight" Value="Regular"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+    </Style>
 
-        <Setter Property="FontSize"
-            Value="{StaticResource FontSizeMenu}"/>
+    <Style x:Key="BodyStrongText" TargetType="TextBlock"
+           BasedOn="{StaticResource BodyText}">
+        <Setter Property="FontWeight" Value="Medium"/>
+    </Style>
 
+    <!-- Testo secondario: note, didascalie, meta-info -->
+    <Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="Regular"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+    </Style>
+
+    <!-- Caption: informazioni secondarie, unità di misura, timestamp -->
+    <Style x:Key="CaptionTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}"/>
+        <Setter Property="FontWeight" Value="Regular"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoTerziario}"/>
+    </Style>
+
+    <!-- ========================= -->
+    <!-- KPI: numero protagonista, label discreta -->
+    <!-- ========================= -->
+    <Style x:Key="KpiNumberStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="30"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontFamilyNumeric}"/>
+    </Style>
+
+    <Style x:Key="KpiLabelStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+    </Style>
+
+    <!-- Header tabella/lista: discreto, mai pesante -->
+    <Style x:Key="TableHeaderTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+    </Style>
+
+    <!-- Voce di menu (sidebar): colore ereditato dal contenitore, così lo
+         stato attivo può colorare testo e icona in blu con un solo trigger -->
+    <Style x:Key="MenuText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMenu}"/>
+        <Setter Property="FontWeight" Value="Medium"/>
     </Style>
 
 </ResourceDictionary>

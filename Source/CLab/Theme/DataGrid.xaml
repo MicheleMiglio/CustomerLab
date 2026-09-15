@@ -48,12 +48,13 @@
         </Style.Triggers>
     </Style>
 
-    <!-- Riga base: trasparente, hover tenue ambra. -->
+    <!-- Riga base: trasparente, hover neutro tenue (mai colorato: l'hover
+         non è uno stato semantico). -->
     <Style x:Key="ModuleDataGridRowStyle" TargetType="DataGridRow">
         <Setter Property="Background" Value="Transparent"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource BrushAccentHover}"/>
+                <Setter Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -67,13 +68,13 @@
     </Style>
 
     <!-- Variante cliccabile con evidenziazione della riga selezionata:
-         usata oggi solo da Clienti. -->
+         usata oggi solo da Clienti. Wash blu (elemento interattivo attivo). -->
     <Style x:Key="ModuleDataGridRowClickableSelectedStyle"
            TargetType="DataGridRow"
            BasedOn="{StaticResource ModuleDataGridRowClickableStyle}">
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{StaticResource BrushAccentSelected}"/>
+                <Setter Property="Background" Value="{StaticResource BrushSidebarSelected}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -87,7 +88,7 @@
         <Setter Property="CanUserAddRows" Value="False"/>
         <Setter Property="SelectionMode" Value="Single"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
         <Setter Property="HeadersVisibility" Value="Column"/>
         <Setter Property="GridLinesVisibility" Value="None"/>
         <Setter Property="Background" Value="White"/>

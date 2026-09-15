@@ -8,11 +8,12 @@
 
     <UserControl.Resources>
         <converters:TipoCampoLabelConverter x:Key="TipoCampoLabel"/>
-        <converters:StatoAColoreConverter x:Key="StatoAColore"/>
-        <converters:StatoASfondoConverter x:Key="StatoASfondo"/>
-        <converters:VersatoAColoreConverter x:Key="VersatoAColore"/>
-        <converters:StatoVersamentoTestoConverter x:Key="StatoVersamentoTesto"/>
-        <converters:StatoVersamentoAColoreConverter x:Key="StatoVersamentoAColore"/>
+        <!-- FASE 2: badge semantico unificato (chiavi locali invariate per i binding esistenti) -->
+        <converters:StatoSemanticoForeConverter x:Key="StatoAColore"/>
+        <converters:StatoSemanticoBackConverter x:Key="StatoASfondo"/>
+        <converters:StatoSemanticoForeConverter x:Key="VersatoAColore"/>
+        <converters:StatoSemanticoTestoConverter x:Key="StatoVersamentoTesto"/>
+        <converters:StatoSemanticoForeConverter x:Key="StatoVersamentoAColore"/>
 
         <DataTemplate x:Key="RigaAttivitaTemplate">
             <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1"
@@ -701,14 +702,47 @@
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="Solo ritardi" FontSize="11" FontWeight="Medium"
                                                     Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
-                                                <TextBlock Text="  ×" FontSize="11" FontWeight="Medium"
-                                                    Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
+                                                <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="9" Height="9"
+                                                    Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center" Margin="5,0,0,0"/>
                                             </StackPanel>
                                         </Border>
                                     </ControlTemplate>
                                 </Button.Template>
                             </Button>
                         </StackPanel>
+
+                        <!-- FASE 8: cambio modalità Griglia / Elenco -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                            <TextBlock Text="VISUALIZZAZIONE" FontSize="9" FontWeight="Bold"
+                                Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <Button Content="Griglia" Command="{Binding MostraGrigliaCommand}" Margin="0,0,14,0">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding MostraGriglia}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                                <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <Button Content="Elenco" Command="{Binding MostraElencoCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding MostraElenco}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                                <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- FASE 8: area griglia (matrice periodi), visibile solo in modalità Griglia -->
+                        <StackPanel Visibility="{Binding MostraGriglia, Converter={StaticResource BoolToVisibility}}">
 
                         <!-- MENSILI -->
                         <StackPanel Visibility="{Binding HaRigheMensili, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,10">
@@ -876,6 +910,58 @@
                              AcceptsReturn="True" TextWrapping="Wrap" Width="540" Height="150"
                              VerticalContentAlignment="Top" Margin="0,4,0,0"/>
                         </Grid>
+
+                        </StackPanel><!-- FASE 8: fine area griglia -->
+
+                        <!-- FASE 8: ELENCO — righe piatte costruite dagli stessi dati
+                             già caricati dalla griglia (nessuna seconda query);
+                             il click riporta sulla griglia con la stessa cella aperta,
+                             quindi lo stesso identico percorso di salvataggio. -->
+                        <StackPanel Visibility="{Binding MostraElenco, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="{Binding EmptyElencoTesto}" Style="{StaticResource SecondaryTextStyle}" Margin="0,4,0,10"
+                                Visibility="{Binding HaElencoAdempimenti, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+
+                            <ItemsControl ItemsSource="{Binding ElencoAdempimenti}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding DataContext.ApriDaElencoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" Cursor="Hand"
+                                            ToolTip="Apri compilazione" HorizontalContentAlignment="Stretch">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bd" Background="White" BorderBrush="{StaticResource BrushBordo}"
+                                                        BorderThickness="0,0,0,1" Padding="12,9">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="2.2*"/>
+                                                                <ColumnDefinition Width="1.2*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding AttivitaNome}" FontSize="13" FontWeight="Medium"
+                                                                    Foreground="{StaticResource BrushTestoPrimario}" TextTrimming="CharacterEllipsis"
+                                                                    VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding PeriodoTesto}" FontSize="11" Margin="10,0,0,0"
+                                                                    Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                            <TextBlock Grid.Column="1" Text="{Binding Cliente}" FontSize="11"
+                                                                Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"
+                                                                TextTrimming="CharacterEllipsis"/>
+                                                            <local:StatusBadgeControl Grid.Column="2" Stato="{Binding Stato}" VerticalAlignment="Center"/>
+                                                        </Grid>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushAccentHover}"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
 
                     </StackPanel>
                 </ScrollViewer>

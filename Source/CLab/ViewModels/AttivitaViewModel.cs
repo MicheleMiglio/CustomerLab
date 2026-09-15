@@ -32,48 +32,54 @@ namespace CLab.ViewModels
             set { _pannelloAperto = value; OnPropertyChanged(); }
         }
 
+        // FASE 3: modifiche non salvate, per la conferma di chiusura del
+        // SidePanelControl. Azzerato a ogni apertura del form (Nuovo/Modifica).
+        private bool _haModifiche;
+        public bool HaModifiche { get => _haModifiche; set { _haModifiche = value; OnPropertyChanged(); } }
+        private void SegnaModificato() => HaModifiche = true;
+
         private int _attivitaInModificaId;
 
         private string _formNome = string.Empty;
         public string FormNome
         {
             get => _formNome;
-            set { _formNome = value; OnPropertyChanged(); }
+            set { _formNome = value; OnPropertyChanged(); SegnaModificato(); }
         }
 
         private Periodicita _formPeriodicita = Periodicita.Mensile;
         public Periodicita FormPeriodicita
         {
             get => _formPeriodicita;
-            set { _formPeriodicita = value; OnPropertyChanged(); }
+            set { _formPeriodicita = value; OnPropertyChanged(); SegnaModificato(); }
         }
 
         private TipoCampoAttivita _formTipoCampo = TipoCampoAttivita.SiNo;
         public TipoCampoAttivita FormTipoCampo
         {
             get => _formTipoCampo;
-            set { _formTipoCampo = value; OnPropertyChanged(); }
+            set { _formTipoCampo = value; OnPropertyChanged(); SegnaModificato(); }
         }
 
         private int? _formTestoLunghezzaMassima = 200;
         public int? FormTestoLunghezzaMassima
         {
             get => _formTestoLunghezzaMassima;
-            set { _formTestoLunghezzaMassima = value; OnPropertyChanged(); }
+            set { _formTestoLunghezzaMassima = value; OnPropertyChanged(); SegnaModificato(); }
         }
 
         private bool _formNumeroEImporto;
         public bool FormNumeroEImporto
         {
             get => _formNumeroEImporto;
-            set { _formNumeroEImporto = value; OnPropertyChanged(); }
+            set { _formNumeroEImporto = value; OnPropertyChanged(); SegnaModificato(); }
         }
 
         private bool _formTendinaRichiedeImporto;
         public bool FormTendinaRichiedeImporto
         {
             get => _formTendinaRichiedeImporto;
-            set { _formTendinaRichiedeImporto = value; OnPropertyChanged(); }
+            set { _formTendinaRichiedeImporto = value; OnPropertyChanged(); SegnaModificato(); }
         }
 
         public ObservableCollection<string> FormOpzioni { get; set; } = new();
@@ -153,6 +159,7 @@ namespace CLab.ViewModels
             FormOpzioni.Clear();
             FormNuovaOpzione = string.Empty;
 
+            HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
             PannelloAperto = true;
         }
 
@@ -178,6 +185,7 @@ namespace CLab.ViewModels
             foreach (var o in opzioni) FormOpzioni.Add(o);
             FormNuovaOpzione = string.Empty;
 
+            HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
             PannelloAperto = true;
         }
 

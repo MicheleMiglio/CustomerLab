@@ -2,91 +2,80 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!-- ============================================================ -->
+    <!-- VOCE DI MENU SIDEBAR (design system CLab 2.0: rail chiara).   -->
+    <!--                                                              -->
+    <!-- - Riposo:  testo neutro scuro, sfondo trasparente             -->
+    <!-- - Hover:   wash neutro leggermente più scuro del rail         -->
+    <!-- - Attivo:  wash blu tenue + testo/icona ColorPrimary,         -->
+    <!--            radius 6. Niente barre di accento laterali:        -->
+    <!--            la voce attiva non deve dominare la pagina.        -->
+    <!-- - Collassata: solo icona, perfettamente centrata, con         -->
+    <!--            tooltip (il ToolTip è già impostato dalla View).   -->
+    <!-- ============================================================ -->
 
     <Style x:Key="SidebarMenuButton"
            TargetType="Button"
            BasedOn="{StaticResource BaseButton}">
 
-
-        <Setter Property="Height"
-                Value="44"/>
-
-        <Setter Property="Margin"
-                Value="8,1"/>
-
-        <Setter Property="HorizontalContentAlignment"
-                Value="Left"/>
-
-        <Setter Property="Foreground"
-                Value="{StaticResource BrushTestoSuScuroSecondario}"/>
-
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="Margin" Value="10,1"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
 
         <Setter Property="Template">
-
             <Setter.Value>
-
                 <ControlTemplate TargetType="Button">
 
                     <Border x:Name="ButtonBorder"
                             Background="{TemplateBinding Background}"
-                            CornerRadius="0,10,10,0"
+                            CornerRadius="6"
                             ClipToBounds="True">
 
-
-                        <Grid>
-
-                            <Border x:Name="AccentBar"
-                                    Width="3"
-                                    HorizontalAlignment="Left"
-                                    Margin="0"
-                                    Background="{StaticResource BrushSidebarAccent}"
-                                    Visibility="Collapsed"/>
-
-                            <ContentPresenter
-                                Margin="16,0,0,0"
-                                VerticalAlignment="Center"/>
-
-
-                        </Grid>
-
+                        <ContentPresenter x:Name="Content"
+                                          Margin="10,0,6,0"
+                                          HorizontalAlignment="Stretch"
+                                          VerticalAlignment="Center"/>
 
                     </Border>
 
-
                     <ControlTemplate.Triggers>
 
-                        <!-- Hover -->
+                        <!-- Hover: neutro, discreto, nessuna animazione -->
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="ButtonBorder" Property="Background"
                                     Value="{StaticResource BrushSidebarHover}"/>
                         </Trigger>
 
-                        <!-- Selezionato: sfondo blu tenue + barretta di accento -->
+                        <!-- Attivo: wash blu tenue -->
                         <DataTrigger Binding="{Binding IsSelezionato}" Value="True">
                             <Setter TargetName="ButtonBorder" Property="Background"
                                     Value="{StaticResource BrushSidebarSelected}"/>
-                            <Setter TargetName="AccentBar" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+
+                        <!-- Collassata: icona sola, centrata al pixel sul rail -->
+                        <DataTrigger Binding="{Binding DataContext.SidebarEspansa,
+                                               RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                     Value="False">
+                            <Setter TargetName="Content" Property="HorizontalAlignment" Value="Center"/>
+                            <Setter TargetName="Content" Property="Margin" Value="0"/>
                         </DataTrigger>
 
                     </ControlTemplate.Triggers>
 
                 </ControlTemplate>
-
             </Setter.Value>
-
         </Setter>
-
 
         <Style.Triggers>
 
-            <!-- Selezionato: testo più chiaro (non passa dal template, va sulla Style) -->
+            <!-- Attivo: testo e icona in blu ColorPrimary -->
             <DataTrigger Binding="{Binding IsSelezionato}" Value="True">
-                <Setter Property="Foreground" Value="{StaticResource BrushTestoSuScuro}"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushSidebarAccent}"/>
             </DataTrigger>
 
         </Style.Triggers>
 
     </Style>
-
 
 </ResourceDictionary>

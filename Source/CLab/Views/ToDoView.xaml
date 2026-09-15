@@ -5,7 +5,8 @@
              xmlns:local="clr-namespace:CLab.Models"
              xmlns:converters="clr-namespace:CLab.Converters"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls">
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:views="clr-namespace:CLab.Views">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -17,8 +18,9 @@
             </ObjectDataProvider>
 
             <converters:BoolToVisibilityConverter     x:Key="BoolToVisibility"/>
-            <converters:PrioritaToDoAColoreConverter  x:Key="PrioritaAColore"/>
-            <converters:PrioritaToDoASfondoConverter  x:Key="PrioritaASfondo"/>
+            <!-- FASE 2: badge semantico unificato (chiavi locali invariate) -->
+            <converters:StatoSemanticoForeConverter   x:Key="PrioritaAColore"/>
+            <converters:StatoSemanticoBackConverter   x:Key="PrioritaASfondo"/>
 
             <Style x:Key="RigaChevronBtn" TargetType="Button" BasedOn="{StaticResource BtnIconGhost}">
                 <Setter Property="Padding" Value="5"/>
@@ -202,7 +204,7 @@
                                             CommandParameter="{Binding}" Cursor="Hand" HorizontalAlignment="Stretch" Padding="0">
                                             <Button.Template>
                                                 <ControlTemplate TargetType="Button">
-                                                    <Border Background="#FFF3F6FB" BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,0,0,1" Padding="12,9">
+                                                    <Border Background="{StaticResource BrushSfondoFine}" BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="0,0,0,1" Padding="12,9">
                                                         <ContentPresenter/>
                                                     </Border>
                                                 </ControlTemplate>
@@ -245,6 +247,25 @@
 
                                         <ItemsControl ItemsSource="{Binding Righe}"
                                             Visibility="{Binding MostraRighe, Converter={StaticResource BoolToVisibility}}">
+                                            <ItemsControl.GroupStyle>
+                                                <GroupStyle>
+                                                    <GroupStyle.HeaderTemplate>
+                                                        <DataTemplate>
+                                                            <Border Background="{StaticResource BrushSfondoChiaro}" Padding="10,5" Margin="0,6,0,4"
+                                                                CornerRadius="{StaticResource RadiusSmall}">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <iconPacks:PackIconBootstrapIcons Kind="Buildings" Width="11" Height="11"
+                                                                        Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                                                                    <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="SemiBold"
+                                                                        Foreground="{StaticResource BrushTestoPrimario}"/>
+                                                                    <TextBlock Text="{Binding ItemCount, StringFormat='  ({0})'}" FontSize="11"
+                                                                        Foreground="{StaticResource BrushTestoSecondario}"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </GroupStyle.HeaderTemplate>
+                                                </GroupStyle>
+                                            </ItemsControl.GroupStyle>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <StackPanel>
@@ -581,6 +602,12 @@
                             Content="Solo scaduti"
                             Style="{StaticResource ModuleCheckBoxStyle}"
                             FontSize="12" Margin="0,0,0,8"/>
+
+                        <!-- FASE 9: raggruppamento per cliente (CollectionViewSource standard) -->
+                        <CheckBox IsChecked="{Binding RaggruppaPerCliente}"
+                            Content="Raggruppa per cliente"
+                            Style="{StaticResource ModuleCheckBoxStyle}"
+                            FontSize="12" Margin="0,0,0,8"/>
                         <TextBlock Text="Di default i completati restano negli ultimi 90 giorni. Spunta qui, oppure filtra per data di completamento, per rivedere lo storico."
                             FontSize="11" Foreground="{StaticResource BrushTestoSecondario}" TextWrapping="Wrap"/>
                     </StackPanel>
@@ -605,51 +632,28 @@
             </Grid>
         </Border>
 
-        <!-- Pannello laterale crea/modifica -->
-        <Border Grid.Row="0" Grid.RowSpan="2"
-            x:Name="PannelloLaterale"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Stretch"
-            Visibility="Collapsed"
-            Width="400"
-            Style="{StaticResource PanelLateraleStyle}"
-            RenderTransformOrigin="1,0.5">
-            <Border.RenderTransform>
-                <TranslateTransform x:Name="PannelloTranslate" X="400"/>
-            </Border.RenderTransform>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+        <!-- FASE 3: pannello laterale condiviso (SidePanelControl) per crea/modifica.
+             Il pannello filtri sopra resta gestito dalla view (non è un form di editing). -->
+        <views:SidePanelControl Grid.Row="0" Grid.RowSpan="2"
+            IsAperto="{Binding OverlayAperto}"
+            Titolo="{Binding PannelloTitolo}"
+            Sottotitolo="{Binding PannelloSottoTitolo}"
+            ComandoChiudi="{Binding ChiudiOverlayCommand}"
+            ComandoSalva="{Binding SalvaCommand}"
+            HaModificheNonSalvate="{Binding HaModifiche}">
 
-                <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="{Binding PannelloTitolo}" Style="{StaticResource ModuleTitleStyle}"/>
-                            <TextBlock Text="{Binding PannelloSottoTitolo}" Style="{StaticResource ModuleSubtitleStyle}" Margin="0,4,0,0"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
-                            <Button Style="{StaticResource BtnIconRed}" Margin="0,0,6,0"
-                                Command="{Binding EliminaCommand}" ToolTip="Elimina"
-                                Visibility="{Binding MostraEliminaPanel, Converter={StaticResource BoolToVisibility}}">
-                                <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"/>
-                            </Button>
-                            <Button Style="{StaticResource BtnIconGhost}"
-                                Command="{Binding ChiudiOverlayCommand}" ToolTip="Chiudi">
-                                <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+            <views:SidePanelControl.HeaderExtra>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource BtnIconRed}" Margin="0,0,6,0"
+                        Command="{Binding EliminaCommand}" ToolTip="Elimina"
+                        Visibility="{Binding MostraEliminaPanel, Converter={StaticResource BoolToVisibility}}">
+                        <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"/>
+                    </Button>
+                </StackPanel>
+            </views:SidePanelControl.HeaderExtra>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="22,20,22,4">
-                    <StackPanel>
+            <views:SidePanelControl.Contenuto>
+                <StackPanel>
 
                         <TextBlock Text="{Binding FormCompletatoInfo}" FontSize="11" FontWeight="Medium"
                             Foreground="{StaticResource BrushAccent}" Margin="0,0,0,14"
@@ -748,7 +752,7 @@
                                 <ColumnDefinition Width="8"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" x:Name="txtNuovaSottoAttivita"
+                            <TextBox Grid.Column="0"
                                  Text="{Binding NuovaSottoAttivitaTesto, UpdateSourceTrigger=PropertyChanged}"
                                  mah:TextBoxHelper.Watermark="Aggiungi un passo…"
                                  KeyDown="NuovaSottoAttivita_KeyDown"/>
@@ -760,27 +764,8 @@
                         </Grid>
 
                     </StackPanel>
-                </ScrollViewer>
-
-                <Border Grid.Row="2" BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Padding="22,14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="Salva"
-                            Command="{Binding SalvaCommand}"
-                            Style="{StaticResource BtnPrimary}"
-                            HorizontalAlignment="Stretch"/>
-                        <Button Grid.Column="2" Content="Annulla"
-                            Command="{Binding ChiudiOverlayCommand}"
-                            Style="{StaticResource BtnOutline}"/>
-                    </Grid>
-                </Border>
-
-            </Grid>
-        </Border>
+            </views:SidePanelControl.Contenuto>
+        </views:SidePanelControl>
 
     </Grid>
 

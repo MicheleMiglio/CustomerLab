@@ -5,20 +5,22 @@
 
 
     <!-- ========================= -->
-    <!-- Sidebar -->
+    <!-- Sidebar (larghezze reali usate da MainViewModel.SidebarWidth) -->
     <!-- ========================= -->
 
     <sys:Double x:Key="SidebarWidthExpanded">
-        240
+        220
     </sys:Double>
 
     <sys:Double x:Key="SidebarWidthCollapsed">
-        68
+        70
     </sys:Double>
 
 
     <!-- ========================= -->
-    <!-- Spaziature standard -->
+    <!-- Spaziature standard: scala 4 / 8 / 12 / 16 / 20 / 24 / 32.
+         Titolo→sottotitolo: 4-8 | sezione→contenuto: 12-16 |
+         sezioni principali: 24-32 | elementi correlati: 8-12. -->
     <!-- ========================= -->
 
     <sys:Double x:Key="SpacingXS">
@@ -30,32 +32,44 @@
     </sys:Double>
 
     <sys:Double x:Key="SpacingMD">
-        16
+        12
     </sys:Double>
 
     <sys:Double x:Key="SpacingLG">
-        24
+        16
     </sys:Double>
 
     <sys:Double x:Key="SpacingXL">
+        20
+    </sys:Double>
+
+    <sys:Double x:Key="SpacingXXL">
+        24
+    </sys:Double>
+
+    <sys:Double x:Key="SpacingXXXL">
         32
     </sys:Double>
 
 
     <!-- ========================= -->
-    <!-- Corner Radius -->
+    <!-- Corner Radius: pochi valori coerenti.
+         Small 6 = controlli piccoli (badge interni, checkbox)
+         Medium 10 = card / superfici
+         Large 12 = overlay / pannelli
+         (pillole e badge usano radius pieno dedicato, vedi Controls.xaml) -->
     <!-- ========================= -->
 
     <CornerRadius x:Key="RadiusSmall">
-        8
+        6
     </CornerRadius>
 
     <CornerRadius x:Key="RadiusMedium">
-        12
+        10
     </CornerRadius>
 
     <CornerRadius x:Key="RadiusLarge">
-        20
+        12
     </CornerRadius>
 
     <!-- ========================= -->

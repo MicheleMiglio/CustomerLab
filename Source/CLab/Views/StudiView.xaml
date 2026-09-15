@@ -1,0 +1,282 @@
+﻿<UserControl x:Class="CLab.Views.StudiView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:views="clr-namespace:CLab.Views">
+
+    <UserControl.Resources>
+        <!-- Riga della lista studi: piatta, cliccabile, hover tenue -->
+        <Style x:Key="RigaStudio" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Stretch"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource BrushAccentHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="IntestazioneColonna" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+        </Style>
+
+        <Style x:Key="CellaNumeroStudio" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0" Height="64">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Studi" Style="{StaticResource ModuleTitleStyle}"/>
+                <TextBlock Text="ASSE ECONOMICO: CLIENTI PER STUDIO" Style="{StaticResource ModuleSubtitleStyle}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- CONTENUTO -->
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="28,16,28,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding ContatoreTesto}" Style="{StaticResource SecondaryTextStyle}"
+                           VerticalAlignment="Center" Margin="0,0,20,0"/>
+                <TextBox Grid.Column="1" Text="{Binding FiltroTesto, UpdateSourceTrigger=PropertyChanged}"
+                         mah:TextBoxHelper.Watermark="Cerca studio per nome..."
+                         MaxWidth="380" HorizontalAlignment="Right"/>
+            </Grid>
+
+            <!-- Lista studi: intestazioni di colonna + righe piatte -->
+            <Grid Grid.Row="1" Margin="28,0,28,28">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="14,0,14,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="0.8*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="STUDIO" Style="{StaticResource IntestazioneColonna}"/>
+                    <TextBlock Grid.Column="1" Text="CLIENTI" Style="{StaticResource IntestazioneColonna}"/>
+                    <TextBlock Grid.Column="2" Text="FATTURATO" Style="{StaticResource IntestazioneColonna}" TextAlignment="Right"/>
+                    <TextBlock Grid.Column="3" Text="DA INCASSARE" Style="{StaticResource IntestazioneColonna}" TextAlignment="Right"/>
+                    <TextBlock Grid.Column="4" Text="SCADUTO" Style="{StaticResource IntestazioneColonna}" TextAlignment="Right"/>
+                </Grid>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Studi}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource RigaStudio}"
+                                        Command="{Binding DataContext.ApriDettaglioCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        ToolTip="Apri dettaglio studio">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="0.8*"/>
+                                            <ColumnDefinition Width="1*"/>
+                                            <ColumnDefinition Width="1*"/>
+                                            <ColumnDefinition Width="1*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Nome}" FontSize="14" FontWeight="Medium"
+                                                       Foreground="{StaticResource BrushTestoPrimario}"
+                                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                            <views:StatusBadgeControl Stato="{Binding StatoStudio}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Column="1" Text="{Binding ClientiTesto}" Style="{StaticResource CellaNumeroStudio}"
+                                                   Foreground="{StaticResource BrushTestoSecondario}" FontWeight="Regular"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding FatturatoTesto}" Style="{StaticResource CellaNumeroStudio}" TextAlignment="Right"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding DaIncassareTesto}" Style="{StaticResource CellaNumeroStudio}" TextAlignment="Right"
+                                                   Foreground="{StaticResource BrushPrimary}"/>
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ScadutoTesto}" Style="{StaticResource CellaNumeroStudio}" TextAlignment="Right"
+                                                       Visibility="{Binding HaScaduto, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                                            <views:StatusBadgeControl Stato="Scaduto" ToolTip="{Binding ScadutoTesto}"
+                                                                      Visibility="{Binding HaScaduto, Converter={StaticResource BoolToVisibility}}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- EMPTY STATE: nessuno studio / nessun risultato -->
+                <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1"
+                        CornerRadius="{StaticResource RadiusMedium}" Padding="40"
+                        Visibility="{Binding NessunoStudio, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420">
+                        <iconPacks:PackIconBootstrapIcons Kind="Buildings" Width="34" Height="34"
+                            Foreground="{StaticResource BrushTestoSecondario}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding EmptyStateTesto}" FontSize="15" FontWeight="Medium"
+                            Foreground="{StaticResource BrushTestoPrimario}" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                        <TextBlock Text="{Binding EmptyStateSuggerimento}" Style="{StaticResource SecondaryTextStyle}"
+                            HorizontalAlignment="Center" TextAlignment="Center" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- FASE 5: pannello dettaglio studio (sola lettura) via SidePanelControl condiviso -->
+        <views:SidePanelControl Grid.Row="0" Grid.RowSpan="2"
+            IsAperto="{Binding DettaglioAperto}"
+            Titolo="{Binding DettaglioTitolo}"
+            Sottotitolo="{Binding DettaglioSottotitolo}"
+            ComandoChiudi="{Binding ChiudiDettaglioCommand}"
+            MostraFooter="False">
+
+            <views:SidePanelControl.Contenuto>
+                <StackPanel>
+
+                    <!-- KPI economici -->
+                    <Border Background="{StaticResource BrushSfondoChiaro}" BorderBrush="{StaticResource BrushBordo}"
+                        BorderThickness="1" CornerRadius="{StaticResource RadiusSmall}" Padding="14,12" Margin="0,0,0,18">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="FATTURATO" FontSize="10" FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTestoSecondario}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding KpiFatturato}" FontSize="17" FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTestoPrimario}" Margin="0,2,0,10"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="INCASSATO" FontSize="10" FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTestoSecondario}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding KpiIncassato}" FontSize="17" FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushStatoAttivo}" Margin="0,2,0,10"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="DA INCASSARE" FontSize="10" FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushTestoSecondario}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding KpiDaIncassare}" FontSize="17" FontWeight="SemiBold"
+                                Foreground="{StaticResource BrushPrimary}" Margin="0,2,0,0"/>
+
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="SCADUTO" FontSize="10" FontWeight="SemiBold" TextAlignment="Right"
+                                Foreground="{StaticResource BrushTestoSecondario}"/>
+                            <views:StatusBadgeControl Grid.Row="0" Grid.Column="1" Stato="Scaduto"
+                                Visibility="{Binding HaScaduto, Converter={StaticResource BoolToVisibility}}"
+                                HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,4"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding KpiScaduto}" FontSize="17" FontWeight="SemiBold" TextAlignment="Right"
+                                Foreground="{StaticResource BrushStatoCessato}"
+                                Visibility="{Binding HaScaduto, Converter={StaticResource BoolToVisibility}}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding KpiScaduto}" FontSize="17" FontWeight="SemiBold" TextAlignment="Right"
+                                Foreground="{StaticResource BrushTestoPrimario}"
+                                Visibility="{Binding HaScaduto, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="Le fatture appartengono allo studio, non al singolo cliente." FontSize="10"
+                                Foreground="{StaticResource BrushTestoSecondario}" TextWrapping="Wrap" TextAlignment="Right" VerticalAlignment="Bottom"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Fatture dello studio -->
+                    <TextBlock Text="FATTURE" Style="{StaticResource SectionTitle}"/>
+                    <TextBlock Text="{Binding EmptyFattureTesto}" Style="{StaticResource SecondaryTextStyle}" Margin="0,4,0,8"
+                        Visibility="{Binding HaFattureStudio, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                    <ItemsControl ItemsSource="{Binding FattureStudio}" Margin="0,4,0,18">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="{StaticResource RadiusSmall}"
+                                    Padding="10,8" Margin="0,0,0,5">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Fattura.Numero}" FontSize="12" FontWeight="Medium"
+                                                Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Fattura.DataEmissione, StringFormat='dd/MM/yyyy'}" FontSize="11"
+                                                Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding Fattura.Importo, StringFormat='â‚¬ {0:N2}'}" FontSize="12" FontWeight="Medium"
+                                            Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <views:StatusBadgeControl Grid.Column="2" Stato="{Binding Fattura.Stato}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Style="{StaticResource LinkAzione}" HorizontalAlignment="Left" Margin="4,0,0,4"
+                        Command="{Binding ApriFattureCommand}">
+                        <TextBlock Text="Apri modulo Fatture ->"/>
+                    </Button>
+
+                    <Border BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Margin="0,8,0,14"/>
+
+                    <!-- Clienti collegati -->
+                    <TextBlock Text="CLIENTI COLLEGATI" Style="{StaticResource SectionTitle}"/>
+                    <TextBlock Text="{Binding EmptyClientiTesto}" Style="{StaticResource SecondaryTextStyle}" Margin="0,4,0,8"
+                        Visibility="{Binding HaClientiStudio, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                    <ItemsControl ItemsSource="{Binding ClientiStudio}" Margin="0,4,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="{StaticResource RadiusSmall}"
+                                    Padding="10,8" Margin="0,0,0,5">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Cliente.RagioneSociale}" FontSize="12" FontWeight="Medium"
+                                            Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                        <views:StatusBadgeControl Grid.Column="1" Stato="{Binding Cliente.Stato}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                </StackPanel>
+            </views:SidePanelControl.Contenuto>
+        </views:SidePanelControl>
+    </Grid>
+</UserControl>

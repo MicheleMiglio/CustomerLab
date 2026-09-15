@@ -19,24 +19,24 @@
     </Style>
 
     <!-- Header di PANNELLO interno (dettaglio cliente, form laterali...):
-         qui la scatola ha ancora senso, perché deve separare visivamente un
-         sotto-pannello dal resto del modulo - contesto diverso dall'header
-         di pagina, quindi stile diverso. -->
+          qui la scatola ha ancora senso, perché deve separare visivamente un
+          sotto-pannello dal resto del modulo - contesto diverso dall'header
+          di pagina, quindi stile diverso. Superficie neutra molto chiara. -->
     <Style x:Key="PanelHeaderBorderStyle" TargetType="Border">
-        <Setter Property="Background" Value="#FFF3F6FB"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
+        <Setter Property="Background" Value="{StaticResource BrushSfondoFine}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
     </Style>
 
     <Style x:Key="ModuleTitleStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="15"/>
-        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
     </Style>
 
     <Style x:Key="ModuleSubtitleStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="10"/>
-        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Regular"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
         <Setter Property="Margin" Value="0,3,0,0"/>
     </Style>
@@ -55,7 +55,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushSfondoChiaro}"/>
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -80,7 +80,7 @@
                 <ControlTemplate TargetType="DataGridColumnHeader">
                     <Grid>
                         <Border x:Name="bd" Background="{TemplateBinding Background}"
-                            BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,0,0,1">
+                            BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="0,0,0,1">
                             <ContentPresenter Margin="{TemplateBinding Padding}"
     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
                         </Border>
@@ -103,12 +103,12 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="SortDirection" Value="Ascending">
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushPrimary}"/>
                             <Setter TargetName="bd" Property="BorderThickness" Value="0,0,0,2"/>
                             <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
                         </Trigger>
                         <Trigger Property="SortDirection" Value="Descending">
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushPrimary}"/>
                             <Setter TargetName="bd" Property="BorderThickness" Value="0,0,0,2"/>
                             <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
                         </Trigger>

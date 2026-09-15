@@ -12,6 +12,13 @@ using System.Windows.Media;
 
 namespace CLab.ViewModels
 {
+    /// <summary>FASE 8: modalità di visualizzazione della scheda Adempimenti dello Scadenzario.</summary>
+    public enum ModalitaVisualizzazioneAdempimenti
+    {
+        Griglia,
+        Elenco
+    }
+
     public class ScadenzarioViewModel : ViewModelBase
     {
         public ObservableCollection<Cliente> ClientiDisponibili { get; set; } = new();
@@ -161,7 +168,112 @@ namespace CLab.ViewModels
         public bool SoloRitardi
         {
             get => _soloRitardi;
-            set { _soloRitardi = value; OnPropertyChanged(); ApplicaFiltroAttivita(); }
+            set { _soloRitardi = value; OnPropertyChanged(); ApplicaFiltroAttivita(); CostruisciElenco(); }
+        }
+
+        // --- FASE 8: modalità di visualizzazione della scheda Adempimenti.
+        //     Griglia = matrice periodi esistente; Elenco = righe piatte costruite
+        //     dagli STESSI dati già caricati (nessuna seconda query). ---
+
+        public ObservableCollection<RigaElencoAdempimenti> ElencoAdempimenti { get; } = new();
+        public bool HaElencoAdempimenti => ElencoAdempimenti.Count > 0;
+        public string EmptyElencoTesto => SoloRitardi
+            ? "Nessun adempimento in ritardo per il cliente selezionato."
+            : "Nessun adempimento per il cliente selezionato.";
+
+        private ModalitaVisualizzazioneAdempimenti _modalitaVisualizzazione = ModalitaVisualizzazioneAdempimenti.Griglia;
+        public ModalitaVisualizzazioneAdempimenti ModalitaVisualizzazione
+        {
+            get => _modalitaVisualizzazione;
+            set
+            {
+                _modalitaVisualizzazione = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(MostraGriglia));
+                OnPropertyChanged(nameof(MostraElenco));
+                CostruisciElenco();
+            }
+        }
+
+        public bool MostraGriglia => _modalitaVisualizzazione == ModalitaVisualizzazioneAdempimenti.Griglia;
+        public bool MostraElenco => _modalitaVisualizzazione == ModalitaVisualizzazioneAdempimenti.Elenco;
+
+        public ICommand MostraGrigliaCommand { get; }
+        public ICommand MostraElencoCommand { get; }
+        public ICommand ApriDaElencoCommand { get; }
+
+        /// <summary>FASE 8: costruisce l'elenco piatto partendo dagli stessi dati
+        /// già caricati per la griglia (nessuna seconda query). Il filtro operativo
+        /// "solo ritardi" esistente viene riutilizzato anche qui.</summary>
+        private void CostruisciElenco()
+        {
+            ElencoAdempimenti.Clear();
+
+            if (ClienteSelezionato == null)
+            {
+                OnPropertyChanged(nameof(HaElencoAdempimenti));
+                OnPropertyChanged(nameof(EmptyElencoTesto));
+                return;
+            }
+
+            var voci = new List<RigaElencoAdempimenti>();
+
+            void AggiungiGruppo(Periodicita periodicita, IEnumerable<RigaAttivitaCompilazione> righe)
+            {
+                foreach (var riga in righe)
+                {
+                    foreach (var cella in riga.Celle)
+                    {
+                        if (SoloRitardi && cella.Stato != CalcoloStatoAdempimenti.Ritardo)
+                            continue;
+
+                        voci.Add(new RigaElencoAdempimenti
+                        {
+                            Riga = riga,
+                            Cella = cella,
+                            Cliente = ClienteSelezionato.RagioneSociale,
+                            AttivitaNome = riga.Nome,
+                            PeriodoTesto = periodicita == Periodicita.Annuale
+                                ? $"Anno {AnnoSelezionato}"
+                                : $"{EtichettaPeriodo(periodicita, cella.Periodo)} {AnnoSelezionato}",
+                            Stato = cella.Stato
+                        });
+                    }
+                }
+            }
+
+            AggiungiGruppo(Periodicita.Mensile, RigheMensili);
+            AggiungiGruppo(Periodicita.Trimestrale, RigheTrimestrali);
+            AggiungiGruppo(Periodicita.Annuale, RigheAnnuali);
+
+            // I ritardi in cima, poi in corso, compilati e futuri
+            foreach (var voce in voci.OrderByDescending(v => v.Stato == CalcoloStatoAdempimenti.Ritardo)
+                                     .ThenByDescending(v => v.Stato == CalcoloStatoAdempimenti.InCorso)
+                                     .ThenBy(v => v.AttivitaNome))
+                ElencoAdempimenti.Add(voce);
+
+            OnPropertyChanged(nameof(HaElencoAdempimenti));
+            OnPropertyChanged(nameof(EmptyElencoTesto));
+        }
+
+        /// <summary>FASE 8: apre la compilazione dall'elenco riportando l'utente sulla
+        /// griglia con la stessa cella selezionata: stesso pannello, stesso identico
+        /// percorso di salvataggio della griglia (CellaCompilazione.OnCambiata).</summary>
+        private void ApriDaElenco(RigaElencoAdempimenti? voce)
+        {
+            if (voce == null) return;
+
+            var riga = voce.Riga;
+            int indice = riga.Celle.IndexOf(voce.Cella);
+            if (indice < 0) return;
+
+            _modalitaVisualizzazione = ModalitaVisualizzazioneAdempimenti.Griglia;
+            OnPropertyChanged(nameof(ModalitaVisualizzazione));
+            OnPropertyChanged(nameof(MostraGriglia));
+            OnPropertyChanged(nameof(MostraElenco));
+
+            riga.IndiceSelezionato = indice;
+            riga.Espansa = true;
         }
 
         public ICommand RimuoviSoloRitardiCommand { get; }
@@ -346,6 +458,9 @@ namespace CLab.ViewModels
             PulisciDataPagamentoRitenutaCommand = new RelayCommand(() => FormScadenzaVersamento = null);
             PulisciImportoVersatoCommand = new RelayCommand(() => FormImportoVersato = null);
             RimuoviSoloRitardiCommand = new RelayCommand(() => SoloRitardi = false);
+            MostraGrigliaCommand = new RelayCommand(() => ModalitaVisualizzazione = ModalitaVisualizzazioneAdempimenti.Griglia);
+            MostraElencoCommand = new RelayCommand(() => ModalitaVisualizzazione = ModalitaVisualizzazioneAdempimenti.Elenco);
+            ApriDaElencoCommand = new RelayCommand<RigaElencoAdempimenti>(ApriDaElenco);
 
             CaricaClienti();
         }
@@ -535,6 +650,7 @@ namespace CLab.ViewModels
             HaRigheAnnuali = RigheAnnuali.Count > 0;
 
             ApplicaFiltroAttivita();
+            CostruisciElenco();
             CaricaDashboard();
             CaricaRitenute();
         }
@@ -989,6 +1105,11 @@ namespace CLab.ViewModels
             if (cliente == null) return;
 
             SoloRitardi = soloRitardi;
+
+            // FASE 8: navigazione "solo ritardi" dalla Home → modalità Elenco automatica
+            if (soloRitardi && (scheda ?? string.Empty).Trim().ToLowerInvariant() == "adempimenti")
+                ModalitaVisualizzazione = ModalitaVisualizzazioneAdempimenti.Elenco;
+
             if (soloRitardi)
             {
                 SezioneMensiliEspansa = true;
@@ -1161,5 +1282,20 @@ namespace CLab.ViewModels
         public int Completate { get; set; }
         public int InCorso { get; set; }
         public int InRitardo { get; set; }
+    }
+
+    /// <summary>
+    /// FASE 8: riga piatta dell'elenco adempimenti. NON è un duplicato dei dati:
+    /// referenzia la riga e la cella già caricati dalla griglia, così l'apertura
+    /// passa dallo stesso identico percorso di selezione/salvataggio.
+    /// </summary>
+    public class RigaElencoAdempimenti
+    {
+        public RigaAttivitaCompilazione Riga { get; set; } = null!;
+        public CellaCompilazione Cella { get; set; } = null!;
+        public string Cliente { get; set; } = string.Empty;
+        public string AttivitaNome { get; set; } = string.Empty;
+        public string PeriodoTesto { get; set; } = string.Empty;
+        public string Stato { get; set; } = string.Empty;
     }
 }

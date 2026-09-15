@@ -144,6 +144,36 @@ namespace CLab.ViewModels
             ? "Più recenti"
             : "Per scadenza";
 
+        // --- FASE 9: raggruppamento Nessuno (default) / Per Cliente.
+        //     Implementato con CollectionViewSource/GroupDescriptions standard
+        //     sulle Righe delle sezioni esistenti: nessuna nuova sezione e i
+        //     filtri restano applicati alle stesse collezioni. ---
+
+        private bool _raggruppaPerCliente;
+        public bool RaggruppaPerCliente
+        {
+            get => _raggruppaPerCliente;
+            set { _raggruppaPerCliente = value; OnPropertyChanged(); ApplicaRaggruppamento(); }
+        }
+
+        public ICommand ToggleRaggruppamentoCommand { get; }
+
+        /// <summary>FASE 9: applica/rimuove il GroupDescription "Per Cliente" sulle
+        /// viste standard delle Righe di ogni sezione. Il raggruppamento usa
+        /// CollegamentoDisplay (cliente, altrimenti referente, altrimenti "—").</summary>
+        private void ApplicaRaggruppamento()
+        {
+            foreach (var sezione in Sezioni)
+            {
+                var vista = System.Windows.Data.CollectionViewSource.GetDefaultView(sezione.Righe);
+                if (vista == null) continue;
+
+                vista.GroupDescriptions.Clear();
+                if (_raggruppaPerCliente)
+                    vista.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription(nameof(ToDo.CollegamentoDisplay)));
+            }
+        }
+
         private string _filtroTesto = string.Empty;
         public string FiltroTesto
         {
@@ -275,17 +305,23 @@ namespace CLab.ViewModels
 
         // --- Campi form ---
 
+        // FASE 3: modifiche non salvate, per la conferma di chiusura del
+        // SidePanelControl. Azzerato a ogni apertura del form.
+        private bool _haModifiche;
+        public bool HaModifiche { get => _haModifiche; set { _haModifiche = value; OnPropertyChanged(); } }
+        private void SegnaModificato() => HaModifiche = true;
+
         private string _formTitolo = string.Empty;
-        public string FormTitolo { get => _formTitolo; set { _formTitolo = value; OnPropertyChanged(); } }
+        public string FormTitolo { get => _formTitolo; set { _formTitolo = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private string? _formDescrizione;
-        public string? FormDescrizione { get => _formDescrizione; set { _formDescrizione = value; OnPropertyChanged(); } }
+        public string? FormDescrizione { get => _formDescrizione; set { _formDescrizione = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private DateTime? _formDataScadenza;
-        public DateTime? FormDataScadenza { get => _formDataScadenza; set { _formDataScadenza = value; OnPropertyChanged(); } }
+        public DateTime? FormDataScadenza { get => _formDataScadenza; set { _formDataScadenza = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private PrioritaToDo _formPriorita = PrioritaToDo.Media;
-        public PrioritaToDo FormPriorita { get => _formPriorita; set { _formPriorita = value; OnPropertyChanged(); } }
+        public PrioritaToDo FormPriorita { get => _formPriorita; set { _formPriorita = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private Cliente? _formCliente;
         public Cliente? FormCliente
@@ -402,6 +438,7 @@ namespace CLab.ViewModels
             RimuoviChipCommand = new RelayCommand<string>(RimuoviChip);
 
             OrdinaPerScadenzaCommand = new RelayCommand(() => Ordinamento = OrdinamentoToDo.Scadenza);
+            ToggleRaggruppamentoCommand = new RelayCommand(() => RaggruppaPerCliente = !RaggruppaPerCliente);
             OrdinaPerCreazioneCommand = new RelayCommand(() => Ordinamento = OrdinamentoToDo.Creazione);
 
             ToggleSezioneCommand = new RelayCommand<SezioneToDoLista>(s =>
@@ -823,6 +860,7 @@ namespace CLab.ViewModels
             PannelloSottoTitolo = "NUOVO TODO";
             FormCompletatoInfo = string.Empty;
             MostraEliminaPanel = false;
+            HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
             OverlayAperto = true;
         }
 
@@ -858,6 +896,7 @@ namespace CLab.ViewModels
                 ? $"Completato il {t.DataCompletamento:dd/MM/yyyy}"
                 : string.Empty;
             MostraEliminaPanel = true;
+            HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
             OverlayAperto = true;
         }
 
@@ -914,6 +953,35 @@ namespace CLab.ViewModels
 
             db.SaveChanges();
             Carica();
+        }
+
+        /// <summary>FASE 7: apre direttamente il pannello di modifica del ToDo indicato
+        /// (navigazione "verso l'elemento specifico" dalla Situazione Cliente / ricerca).</summary>
+        public void ApriToDoDiretto(int todoId)
+        {
+            var t = _tuttiToDo.FirstOrDefault(x => x.Id == todoId);
+
+            if (t == null)
+            {
+                // Non ancora in memoria (es. filtro attivo lo nasconde): carica dal database
+                // con gli stessi nomi collegati che popola Carica().
+                using var db = new ClabDbContext();
+                t = db.ToDo.Include(x => x.SottoAttivita).AsNoTracking().FirstOrDefault(x => x.Id == todoId);
+                if (t == null)
+                    return;
+
+                var nomiClienti = db.Clienti.AsNoTracking().ToDictionary(c => c.Id, c => c.RagioneSociale);
+                var nomiReferenti = db.Referenti.AsNoTracking().ToDictionary(r => r.Id, r => r.Nome);
+
+                t.ClienteNome = t.ClienteId.HasValue && nomiClienti.TryGetValue(t.ClienteId.Value, out var cn)
+                    ? cn
+                    : (t.ClienteNomeStorico ?? string.Empty);
+                t.ReferenteNome = t.ReferenteId.HasValue && nomiReferenti.TryGetValue(t.ReferenteId.Value, out var rn)
+                    ? rn
+                    : string.Empty;
+            }
+
+            ApriModifica(t);
         }
 
         private void Salva()

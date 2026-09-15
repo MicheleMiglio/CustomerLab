@@ -53,8 +53,11 @@ namespace CLab.ViewModels
             ? $"Nessuna fattura per l'{AnnoFiltratoTesto}."
             : "Nessuna fattura registrata.";
 
-        /// <summary>Regola anno definitiva CLab 2.0 (FASE 7): anno di DataPagamento se presente, altrimenti anno corrente.</summary>
-        private static int AnnoFattura(Fattura f) => f.DataPagamento?.Year ?? DateTime.Now.Year;
+        /// <summary>Regola anno definitiva CLab 2.0 (FASE 7, unificata in FASE 10):
+        /// anno di DataPagamento se presente, altrimenti anno corrente. È l'unica
+        /// regola di dominio: filtro lista, totali, KPI, anni disponibili del
+        /// modulo e KPI fatture della Home la usano (HomeViewModel.IncludeAnnoFattura).</summary>
+        public static int AnnoFattura(Fattura f) => f.DataPagamento?.Year ?? DateTime.Now.Year;
 
         private List<OpzioneAnnoVoce> _opzioniAnnoFatture = new();
         public List<OpzioneAnnoVoce> OpzioniAnnoFatture
@@ -104,31 +107,37 @@ namespace CLab.ViewModels
         private bool _pannelloAperto;
         public bool PannelloAperto { get => _pannelloAperto; set { _pannelloAperto = value; OnPropertyChanged(); } }
 
+        // FASE 3: modifiche non salvate, per la conferma di chiusura del
+        // SidePanelControl. Viene azzerato a ogni apertura del form (Nuova/Modifica).
+        private bool _haModifiche;
+        public bool HaModifiche { get => _haModifiche; set { _haModifiche = value; OnPropertyChanged(); } }
+        private void SegnaModificato() => HaModifiche = true;
+
         private int _fatturaInModificaId;
 
         private Referente? _formReferente;
-        public Referente? FormReferente { get => _formReferente; set { _formReferente = value; OnPropertyChanged(); } }
+        public Referente? FormReferente { get => _formReferente; set { _formReferente = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private string _formNumero = string.Empty;
-        public string FormNumero { get => _formNumero; set { _formNumero = value; OnPropertyChanged(); } }
+        public string FormNumero { get => _formNumero; set { _formNumero = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private DateTime? _formDataEmissione = DateTime.Now;
-        public DateTime? FormDataEmissione { get => _formDataEmissione; set { _formDataEmissione = value; OnPropertyChanged(); } }
+        public DateTime? FormDataEmissione { get => _formDataEmissione; set { _formDataEmissione = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private decimal? _formImporto;
-        public decimal? FormImporto { get => _formImporto; set { _formImporto = value; OnPropertyChanged(); } }
+        public decimal? FormImporto { get => _formImporto; set { _formImporto = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private DateTime? _formDataScadenza;
-        public DateTime? FormDataScadenza { get => _formDataScadenza; set { _formDataScadenza = value; OnPropertyChanged(); } }
+        public DateTime? FormDataScadenza { get => _formDataScadenza; set { _formDataScadenza = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private DateTime? _formDataPagamento;
-        public DateTime? FormDataPagamento { get => _formDataPagamento; set { _formDataPagamento = value; OnPropertyChanged(); } }
+        public DateTime? FormDataPagamento { get => _formDataPagamento; set { _formDataPagamento = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private bool _formAnnullata;
-        public bool FormAnnullata { get => _formAnnullata; set { _formAnnullata = value; OnPropertyChanged(); } }
+        public bool FormAnnullata { get => _formAnnullata; set { _formAnnullata = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private string _formNota = string.Empty;
-        public string FormNota { get => _formNota; set { _formNota = value; OnPropertyChanged(); } }
+        public string FormNota { get => _formNota; set { _formNota = value; OnPropertyChanged(); SegnaModificato(); } }
 
         public ICommand NuovaCommand { get; }
         public ICommand ModificaCommand { get; }
@@ -138,9 +147,14 @@ namespace CLab.ViewModels
         public ICommand PulisciScadenzaCommand { get; }
         public ICommand PulisciPagamentoCommand { get; }
         public ICommand SegnaPagataOggiCommand { get; }
+        public ICommand ApriStudioCommand { get; }
 
-        public FattureViewModel()
+        private readonly INavigatore? _navigatore;
+
+        public FattureViewModel(INavigatore? navigatore = null)
         {
+            _navigatore = navigatore;
+
             NuovaCommand = new RelayCommand(Nuova);
             ModificaCommand = new RelayCommand<RigaFattura>(Modifica);
             SalvaCommand = new RelayCommand(Salva);
@@ -151,9 +165,19 @@ namespace CLab.ViewModels
             SegnaPagataOggiCommand = new RelayCommand(() => FormDataPagamento = DateTime.Now);
             RimuoviFiltroAnnoCommand = new RelayCommand(() => { AnnoFiltrato = null; CaricaFatture(); });
             PagataOggiRigaCommand = new RelayCommand<RigaFattura>(SegnaPagataOggiRiga);
+            ApriStudioCommand = new RelayCommand<RigaFattura>(ApriStudio);
 
             CaricaReferenti();
             CaricaFatture();
+        }
+
+        /// <summary>FASE 10: apre il dettaglio dello Studio (Referente) cui la
+        /// fattura è intestata. Nessun Fattura.ClienteId: il rapporto resta
+        /// Fattura → Referente.</summary>
+        private void ApriStudio(RigaFattura? riga)
+        {
+            if (riga?.Fattura.ReferenteId == null) return;
+            _navigatore?.ApriStudi(riga.Fattura.ReferenteId.Value);
         }
 
         private void CaricaReferenti()
@@ -274,7 +298,17 @@ namespace CLab.ViewModels
             FormAnnullata = false;
             FormNota = string.Empty;
 
+            HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
             PannelloAperto = true;
+        }
+
+        /// <summary>FASE 12: apre direttamente il pannello della fattura indicata
+        /// (navigazione dalla ricerca globale). Stesso percorso di Modifica.</summary>
+        public void ApriFatturaDiretta(int fatturaId)
+        {
+            var riga = _fattureComplete.FirstOrDefault(r => r.Fattura.Id == fatturaId);
+            if (riga != null)
+                Modifica(riga);
         }
 
         private void Modifica(RigaFattura? r)
@@ -292,6 +326,7 @@ namespace CLab.ViewModels
             FormAnnullata = f.Annullata;
             FormNota = f.Nota ?? string.Empty;
 
+            HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
             PannelloAperto = true;
         }
 
@@ -357,6 +392,9 @@ namespace CLab.ViewModels
 
         /// <summary>FASE 7: la quick action "Pagata oggi" ha senso solo per fatture attive non pagate.</summary>
         public bool PuòEsserePagataOggi => !Fattura.Pagata && !Fattura.Annullata;
+
+        /// <summary>FASE 10: lo Studio è cliccabile solo se la fattura è intestata a un Referente.</summary>
+        public bool HaStudio => Fattura.ReferenteId.HasValue;
     }
 
     /// <summary>Voce del selettore anno (FASE 7): null = "Tutti gli anni".</summary>

@@ -5,10 +5,36 @@
     <!-- COLORI: tutti dichiarati qui, in cima. Nessun Brush qui sotto -->
     <!-- deve mai puntare a un colore non ancora definito in questo    -->
     <!-- blocco (i riferimenti in avanti in WPF non sono affidabili).  -->
+    <!--                                                               -->
+    <!-- FASE DESIGN SYSTEM CLab 2.0: principio "90% neutrali".        -->
+    <!-- I colori saturi comunicano SOLO stato o azione:               -->
+    <!--   blu   = azioni primarie, link, navigazione, voce attiva     -->
+    <!--   rosso = Scaduto / Ritardo / Errore                          -->
+    <!--   ambra = In scadenza / Attenzione                            -->
+    <!--   verde = Regolare / Completato / Pagato                      -->
+    <!-- Tutto il resto della superficie è off-white / bianco / grigi. -->
     <!-- ============================================================ -->
 
+    <!-- · Neutrali (il 90% dell'interfaccia) · -->
+    <Color x:Key="ColorTestoPrimario">#1E293B</Color>
+    <Color x:Key="ColorTestoSecondario">#64748B</Color>
+    <!-- Terziario: solo metadati, caption, placeholder. MAI info importanti. -->
+    <Color x:Key="ColorTestoTerziario">#94A3B8</Color>
+    <Color x:Key="ColorBordo">#E5E9EF</Color>
+    <!-- Divider sottili: righe, sezioni, sidebar, header/footer -->
+    <Color x:Key="ColorBordoLeggero">#EEF1F5</Color>
+    <!-- Sfondo pagina: off-white molto chiaro -->
+    <Color x:Key="ColorSfondoChiaro">#F7F8FA</Color>
+    <!-- Superficie secondaria: zebra tabelle, riempimenti morbidi -->
+    <Color x:Key="ColorSfondoFine">#FBFCFD</Color>
+    <!-- Scrim neutro per overlay (pannelli laterali, ricerca globale) -->
+    <Color x:Key="ColorScrim">#0F172A</Color>
+
+    <!-- · Brand · -->
     <Color x:Key="ColorPrimaryDark">#0F2D4A</Color>
     <Color x:Key="ColorPrimary">#185FA5</Color>
+    <!-- Hover del bottone primario: stessa tinta, più scura -->
+    <Color x:Key="ColorPrimaryHover">#124E8C</Color>
     <Color x:Key="ColorPrimaryLight">#378ADD</Color>
     <!-- Il bronzo/oro storico (#BA7517) è stato ritirato ovunque: stessa
          tinta ambra già usata per lo stato "in stand-by" dei clienti,
@@ -18,22 +44,19 @@
     <Color x:Key="ColorAccent">#EF9F27</Color>
     <!-- Variante più scura, per testo leggibile su un riempimento chiaro -->
     <Color x:Key="ColorAccentDark">#B87817</Color>
-    <Color x:Key="ColorTestoSuScuro">#E6F1FB</Color>
-    <Color x:Key="ColorTestoSuScuroSecondario">#8FA3C0</Color>
-    <Color x:Key="ColorTestoPrimario">#212529</Color>
-    <Color x:Key="ColorTestoSecondario">#6C757D</Color>
-    <Color x:Key="ColorBordo">#D8DEE5</Color>
-    <Color x:Key="ColorSfondoChiaro">#F5F7FA</Color>
 
-    <!-- Sidebar: rail scura piena, stessa tinta del navy di brand -->
-    <Color x:Key="ColorSidebarBackground">#0F2D4A</Color>
+    <!-- Testo su fondi saturi (es. bottone primario pieno) -->
+    <Color x:Key="ColorTestoSuScuro">#FFFFFF</Color>
+    <Color x:Key="ColorTestoSuScuroSecondario">#CBD8E8</Color>
 
-    <!-- Accento di navigazione della sidebar: blu, in linea con i bottoni/link del
-         contenuto. L'oro (ColorAccent) resta riservato al marchio/logo, non è più
-         usato per stati selezionato/hover o badge di navigazione. -->
-    <Color x:Key="ColorSidebarAccent">#378ADD</Color>
+    <!-- · Sidebar: rail CHIARA, si fonde con l'app, separata da un
+         bordo destro 1px. La voce attiva è un wash blu tenue con testo e
+         icona ColorPrimary: riconoscibile ma non dominante. · -->
+    <Color x:Key="ColorSidebarBackground">#F9FAFB</Color>
+    <Color x:Key="ColorSidebarHover">#EFF2F6</Color>
+    <Color x:Key="ColorSidebarAccent">#185FA5</Color>
 
-    <!-- Stato cliente -->
+    <!-- · Stato cliente (semantiche invariate: usate dalla logica) · -->
     <Color x:Key="ColorStatoAttivo">#1D9E75</Color>
     <Color x:Key="ColorStatoStandBy">#EF9F27</Color>
     <Color x:Key="ColorStatoCessato">#E24B4A</Color>
@@ -47,58 +70,79 @@
     <!-- Color dichiarati sopra.                                       -->
     <!-- ============================================================ -->
 
+    <!-- · Superfici e neutrali · -->
+    <SolidColorBrush x:Key="BrushSurface" Color="White"/>
+    <SolidColorBrush x:Key="BrushTestoPrimario" Color="{StaticResource ColorTestoPrimario}"/>
+    <SolidColorBrush x:Key="BrushTestoSecondario" Color="{StaticResource ColorTestoSecondario}"/>
+    <SolidColorBrush x:Key="BrushTestoTerziario" Color="{StaticResource ColorTestoTerziario}"/>
+    <SolidColorBrush x:Key="BrushBordo" Color="{StaticResource ColorBordo}"/>
+    <SolidColorBrush x:Key="BrushBordoLeggero" Color="{StaticResource ColorBordoLeggero}"/>
+    <SolidColorBrush x:Key="BrushSfondoChiaro" Color="{StaticResource ColorSfondoChiaro}"/>
+    <SolidColorBrush x:Key="BrushSfondoFine" Color="{StaticResource ColorSfondoFine}"/>
+    <SolidColorBrush x:Key="BrushSfondoAlternato" Color="{StaticResource ColorSfondoFine}"/>
+    <!-- Hover neutro universale (righe, voci di lista, icone): wash scuro
+         trasparente, funziona su bianco e su off-white senza saturare. -->
+    <SolidColorBrush x:Key="BrushHoverNeutro" Color="{StaticResource ColorTestoPrimario}" Opacity="0.05"/>
+    <SolidColorBrush x:Key="BrushHoverNeutroForte" Color="{StaticResource ColorTestoPrimario}" Opacity="0.08"/>
+    <!-- Scrim overlay pannelli/ricerca -->
+    <SolidColorBrush x:Key="BrushScrim" Color="{StaticResource ColorScrim}" Opacity="0.32"/>
+
+    <!-- · Brand · -->
     <SolidColorBrush x:Key="BrushPrimaryDark" Color="{StaticResource ColorPrimaryDark}"/>
     <SolidColorBrush x:Key="BrushPrimary" Color="{StaticResource ColorPrimary}"/>
+    <SolidColorBrush x:Key="BrushPrimaryHover" Color="{StaticResource ColorPrimaryHover}"/>
     <SolidColorBrush x:Key="BrushPrimaryLight" Color="{StaticResource ColorPrimaryLight}"/>
     <SolidColorBrush x:Key="BrushAccent" Color="{StaticResource ColorAccent}"/>
     <SolidColorBrush x:Key="BrushAccentDark" Color="{StaticResource ColorAccentDark}"/>
 
+    <!-- Testo su fondi saturi -->
+    <SolidColorBrush x:Key="BrushTestoSuScuro" Color="{StaticResource ColorTestoSuScuro}"/>
+    <SolidColorBrush x:Key="BrushTestoSuScuroSecondario" Color="{StaticResource ColorTestoSuScuroSecondario}"/>
+
+    <!-- · Sidebar (chiara) · -->
+    <SolidColorBrush x:Key="BrushSidebarBackground" Color="{StaticResource ColorSidebarBackground}"/>
+    <SolidColorBrush x:Key="BrushSidebarHover" Color="{StaticResource ColorSidebarHover}"/>
+    <!-- Divider della sidebar (header/footer): sottilissimo, neutro.
+         Nome storico "SuScuro" mantenuto per compatibilità. -->
+    <SolidColorBrush x:Key="BrushDivisoreSuScuro" Color="{StaticResource ColorBordoLeggero}"/>
+
+    <!-- Voce attiva: wash blu tenue + testo/icona ColorPrimary.
+         Opacity 0.13: abbastanza visibile da identificare subito la voce
+         attiva, senza dominare la pagina. -->
+    <SolidColorBrush x:Key="BrushSidebarAccent" Color="{StaticResource ColorSidebarAccent}"/>
+    <SolidColorBrush x:Key="BrushSidebarSelected" Color="{StaticResource ColorSidebarAccent}" Opacity="0.13"/>
+    <SolidColorBrush x:Key="BrushSidebarSelectedBadge" Color="{StaticResource ColorSidebarAccent}" Opacity="0.16"/>
+
+    <!-- · Stato cliente · -->
     <SolidColorBrush x:Key="BrushStatoAttivo" Color="{StaticResource ColorStatoAttivo}"/>
     <SolidColorBrush x:Key="BrushStatoStandBy" Color="{StaticResource ColorStatoStandBy}"/>
     <SolidColorBrush x:Key="BrushStatoCessato" Color="{StaticResource ColorStatoCessato}"/>
 
-    <SolidColorBrush x:Key="BrushStatoAttivoLight" Color="{StaticResource ColorStatoAttivo}" Opacity="0.15"/>
-    <SolidColorBrush x:Key="BrushStatoStandByLight" Color="{StaticResource ColorStatoStandBy}" Opacity="0.18"/>
-    <SolidColorBrush x:Key="BrushStatoCessatoLight" Color="{StaticResource ColorStatoCessato}" Opacity="0.15"/>
+    <SolidColorBrush x:Key="BrushStatoAttivoLight" Color="{StaticResource ColorStatoAttivo}" Opacity="0.12"/>
+    <SolidColorBrush x:Key="BrushStatoStandByLight" Color="{StaticResource ColorStatoStandBy}" Opacity="0.15"/>
+    <SolidColorBrush x:Key="BrushStatoCessatoLight" Color="{StaticResource ColorStatoCessato}" Opacity="0.12"/>
 
-    <SolidColorBrush x:Key="BrushTestoSuScuro" Color="{StaticResource ColorTestoSuScuro}"/>
-    <SolidColorBrush x:Key="BrushTestoSuScuroSecondario" Color="{StaticResource ColorTestoSuScuroSecondario}"/>
-    <SolidColorBrush x:Key="BrushTestoPrimario" Color="{StaticResource ColorTestoPrimario}"/>
-    <SolidColorBrush x:Key="BrushTestoSecondario" Color="{StaticResource ColorTestoSecondario}"/>
-    <SolidColorBrush x:Key="BrushBordo" Color="{StaticResource ColorBordo}"/>
-    <SolidColorBrush x:Key="BrushSfondoChiaro" Color="{StaticResource ColorSfondoChiaro}"/>
-    <SolidColorBrush x:Key="BrushSfondoAlternato" Color="{StaticResource ColorSfondoChiaro}" Opacity="0.5"/>
-
-    <SolidColorBrush x:Key="BrushSidebarBackground" Color="{StaticResource ColorSidebarBackground}"/>
-    <SolidColorBrush x:Key="BrushSidebarHover" Color="White" Opacity="0.06"/>
-    <SolidColorBrush x:Key="BrushDivisoreSuScuro" Color="White" Opacity="0.08"/>
-
-    <!-- Stato selezionato/hover della sidebar: blu, coerente col resto dell'app.
-         Niente più rosso/oro in navigazione: quei colori restano riservati al
-         contenuto (severità, brand). -->
-    <SolidColorBrush x:Key="BrushSidebarAccent" Color="{StaticResource ColorSidebarAccent}"/>
-    <SolidColorBrush x:Key="BrushSidebarSelected" Color="{StaticResource ColorSidebarAccent}" Opacity="0.20"/>
-    <SolidColorBrush x:Key="BrushSidebarSelectedBadge" Color="{StaticResource ColorSidebarAccent}" Opacity="0.30"/>
-
-    <!-- Accent: stati hover/selected (wash trasparente, si adatta a qualsiasi sfondo) -->
-    <SolidColorBrush x:Key="BrushAccentHover" Color="{StaticResource ColorAccent}" Opacity="0.08"/>
+    <!-- Accent: hover generico. STORICO ambra, ora neutro: l'hover non è uno
+         stato semantico e non deve saturare (l'ambra resta per Attenzione). -->
+    <SolidColorBrush x:Key="BrushAccentHover" Color="{StaticResource ColorTestoPrimario}" Opacity="0.05"/>
+    <!-- Selezione "attiva": resta ambra perché l'unico uso reale è il chip
+         filtro "Solo ritardi" (semantica attenzione). -->
     <SolidColorBrush x:Key="BrushAccentSelected" Color="{StaticResource ColorAccent}" Opacity="0.16"/>
     <SolidColorBrush x:Key="BrushAccentHoverForte" Color="{StaticResource ColorAccent}" Opacity="0.24"/>
 
     <!-- Danger (azioni distruttive: elimina, rimuovi) -->
     <SolidColorBrush x:Key="BrushDanger" Color="{StaticResource ColorDanger}"/>
-    <SolidColorBrush x:Key="BrushDangerLight" Color="{StaticResource ColorDanger}" Opacity="0.12"/>
+    <SolidColorBrush x:Key="BrushDangerLight" Color="{StaticResource ColorDanger}" Opacity="0.10"/>
 
     <!-- Success (conferme, icone positive es. email) -->
     <SolidColorBrush x:Key="BrushSuccess" Color="{StaticResource ColorSuccess}"/>
-    <SolidColorBrush x:Key="BrushSuccessLight" Color="{StaticResource ColorSuccess}" Opacity="0.12"/>
+    <SolidColorBrush x:Key="BrushSuccessLight" Color="{StaticResource ColorSuccess}" Opacity="0.10"/>
 
     <!-- Info (box informativi, icone neutre es. telefono) -->
-    <SolidColorBrush x:Key="BrushInfoLight" Color="{StaticResource ColorPrimaryLight}" Opacity="0.12"/>
-    <SolidColorBrush x:Key="BrushInfoBorder" Color="{StaticResource ColorPrimaryLight}" Opacity="0.4"/>
+    <SolidColorBrush x:Key="BrushInfoLight" Color="{StaticResource ColorPrimaryLight}" Opacity="0.10"/>
+    <SolidColorBrush x:Key="BrushInfoBorder" Color="{StaticResource ColorPrimaryLight}" Opacity="0.35"/>
     <!-- Hover più marcato per pillole a sfondo "info" (es. bottone azione
-         secondaria tipo "Nuovo promemoria/cliente/..."), stessa logica di
-         BrushAccentHoverForte ma sulla tinta blu invece che oro. -->
-    <SolidColorBrush x:Key="BrushInfoHoverForte" Color="{StaticResource ColorPrimaryLight}" Opacity="0.22"/>
+         secondaria tipo "Nuovo promemoria/cliente/..."). -->
+    <SolidColorBrush x:Key="BrushInfoHoverForte" Color="{StaticResource ColorPrimaryLight}" Opacity="0.18"/>
 
 </ResourceDictionary>

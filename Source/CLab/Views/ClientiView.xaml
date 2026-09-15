@@ -5,7 +5,8 @@
              xmlns:local="clr-namespace:CLab.Models"
              xmlns:converters="clr-namespace:CLab.Converters"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls">
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:views="clr-namespace:CLab.Views">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -23,8 +24,9 @@
 
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
         <converters:PrincipaleColoreConverter x:Key="PrincipaleColore"/>
-        <converters:StatoBadgeConverter       x:Key="StatoBadge"/>
-        <converters:StatoBadgeForeConverter   x:Key="StatoBadgeFore"/>
+        <!-- FASE 2: badge semantico unificato (chiavi locali invariate) -->
+        <converters:StatoSemanticoTestoConverter x:Key="StatoBadge"/>
+        <converters:StatoSemanticoForeConverter  x:Key="StatoBadgeFore"/>
 
         <!-- FASE 5 — Situazione Cliente: card di sezione e CTA leggere -->
         <Style x:Key="CardSituazione" TargetType="Border">
@@ -35,21 +37,8 @@
             <Setter Property="Padding" Value="12,10"/>
         </Style>
 
-        <Style x:Key="LinkAzione" TargetType="Button">
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="{StaticResource BrushPrimary}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <ContentPresenter/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <!-- Nota FASE 3: LinkAzione non è più definito qui, è promosso in
+             Theme/Buttons.xaml (condiviso da più moduli). -->
 
 
         </ResourceDictionary>
@@ -228,69 +217,43 @@
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
+
+            <!-- FASE 13: empty state specifico del modulo Clienti -->
+            <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1"
+                CornerRadius="{StaticResource RadiusMedium}" Padding="40" Margin="28,0,28,28"
+                VerticalAlignment="Center" HorizontalAlignment="Center"
+                Visibility="{Binding NessunClienteVisibile, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel MaxWidth="380">
+                    <iconPacks:PackIconBootstrapIcons Kind="People" Width="34" Height="34"
+                        Foreground="{StaticResource BrushTestoSecondario}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding NessunClienteTesto}" FontSize="15" FontWeight="Medium"
+                        Foreground="{StaticResource BrushTestoPrimario}" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                    <TextBlock Text="Usa il campo di ricerca o crea un nuovo cliente." Style="{StaticResource SecondaryTextStyle}"
+                        HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
         </Grid>
 
-        <!-- OVERLAY SCURO -->
-        <Border Grid.Row="0" Grid.RowSpan="2"
-    Grid.Column="0"
-    x:Name="OverlayScuro"
-    Visibility="Collapsed"
-    Style="{StaticResource OverlayScuroStyle}">
-            <Border.InputBindings>
-                <MouseBinding MouseAction="LeftClick" Command="{Binding ChiudiOverlayCommand}"/>
-            </Border.InputBindings>
-        </Border>
+        <!-- FASE 3: pannello laterale condiviso (SidePanelControl). Il contenuto
+             (schede Anagrafica/Situazione, footer Salva/Annulla) è lo stesso di
+             prima: cambia solo il contenitore, con Esc, overlay cliccabile,
+             conferma modifiche non salvate e larghezza dinamica. -->
+        <views:SidePanelControl Grid.Row="0" Grid.RowSpan="2"
+            IsAperto="{Binding OverlayAperto}"
+            Titolo="{Binding Dettaglio.FormRagioneSociale}"
+            Sottotitolo="{Binding PannelloSottoTitolo}"
+            ComandoChiudi="{Binding ChiudiOverlayCommand}"
+            ComandoSalva="{Binding SalvaCommand}"
+            MostraFooter="{Binding ModalitaModifica}"
+            HaModificheNonSalvate="{Binding Dettaglio.HaModifiche}">
 
-        <!-- PANNELLO LATERALE -->
-        <Border Grid.Row="0" Grid.RowSpan="2"
-    x:Name="PannelloLaterale"
-    HorizontalAlignment="Right"
-    VerticalAlignment="Stretch"
-    Visibility="Collapsed"
-    Width="400"
-    Style="{StaticResource PanelLateraleStyle}"
-    RenderTransformOrigin="1,0.5">
-            <Border.RenderTransform>
-                <TranslateTransform x:Name="PannelloTranslate" X="400"/>
-            </Border.RenderTransform>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Header pannello -->
-                <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="{Binding Dettaglio.FormRagioneSociale}"
-                                       Style="{StaticResource ModuleTitleStyle}"/>
-                                <TextBlock Text="{Binding PannelloSottoTitolo}"
-                                       Style="{StaticResource ModuleSubtitleStyle}" Margin="0,4,0,0"/>
-                            </StackPanel>
-                            <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}"
-                                Command="{Binding ChiudiOverlayCommand}"
-                                ToolTip="Chiudi" VerticalAlignment="Top">
-                                <iconPacks:PackIconBootstrapIcons Kind="XLg"
-                                Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
-                            </Button>
-                        </Grid>
-                        <Grid Grid.Row="1" Margin="0,14,0,0"
-                            Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+            <views:SidePanelControl.HeaderExtra>
+                <Grid Margin="0,14,0,0"
+                    Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
                             <!-- FASE 5: schede del dettaglio cliente -->
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
@@ -330,13 +293,11 @@
                                     <TextBlock Text="Modifica" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                        </Grid>
-                    </Grid>
-                </Border>
+                </Grid>
+            </views:SidePanelControl.HeaderExtra>
 
-                <!-- Corpo scrollabile -->
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="22,20,22,4">
-                    <StackPanel>
+            <views:SidePanelControl.Contenuto>
+                <StackPanel>
 
                         <!-- FASE 5: le schede Anagrafica (lettura + modifica) sono nascoste sulla scheda Situazione -->
                         <StackPanel Visibility="{Binding MostraSituazioneCliente, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
@@ -785,6 +746,23 @@
                                 <TextBlock Text="Vedi solo i ritardi →" Foreground="{StaticResource BrushDanger}" FontWeight="Medium"/>
                             </Button>
 
+                            <!-- FASE 7: adempimenti in ritardo cliccabili (max 4) -->
+                            <ItemsControl ItemsSource="{Binding SituazioneRitardi}" Margin="0,0,0,10"
+                                Visibility="{Binding SituazioneHaRitardiDettaglio, Converter={StaticResource BoolToVisibility}}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Style="{StaticResource LinkAzione}" HorizontalAlignment="Left" Margin="0,0,0,4"
+                                            Command="{Binding DataContext.ApriRitardiClienteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            ToolTip="Apri nello Scadenzario con filtro solo ritardi">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="6" Height="6" Fill="{StaticResource BrushDanger}" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                                                <TextBlock Text="{Binding Testo}" FontSize="12" Foreground="{StaticResource BrushDanger}"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
                             <Border BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Margin="0,0,0,16"/>
 
                             <!-- ToDo collegati al cliente -->
@@ -810,6 +788,38 @@
                                 <TextBlock Text="Apri ToDo →"/>
                             </Button>
 
+                            <!-- FASE 7: ToDo aperti cliccabili (max 4, apre direttamente il ToDo) -->
+                            <ItemsControl ItemsSource="{Binding SituazioneToDoApertiLista}" Margin="0,0,0,10"
+                                Visibility="{Binding SituazioneHaToDoDettaglio, Converter={StaticResource BoolToVisibility}}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Style="{StaticResource LinkAzione}" HorizontalAlignment="Left" Margin="0,0,0,4"
+                                            Command="{Binding DataContext.ApriToDoDirettoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="Apri il ToDo">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="6" Height="6" VerticalAlignment="Center" Margin="0,0,7,0">
+                                                    <Ellipse.Style>
+                                                        <Style TargetType="Ellipse">
+                                                            <Setter Property="Fill" Value="{StaticResource BrushStatoStandBy}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsScaduto}" Value="True">
+                                                                    <Setter Property="Fill" Value="{StaticResource BrushDanger}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Ellipse.Style>
+                                                </Ellipse>
+                                                <TextBlock Text="{Binding Titolo}" FontSize="12" FontWeight="Medium"
+                                                    Foreground="{StaticResource BrushTestoPrimario}"/>
+                                                <TextBlock Text="{Binding ScadenzaTesto}" FontSize="11" Margin="8,0,0,0"
+                                                    Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
                             <Border BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Margin="0,0,0,16"/>
 
                             <!-- Ritenute d'acconto dell'anno corrente -->
@@ -831,32 +841,66 @@
                                 <TextBlock Text="Apri Ritenute →"/>
                             </Button>
 
+                            <Border BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Margin="0,14,0,16"/>
+
+                            <!-- FASE 7: Studio associato (il Referente). Le fatture NON si
+                                 mostrano qui: appartengono allo Studio, non al cliente. -->
+                            <TextBlock Text="STUDIO" Style="{StaticResource SectionTitle}"/>
+                            <Border Style="{StaticResource CardSituazione}" Margin="0,0,0,4"
+                                Visibility="{Binding SituazioneHaStudio, Converter={StaticResource BoolToVisibility}}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding SituazioneStudioNome}" FontSize="13" FontWeight="Medium"
+                                        Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    <iconPacks:PackIconBootstrapIcons Grid.Column="1" Kind="Buildings" Width="14" Height="14"
+                                        Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                            <TextBlock Text="Nessuno studio associato a questo cliente." FontSize="12" Foreground="{StaticResource BrushTestoSecondario}"
+                                Margin="0,0,0,4" Visibility="{Binding SituazioneHaStudio, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                            <Button Style="{StaticResource LinkAzione}" HorizontalAlignment="Left" Margin="4,0,0,14"
+                                Command="{Binding ApriStudioSituazioneCommand}"
+                                Visibility="{Binding SituazioneHaStudio, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="Apri Studio →"/>
+                            </Button>
+
+                            <!-- FASE 7: Note del cliente, se valorizzate -->
+                            <StackPanel Margin="0,0,0,14"
+                                Visibility="{Binding SituazioneHaNote, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="NOTE" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Text="{Binding Dettaglio.FormNote}" FontSize="12" TextWrapping="Wrap"
+                                    Foreground="{StaticResource BrushTestoSecondario}" Margin="0,4,0,0"/>
+                            </StackPanel>
+
+                            <!-- FASE 7: timeline minima (max 5 eventi, date già esistenti nei modelli) -->
+                            <StackPanel Margin="0,0,0,4"
+                                Visibility="{Binding SituazioneHaTimeline, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="ATTIVITÀ RECENTI" Style="{StaticResource SectionTitle}"/>
+                                <ItemsControl ItemsSource="{Binding SituazioneTimeline}" Margin="0,6,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,0,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding DataTesto}" FontSize="11"
+                                                    Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Testo}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                                    Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
                         </StackPanel>
                     </StackPanel>
-                </ScrollViewer>
-
-                <!-- Footer Salva / Annulla -->
-                <Border Grid.Row="2" BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0"
-                    Padding="22,14"
-                    Visibility="{Binding ModalitaModifica, Converter={StaticResource BoolToVisibility}}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="Salva"
-                            Command="{Binding SalvaCommand}"
-                            Style="{StaticResource BtnPrimary}"
-                            HorizontalAlignment="Stretch"/>
-                        <Button Grid.Column="2" Content="Annulla"
-                            Command="{Binding ChiudiOverlayCommand}"
-                            Style="{StaticResource BtnOutline}"/>
-                    </Grid>
-                </Border>
-
-            </Grid>
-        </Border>
+            </views:SidePanelControl.Contenuto>
+        </views:SidePanelControl>
         <!-- GESTIONE REFERENTI -->
         <Border Grid.Row="0" Grid.RowSpan="2" Style="{StaticResource OverlayScuroStyle}"
             Visibility="{Binding PannelloReferentiAperto, Converter={StaticResource BoolToVisibility}}">

@@ -23,20 +23,16 @@
     <!-- Ombra standard del pannello laterale (identica in tutti i moduli:
          BlurRadius 24, ShadowDepth 0, Direction 180, Opacity 0.12, navy). -->
     <DropShadowEffect x:Key="PanelShadowEffect"
-                      BlurRadius="24" ShadowDepth="0"
-                      Direction="180" Opacity="0.12"
-                      Color="{StaticResource ColorPrimaryDark}"/>
+                      BlurRadius="20" ShadowDepth="0"
+                      Direction="180" Opacity="0.10"
+                      Color="{StaticResource ColorScrim}"/>
 
     <!-- 1. OVERLAY SCURO: copre il modulo dietro al pannello laterale.
          La larghezza/altezza (RowSpan) e il MouseBinding di chiusura
          restano nella View. -->
     <Style x:Key="OverlayScuroStyle" TargetType="Border">
         <Setter Property="Cursor" Value="Arrow"/>
-        <Setter Property="Background">
-            <Setter.Value>
-                <SolidColorBrush Color="{StaticResource ColorPrimaryDark}" Opacity="0.35"/>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="Background" Value="{StaticResource BrushScrim}"/>
     </Style>
 
     <!-- 2. PANNELLO LATERALE: colonna bianca agganciata a destra con
@@ -45,18 +41,21 @@
          perché variano per contenuto. -->
     <Style x:Key="PanelLateraleStyle" TargetType="Border">
         <Setter Property="Background" Value="White"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
         <Setter Property="BorderThickness" Value="1,0,0,0"/>
         <Setter Property="Effect" Value="{StaticResource PanelShadowEffect}"/>
     </Style>
 
     <!-- 3. HEADER DEL PANNELLO: stesso stile dell'header di pagina
          (trasparente, si fonde nel pannello) con il padding standard
-         dei pannelli interni. -->
+         dei pannelli interni, più un divider sottile che separa
+         header e body del pannello. -->
     <Style x:Key="PanelHeaderStyle"
            TargetType="Border"
            BasedOn="{StaticResource ModuleHeaderBorderStyle}">
         <Setter Property="Padding" Value="22,18"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
     </Style>
 
     <!-- 4. TAB-SWITCH CON UNDERLINE: voce di navigazione a schede

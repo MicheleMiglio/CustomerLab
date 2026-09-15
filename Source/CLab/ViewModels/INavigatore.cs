@@ -11,8 +11,8 @@ namespace CLab.ViewModels
     {
         void ApriClienti();
 
-        /// <summary>Apri il modulo ToDo; se indicato, con filtri preapplicati.</summary>
-        void ApriToDo(int? clienteId = null, bool soloScaduti = false, bool prioritaAlta = false);
+        /// <summary>Apri il modulo ToDo; se indicato, con filtri preapplicati o aprendo direttamente un ToDo specifico (FASE 7).</summary>
+        void ApriToDo(int? clienteId = null, bool soloScaduti = false, bool prioritaAlta = false, int? todoId = null);
 
         void ApriPromemoria();
 
@@ -25,5 +25,17 @@ namespace CLab.ViewModels
 
         /// <summary>Apri il modulo Fatture; se indicato, limitato all'anno.</summary>
         void ApriFatture(int? anno = null);
+
+        /// <summary>
+        /// FASE 5: Apri il modulo Studi (i Referenti come asse economico).
+        /// Con referenteId indicato, apre direttamente il dettaglio dello studio.
+        /// </summary>
+        void ApriStudi(int? referenteId = null);
+
+        /// <summary>FASE 12: apri il dettaglio del cliente indicato (ricerca globale).</summary>
+        void ApriCliente(int clienteId);
+
+        /// <summary>FASE 12: apri il pannello di modifica della fattura indicata (ricerca globale).</summary>
+        void ApriFattura(int fatturaId);
     }
 }

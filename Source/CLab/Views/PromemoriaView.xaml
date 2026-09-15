@@ -3,11 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:conv="clr-namespace:CLab.Converters"
-             xmlns:models="clr-namespace:CLab.Models">
+             xmlns:models="clr-namespace:CLab.Models"
+             xmlns:views="clr-namespace:CLab.Views">
 
     <UserControl.Resources>
-        <conv:PrioritaPromemoriaAColoreConverter x:Key="PrioritaAColore"/>
-        <conv:PrioritaPromemoriaASfondoConverter x:Key="PrioritaASfondo"/>
+        <!-- FASE 2: i converter per-modulo delle priorità sono ritirati a favore
+             del mapper semantico unificato (Converters.StatoSemantico). Le chiavi
+             locali restano le stesse per non toccare i binding dei post-it. -->
+        <conv:StatoSemanticoForeConverter x:Key="PrioritaAColore"/>
+        <conv:StatoSemanticoBackConverter x:Key="PrioritaASfondo"/>
 
         <Style x:Key="BtnPrioritaBase" TargetType="Button" BasedOn="{StaticResource BtnOutline}">
             <Setter Property="Margin" Value="0,0,8,0"/>
@@ -178,41 +182,17 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- OVERLAY + PANNELLO NUOVO/MODIFICA -->
-        <Border Grid.Row="0" Grid.RowSpan="3" Style="{StaticResource OverlayScuroStyle}"
-            Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.InputBindings>
-                <MouseBinding MouseAction="LeftClick" Command="{Binding AnnullaCommand}"/>
-            </Border.InputBindings>
-        </Border>
+        <!-- FASE 3: pannello laterale condiviso (SidePanelControl): stesso form,
+             nuovo contenitore con Esc, overlay cliccabile, larghezza dinamica. -->
+        <views:SidePanelControl Grid.Row="0" Grid.RowSpan="3"
+            IsAperto="{Binding PannelloAperto}"
+            Titolo="{Binding TitoloPannello}"
+            ComandoChiudi="{Binding AnnullaCommand}"
+            ComandoSalva="{Binding SalvaCommand}"
+            HaModificheNonSalvate="{Binding HaModifiche}">
 
-        <Border Grid.Row="0" Grid.RowSpan="3" Width="380" HorizontalAlignment="Right"
-            Style="{StaticResource PanelLateraleStyle}"
-            Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
-
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding TitoloPannello}" Style="{StaticResource ModuleTitleStyle}"/>
-                        <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}"
-                            Command="{Binding AnnullaCommand}" ToolTip="Chiudi" VerticalAlignment="Top">
-                            <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
-                        </Button>
-                    </Grid>
-                </Border>
-
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="22,16">
+            <views:SidePanelControl.Contenuto>
+                    <StackPanel>
 
                         <TextBlock Text="TITOLO" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding FormTitolo, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
@@ -236,22 +216,7 @@
                         </StackPanel>
 
                     </StackPanel>
-                </ScrollViewer>
-
-                <Border Grid.Row="2" BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Padding="22,14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Button Grid.Column="1" Content="Annulla" Command="{Binding AnnullaCommand}"
-                            Style="{StaticResource BtnOutline}" Margin="0,0,10,0"/>
-                        <Button Grid.Column="2" Content="Salva" Command="{Binding SalvaCommand}"
-                            Style="{StaticResource BtnPrimary}"/>
-                    </Grid>
-                </Border>
-            </Grid>
-        </Border>
+            </views:SidePanelControl.Contenuto>
+        </views:SidePanelControl>
     </Grid>
 </UserControl>

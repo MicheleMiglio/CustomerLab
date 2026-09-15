@@ -1,0 +1,106 @@
+<UserControl x:Class="CLab.Views.GlobalSearchControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:conv="clr-namespace:CLab.Converters"
+             x:Name="radice"
+             Focusable="True"
+             PreviewKeyDown="SuTasto">
+
+    <!-- FASE 12 CLab 2.0: ricerca globale (Ctrl+K). Interroga dati reali; solo
+         presentazione qui (Esc chiude, focus sul campo all'apertura). -->
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid Visibility="{Binding Aperta, Converter={StaticResource BoolToVis}}"
+          Background="{StaticResource BrushScrim}" MouseLeftButtonDown="SuClickSfondo">
+
+        <Border Background="White" BorderBrush="{StaticResource BrushBordo}" BorderThickness="1"
+                CornerRadius="{StaticResource RadiusMedium}" Width="560" MaxHeight="480"
+                VerticalAlignment="Top" Margin="0,140,0,0" HorizontalAlignment="Center"
+                Effect="{StaticResource PanelShadowEffect}">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Campo di ricerca -->
+                <Border Grid.Row="0" BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="0,0,1,0" Padding="14,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <iconPacks:PackIconBootstrapIcons Grid.Column="0" Kind="Search" Width="14" Height="14"
+                            Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox Grid.Column="1" x:Name="campoRicerca"
+                            Text="{Binding Testo, UpdateSourceTrigger=PropertyChanged}"
+                            BorderThickness="0" Background="Transparent" FontSize="15"
+                            Foreground="{StaticResource BrushTestoPrimario}" VerticalContentAlignment="Center" Height="34"
+                            mah:TextBoxHelper.Watermark="Cerca clienti, studi, fatture, ToDo..."/>
+                        <Button Grid.Column="2" Style="{StaticResource BtnIconGhost}" Command="{Binding ChiudiCommand}"
+                            ToolTip="Chiudi (Esc)">
+                            <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="12" Height="12"
+                                Foreground="{StaticResource BrushTestoSecondario}"/>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Suggerimento iniziale -->
+                <TextBlock Grid.Row="1" Text="Digita almeno 2 caratteri: vengono cercati i clienti (nome/P.IVA), gli studi, le fatture (numero) e i ToDo (titolo)."
+                    Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap" Margin="16,12,16,16"
+                    Visibility="{Binding MostraSuggerimento, Converter={StaticResource BoolToVis}}"/>
+
+                <!-- Nessun risultato -->
+                <TextBlock Grid.Row="1" Text="{Binding MessaggioVuoto}" Style="{StaticResource SecondaryTextStyle}"
+                    Margin="16,12,16,16" TextWrapping="Wrap"
+                    Visibility="{Binding MostraMessaggioVuoto, Converter={StaticResource BoolToVis}}"/>
+
+
+                <!-- Risultati (max 3 per categoria) -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Risultati}" Margin="0,6">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding DataContext.NavigaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}" Cursor="Hand" HorizontalContentAlignment="Stretch">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bd" Background="Transparent" Padding="16,9">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding Titolo}" FontSize="13" FontWeight="Medium"
+                                                            Foreground="{StaticResource BrushTestoPrimario}" TextTrimming="CharacterEllipsis"
+                                                            VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding Sottotitolo}" FontSize="11" Margin="10,0,0,0"
+                                                            Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Categoria}" FontSize="10" FontWeight="SemiBold"
+                                                        Foreground="{StaticResource BrushPrimary}" VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

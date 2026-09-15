@@ -4,45 +4,48 @@
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:conv="clr-namespace:CLab.Converters">
 
-    <Border Background="{StaticResource BrushSidebarBackground}">
+    <!-- ============================================================ -->
+    <!-- SIDEBAR CLab 2.0 (Proposta A: rail chiara).                   -->
+    <!-- La sidebar si fonde con l'app: off-white, separata solo da un -->
+    <!-- bordo destro 1px. Voce attiva = wash blu tenue + testo/icona  -->
+    <!-- ColorPrimary. Comandi, binding e navigazione invariati.       -->
+    <!-- ============================================================ -->
+
+    <Border Background="{StaticResource BrushSidebarBackground}"
+            BorderBrush="{StaticResource BrushBordoLeggero}"
+            BorderThickness="0,1,1,0">
 
         <Grid ClipToBounds="True">
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="64"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Logo / Nome applicazione: stessa altezza dell'header di pagina,
-                 così le due barre in cima allo schermo si allineano. Tutto il
-                 blocco è cliccabile per aprire/chiudere la sidebar. -->
-            <Border Grid.Row="0"
-                BorderBrush="{StaticResource BrushDivisoreSuScuro}" BorderThickness="0,0,0,1"
+            <!-- Branding: altezza allineata all'header di pagina (64).
+                 Il blocco resta cliccabile per aprire/chiudere la sidebar. -->
+            <Border Grid.Row="0" Margin="6,0,10,0"
+                BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="0,0,0,1"
                 Background="Transparent" Cursor="Hand">
 
                 <Border.InputBindings>
                     <MouseBinding MouseAction="LeftClick" Command="{Binding ToggleSidebarCommand}"/>
                 </Border.InputBindings>
 
-                <Grid Margin="18,0,14,0">
+                <Grid Margin="14,0,12,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Marchio: unico punto dell'app in cui compare l'oro, come
-                         tocco di brand puntuale. -->
-                    <Border Grid.Column="0" Width="28" Height="28" CornerRadius="7"
-                        VerticalAlignment="Center">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="{StaticResource ColorPrimaryLight}" Offset="0"/>
-                                <GradientStop Color="{StaticResource ColorPrimary}" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                        <TextBlock Text="C" FontSize="13" FontWeight="Bold"
+                    <!-- Marchio: lettera "C" esistente, tinta piatta ColorPrimary.
+                         Unico elemento pieno di brand: compatto, sobrio. -->
+                    <Border Grid.Column="0" Width="26" Height="26" CornerRadius="7"
+                        VerticalAlignment="Center"
+                        Background="{StaticResource BrushPrimary}">
+                        <TextBlock Text="C" FontSize="13" FontWeight="SemiBold"
                                Foreground="White"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
@@ -50,17 +53,16 @@
                     <!-- Wordmark, solo a sidebar espansa -->
                     <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"
                         Visibility="{Binding SidebarEspansa, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="CLab" FontSize="14" FontWeight="SemiBold" FontFamily="Segoe UI Semibold"
-                               Foreground="{StaticResource BrushTestoSuScuro}"/>
-                        <TextBlock Text="CUSTOMER LAB" FontSize="9" FontWeight="Medium" FontFamily="Segoe UI"
-                               Foreground="{StaticResource BrushTestoSuScuroSecondario}" Margin="0,2,0,0"
-                               TextOptions.TextFormattingMode="Ideal">
-                        </TextBlock>
+                        <TextBlock Text="CLab" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{StaticResource BrushTestoPrimario}"/>
+                        <TextBlock Text="CUSTOMER LAB" FontSize="9" FontWeight="Medium"
+                               Foreground="{StaticResource BrushTestoTerziario}" Margin="0,2,0,0"
+                               TextOptions.TextFormattingMode="Ideal"/>
                     </StackPanel>
 
                     <!-- Indicatore di collassa, solo a sidebar espansa -->
                     <iconPacks:PackIconBootstrapIcons Grid.Column="2" Kind="ChevronLeft"
-                        Width="12" Height="12" Foreground="{StaticResource BrushTestoSuScuroSecondario}"
+                        Width="12" Height="12" Foreground="{StaticResource BrushTestoTerziario}"
                         VerticalAlignment="Center"
                         Visibility="{Binding SidebarEspansa, Converter={StaticResource BoolToVisibility}}"/>
                 </Grid>
@@ -68,7 +70,7 @@
 
             <!-- Menu principale -->
             <Border Grid.Row="1"
-        Margin="0,10,0,0">
+        Margin="0,8,0,0">
                 <ItemsControl Grid.Row="1"
                       ItemsSource="{Binding MenuPrincipale}">
 
@@ -78,7 +80,8 @@
 
                             <Button Style="{StaticResource SidebarMenuButton}"
         Command="{Binding Comando}"
-        CommandParameter="{Binding}">
+        CommandParameter="{Binding}"
+        ToolTip="{Binding Titolo}">
 
                                 <Grid VerticalAlignment="Center">
 
@@ -100,16 +103,16 @@
         Width="18"
         Height="18"/>
 
-                                        <Border Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                        <Border Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Top"
                Margin="0,-2,-2,0"
                Visibility="{Binding DataContext.SidebarEspansa,
                             RelativeSource={RelativeSource AncestorType=UserControl},
                             Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
-                                            <Border CornerRadius="5"
+                                            <Border CornerRadius="4"
                Visibility="{Binding Contatore, Converter={StaticResource BoolToVisibility}}">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="{StaticResource BrushTestoSuScuroSecondario}"/>
+                                                        <Setter Property="Background" Value="{StaticResource BrushTestoTerziario}"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsSelezionato}" Value="True">
                                                                 <Setter Property="Background" Value="{StaticResource BrushSidebarAccent}"/>
@@ -131,7 +134,9 @@
 
                                         <TextBlock Text="{Binding Titolo}" Style="{StaticResource MenuText}"/>
 
-                                        <Border CornerRadius="10"
+                                        <!-- Badge contatore: piccolo, neutro, secondario
+                                             rispetto al testo della voce -->
+                                        <Border CornerRadius="9"
                MinWidth="18" Height="18" Padding="5,0" Margin="8,0,0,0" VerticalAlignment="Center"
                Visibility="{Binding Contatore, Converter={StaticResource BoolToVisibility}}">
                                             <Border.Style>
@@ -144,14 +149,14 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <TextBlock Text="{Binding Contatore}" FontSize="10" FontWeight="Bold"
+                                            <TextBlock Text="{Binding Contatore}" FontSize="10" FontWeight="Medium"
                HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
-                                                        <Setter Property="Foreground" Value="{StaticResource BrushTestoSuScuroSecondario}"/>
+                                                        <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsSelezionato}" Value="True">
-                                                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSuScuro}"/>
+                                                                <Setter Property="Foreground" Value="{StaticResource BrushSidebarAccent}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -171,9 +176,13 @@
 
                 </ItemsControl>
             </Border>
-            <!-- Footer -->
-            <ItemsControl Grid.Row="2"
-              ItemsSource="{Binding MenuFooter}">
+            <!-- Footer: Impostazioni, separato dalle voci da un divider sottilissimo -->
+            <StackPanel Grid.Row="2" Margin="0,8,0,10">
+
+                <Border Height="1" Background="{StaticResource BrushBordoLeggero}"
+                        Margin="14,4,14,8"/>
+
+                <ItemsControl ItemsSource="{Binding MenuFooter}">
 
                 <ItemsControl.ItemTemplate>
 
@@ -181,7 +190,8 @@
 
                         <Button Style="{StaticResource SidebarMenuButton}"
         Command="{Binding Comando}"
-        CommandParameter="{Binding}">
+        CommandParameter="{Binding}"
+        ToolTip="{Binding Titolo}">
 
                             <Grid VerticalAlignment="Center">
 
@@ -223,7 +233,9 @@
 
                 </ItemsControl.ItemTemplate>
 
-            </ItemsControl>
+                </ItemsControl>
+
+            </StackPanel>
         </Grid>
     </Border>
 

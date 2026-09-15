@@ -22,6 +22,7 @@ namespace CLab.ViewModels
         private MenuItemModel? _scadenzarioMenu;
         private MenuItemModel? _fattureMenu;
         private MenuItemModel? _todoMenu;
+        private MenuItemModel? _studiMenu;
         private MenuItemModel? _impostazioniMenu;
 
         public object? VistaCorrente
@@ -71,6 +72,9 @@ namespace CLab.ViewModels
 
         public ICommand ToggleSidebarCommand { get; }
 
+        /// <summary>FASE 12: ricerca globale (Ctrl+K), interrogazione dati reali.</summary>
+        public GlobalSearchViewModel Ricerca { get; }
+
         public ObservableCollection<MenuItemModel> MenuPrincipale { get; set; }
 
         public ObservableCollection<MenuItemModel> MenuFooter { get; set; }
@@ -79,6 +83,7 @@ namespace CLab.ViewModels
         public MainViewModel()
         {
             ToggleSidebarCommand = new RelayCommand(ToggleSidebar);
+            Ricerca = new GlobalSearchViewModel(this);
 
             MenuPrincipale = new ObservableCollection<MenuItemModel>();
 
@@ -92,6 +97,10 @@ namespace CLab.ViewModels
 
         private void CreaMenu()
         {
+            // FASE 4: struttura flat unica — Home, Scadenzario, Studi, Clienti,
+            // Attività, ToDo, Fatture, Promemoria; Impostazioni resta nel footer
+            // (separatore visivo già garantito dalla zona footer della sidebar).
+            // Nessun gruppo, nessuna intestazione: solo voci cliccabili.
             _dashboardMenu = new MenuItemModel
             {
                 Titolo = "Home",
@@ -100,14 +109,6 @@ namespace CLab.ViewModels
             };
             MenuPrincipale.Add(_dashboardMenu);
 
-            _promemoriaMenu = new MenuItemModel
-            {
-                Titolo = "Promemoria",
-                Icona = "Bell",
-                Comando = new RelayCommand<MenuItemModel>(ApriPromemoria)
-            };
-            MenuPrincipale.Add(_promemoriaMenu);
-
             _scadenzarioMenu = new MenuItemModel
             {
                 Titolo = "Scadenzario",
@@ -115,6 +116,14 @@ namespace CLab.ViewModels
                 Comando = new RelayCommand<MenuItemModel>(ApriScadenzario)
             };
             MenuPrincipale.Add(_scadenzarioMenu);
+
+            _studiMenu = new MenuItemModel
+            {
+                Titolo = "Studi",
+                Icona = "Buildings",
+                Comando = new RelayCommand<MenuItemModel>(ApriStudi)
+            };
+            MenuPrincipale.Add(_studiMenu);
 
             _clientiMenu = new MenuItemModel
             {
@@ -132,6 +141,14 @@ namespace CLab.ViewModels
             };
             MenuPrincipale.Add(_attivitaMenu);
 
+            _todoMenu = new MenuItemModel
+            {
+                Titolo = "ToDo",
+                Icona = "CheckSquare",
+                Comando = new RelayCommand<MenuItemModel>(ApriToDo)
+            };
+            MenuPrincipale.Add(_todoMenu);
+
             _fattureMenu = new MenuItemModel
             {
                 Titolo = "Fatture",
@@ -140,13 +157,13 @@ namespace CLab.ViewModels
             };
             MenuPrincipale.Add(_fattureMenu);
 
-            _todoMenu = new MenuItemModel
+            _promemoriaMenu = new MenuItemModel
             {
-                Titolo = "ToDo",
-                Icona = "CheckSquare",
-                Comando = new RelayCommand<MenuItemModel>(ApriToDo)
+                Titolo = "Promemoria",
+                Icona = "Bell",
+                Comando = new RelayCommand<MenuItemModel>(ApriPromemoria)
             };
-            MenuPrincipale.Add(_todoMenu);
+            MenuPrincipale.Add(_promemoriaMenu);
 
             _impostazioniMenu = new MenuItemModel
             {
@@ -197,6 +214,41 @@ namespace CLab.ViewModels
 
         private void ApriScadenzario(MenuItemModel? menu) => ApriScadenzario();
 
+        private void ApriStudi(MenuItemModel? menu) => ApriStudi();
+
+        /// <summary>FASE 5: modulo Studi (i Referenti come asse economico).</summary>
+        public void ApriStudi(int? referenteId = null)
+        {
+            SelezionaMenu(_studiMenu);
+
+            var vm = new StudiViewModel(this);
+            if (referenteId.HasValue)
+                vm.ApriDettaglioPerReferente(referenteId.Value);
+
+            VistaCorrente = vm;
+        }
+
+        /// <summary>FASE 12: apre il modulo Clienti direttamente sul dettaglio del cliente.</summary>
+        public void ApriCliente(int clienteId)
+        {
+            SelezionaMenu(_clientiMenu);
+
+            var vm = new ClientiViewModel(this);
+            vm.ApriClienteDiretto(clienteId);
+
+            VistaCorrente = vm;
+        }
+
+        /// <summary>FASE 12: apre il modulo Fatture direttamente sul pannello della fattura.</summary>
+        public void ApriFattura(int fatturaId)
+        {
+            SelezionaMenu(_fattureMenu);
+
+            var vm = new FattureViewModel(this);
+            vm.ApriFatturaDiretta(fatturaId);
+
+            VistaCorrente = vm;
+        }
         public void ApriScadenzario(int? clienteId = null, string? scheda = null, bool soloRitardi = false)
         {
             SelezionaMenu(_scadenzarioMenu);
@@ -221,7 +273,7 @@ namespace CLab.ViewModels
         {
             SelezionaMenu(_fattureMenu);
 
-            var vm = new FattureViewModel();
+            var vm = new FattureViewModel(this);
             if (anno.HasValue)
                 vm.ApriSuAnno(anno.Value);
 
@@ -230,12 +282,14 @@ namespace CLab.ViewModels
 
         private void ApriToDo(MenuItemModel? menu) => ApriToDo();
 
-        public void ApriToDo(int? clienteId = null, bool soloScaduti = false, bool prioritaAlta = false)
+        public void ApriToDo(int? clienteId = null, bool soloScaduti = false, bool prioritaAlta = false, int? todoId = null)
         {
             SelezionaMenu(_todoMenu);
 
             var vm = new ToDoViewModel();
-            if (clienteId.HasValue || soloScaduti || prioritaAlta)
+            if (todoId.HasValue)
+                vm.ApriToDoDiretto(todoId.Value);
+            else if (clienteId.HasValue || soloScaduti || prioritaAlta)
                 vm.ApriConFiltri(clienteId, soloScaduti, prioritaAlta);
 
             VistaCorrente = vm;

@@ -54,11 +54,14 @@
     <!-- CARD: unico contenitore condiviso da tutti i moduli. Prima    -->
     <!-- ogni vista reinventava "Border bianco + BrushBordo + un       -->
     <!-- CornerRadius diverso" a mano - ora è tutto qui.                -->
+    <!-- Regola design system: una card esiste perché crea una         -->
+    <!-- superficie distinta, non come contenitore di default. Bordo   -->
+    <!-- sottile, niente ombra, radius coerente col sistema.            -->
     <!-- ============================================================ -->
 
     <Style x:Key="CardStyle" TargetType="Border">
         <Setter Property="Background" Value="White"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMedium}"/>
         <Setter Property="Padding" Value="16"/>
@@ -66,7 +69,7 @@
 
     <!-- Variante per righe cliccabili dentro una card (liste, tab) -->
     <Style x:Key="CardRowStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource BrushSfondoChiaro}"/>
+        <Setter Property="Background" Value="{StaticResource BrushSfondoFine}"/>
         <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}"/>
         <Setter Property="Padding" Value="10,9"/>
         <Setter Property="Cursor" Value="Hand"/>
@@ -84,15 +87,16 @@
         <Setter Property="Height" Value="6"/>
     </Style>
 
-    <!-- Badge/pillola con testo, per stati come "scaduto", "da versare", "completata" -->
+    <!-- Badge/pillola con testo, per stati come "scaduto", "da versare", "completata".
+         Forma pill piena (radius 999): le pill restano riservate a badge/stato. -->
     <Style x:Key="StatusPill" TargetType="Border">
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}"/>
-        <Setter Property="Padding" Value="8,2"/>
+        <Setter Property="CornerRadius" Value="999"/>
+        <Setter Property="Padding" Value="8,3"/>
     </Style>
 
     <Style x:Key="StatusPillText" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="10"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="Medium"/>
     </Style>
 
 

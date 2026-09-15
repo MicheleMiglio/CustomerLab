@@ -48,8 +48,21 @@ namespace CLab.ViewModels
         public ObservableCollection<Cliente> ClientiFiltrati
         {
             get => _clientiFiltrati;
-            set { _clientiFiltrati = value; OnPropertyChanged(); }
+            set
+            {
+                _clientiFiltrati = value;
+                OnPropertyChanged();
+                // FASE 13: stati vuoti specifici del modulo
+                OnPropertyChanged(nameof(NessunClienteVisibile));
+                OnPropertyChanged(nameof(NessunClienteTesto));
+            }
         }
+
+        /// <summary>FASE 13: empty state della lista clienti (nessun cliente / nessun risultato).</summary>
+        public bool NessunClienteVisibile => _clientiFiltrati.Count == 0;
+        public string NessunClienteTesto => _tuttiClienti.Count == 0
+            ? "Nessun cliente registrato."
+            : "Nessun cliente corrisponde alla ricerca.";
 
         private string _filtroTesto = string.Empty;
         public string FiltroTesto
@@ -229,12 +242,48 @@ namespace CLab.ViewModels
             ? "Nessuna ritenuta da versare nell'anno."
             : $"{SituazioneRitenuteDaVersare} da versar{(SituazioneRitenuteDaVersare == 1 ? "e" : "i")}";
 
+        // --- FASE 7 CLab 2.0: Situazione Cliente arricchita ---
+        // Ritardi e ToDo cliccabili (2-4), Studio associato, Note e timeline
+        // (solo date già esistenti nei modelli: nessuna tabella di log).
+
+        /// <summary>Adempimenti in ritardo, da aprire nello Scadenzario con filtro "solo ritardi".</summary>
+        public ObservableCollection<VoceSituazioneRitardo> SituazioneRitardi { get; } = new();
+        public bool SituazioneHaRitardiDettaglio => SituazioneRitardi.Count > 0;
+
+        /// <summary>ToDo aperti del cliente, cliccabili verso il pannello di modifica.</summary>
+        public ObservableCollection<VoceSituazioneToDo> SituazioneToDoApertiLista { get; } = new();
+        public bool SituazioneHaToDoDettaglio => SituazioneToDoApertiLista.Count > 0;
+
+        /// <summary>Studio associato (il Referente): nome + link al dettaglio. Le fatture NON si mostrano qui: appartengono allo Studio.</summary>
+        public string SituazioneStudioNome { get; private set; } = string.Empty;
+        public int? SituazioneStudioId { get; private set; }
+        public bool SituazioneHaStudio => SituazioneStudioId.HasValue;
+
+        /// <summary>Cliente.Note, se valorizzato (già nel form, esposto qui con flag di visibilità).</summary>
+        public bool SituazioneHaNote => !string.IsNullOrWhiteSpace(Dettaglio.FormNote);
+
+        public ObservableCollection<VoceSituazioneTimeline> SituazioneTimeline { get; } = new();
+        public bool SituazioneHaTimeline => SituazioneTimeline.Count > 0;
+
+        public ICommand ApriStudioSituazioneCommand { get; }
+        public ICommand ApriToDoDirettoCommand { get; }
+
         private readonly INavigatore? _navigatore;
 
         public ClientiViewModel(INavigatore? navigatore = null)
         {
             _navigatore = navigatore;
 
+            ApriStudioSituazioneCommand = new RelayCommand(() =>
+            {
+                if (SituazioneStudioId.HasValue)
+                    _navigatore?.ApriStudi(SituazioneStudioId.Value);
+            });
+            ApriToDoDirettoCommand = new RelayCommand<VoceSituazioneToDo>(v =>
+            {
+                if (v != null)
+                    _navigatore?.ApriToDo(todoId: v.Id);
+            });
             MostraSchedaAnagraficaCommand = new RelayCommand(() => MostraSituazioneCliente = false);
             MostraSchedaSituazioneCommand = new RelayCommand(() => { MostraSituazioneCliente = true; CaricaSituazione(); });
             ApriScadenzarioClienteCommand = new RelayCommand(() => { if (_formId != 0) _navigatore?.ApriScadenzario(_formId, "adempimenti"); });
@@ -298,6 +347,15 @@ namespace CLab.ViewModels
             AggiornaCerca();
         }
 
+        /// <summary>FASE 12: apre direttamente il dettaglio del cliente indicato
+        /// (navigazione dalla ricerca globale).</summary>
+        public void ApriClienteDiretto(int clienteId)
+        {
+            var cliente = _tuttiClienti.FirstOrDefault(c => c.Id == clienteId);
+            if (cliente != null)
+                ApriDettaglio(cliente);
+        }
+
         private void CaricaNelForm(Cliente? cliente)
         {
             Dettaglio.TelefoniCliente.Clear();
@@ -315,6 +373,7 @@ namespace CLab.ViewModels
                 Dettaglio.FormIntermediario = null;
                 Dettaglio.FormTipoContabilita = null;
                 Dettaglio.FormStato = StatoCliente.Attivo;
+                Dettaglio.FormNote = string.Empty;
             }
             else
             {
@@ -326,6 +385,7 @@ namespace CLab.ViewModels
                 Dettaglio.FormIntermediario = cliente.Intermediario;
                 Dettaglio.FormTipoContabilita = cliente.TipoContabilita;
                 Dettaglio.FormStato = cliente.Stato;
+                Dettaglio.FormNote = cliente.Note ?? string.Empty; // FASE 7: Note esposta anche nella Situazione
 
                 using var db = new ClabDbContext();
                 var contatti = db.Contatti.Where(c => c.ClienteId == cliente.Id).ToList();
@@ -337,6 +397,9 @@ namespace CLab.ViewModels
                         Dettaglio.EmailCliente.Add(contatto);
                 }
             }
+
+            // FASE 3: il caricamento programmatico non è una modifica dell'utente.
+            Dettaglio.HaModifiche = false;
         }
 
         private void Nuovo()
@@ -383,7 +446,8 @@ namespace CLab.ViewModels
                     ProgrammaId = Dettaglio.FormProgramma?.Id,
                     Intermediario = Dettaglio.FormIntermediario,
                     TipoContabilita = Dettaglio.FormTipoContabilita,
-                    Stato = Dettaglio.FormStato
+                    Stato = Dettaglio.FormStato,
+                    Note = string.IsNullOrWhiteSpace(Dettaglio.FormNote) ? null : Dettaglio.FormNote
                 };
                 db.Clienti.Add(nuovo);
                 db.SaveChanges();
@@ -401,6 +465,7 @@ namespace CLab.ViewModels
                 esistente.Intermediario = Dettaglio.FormIntermediario;
                 esistente.TipoContabilita = Dettaglio.FormTipoContabilita;
                 esistente.Stato = Dettaglio.FormStato;
+                esistente.Note = string.IsNullOrWhiteSpace(Dettaglio.FormNote) ? null : Dettaglio.FormNote;
                 clienteSalvato = esistente;
 
                 var vecchi = db.Contatti.Where(c => c.ClienteId == clienteSalvato.Id).ToList();
@@ -509,6 +574,11 @@ namespace CLab.ViewModels
             int anno = DateTime.Now.Year;
             SituazioneAnno = anno.ToString();
 
+            // FASE 7: reset anche delle liste cliccabili e della timeline
+            SituazioneRitardi.Clear();
+            SituazioneToDoApertiLista.Clear();
+            SituazioneTimeline.Clear();
+
             using var db = new ClabDbContext();
 
             var idAttivitaAssegnate = db.ClientiAttivita.AsNoTracking()
@@ -550,7 +620,21 @@ namespace CLab.ViewModels
                     {
                         case CalcoloStatoAdempimenti.Compilato: SituazioneAdempimentiCompletati++; break;
                         case CalcoloStatoAdempimenti.InCorso: SituazioneAdempimentiInCorso++; break;
-                        case CalcoloStatoAdempimenti.Ritardo: SituazioneAdempimentiRitardo++; break;
+                        case CalcoloStatoAdempimenti.Ritardo:
+                            SituazioneAdempimentiRitardo++;
+                            // FASE 7: dettaglio cliccabile del ritardo (max 4 voci)
+                            if (SituazioneRitardi.Count < 4)
+                                SituazioneRitardi.Add(new VoceSituazioneRitardo
+                                {
+                                    AttivitaNome = a.Nome,
+                                    PeriodoTesto = a.Periodicita switch
+                                    {
+                                        Periodicita.Mensile => $"Mese {periodo}",
+                                        Periodicita.Trimestrale => $"Trimestre {periodo}",
+                                        _ => "Anno"
+                                    }
+                                });
+                            break;
                     }
                 }
             }
@@ -559,6 +643,19 @@ namespace CLab.ViewModels
             SituazioneToDoAperti = todo.Count(t => !t.Completato);
             SituazioneToDoScaduti = todo.Count(t => t.IsScaduto);
 
+            // FASE 7: ToDo aperti cliccabili (scaduti prima, max 4)
+            foreach (var t in todo.Where(t => !t.Completato)
+                                  .OrderByDescending(t => t.IsScaduto)
+                                  .ThenBy(t => t.DataScadenza ?? DateTime.MaxValue)
+                                  .Take(4))
+                SituazioneToDoApertiLista.Add(new VoceSituazioneToDo
+                {
+                    Id = t.Id,
+                    Titolo = t.Titolo,
+                    ScadenzaTesto = t.IsScaduto ? $"Scaduto dal {t.DataScadenza:dd/MM}" : (t.DataScadenza.HasValue ? $"Per il {t.DataScadenza:dd/MM}" : "Senza scadenza"),
+                    IsScaduto = t.IsScaduto
+                });
+
             var ritenute = db.RitenuteAcconto.AsNoTracking()
                 .Where(r => r.ClienteId == _formId && r.DataFattura.Year == anno)
                 .ToList();
@@ -566,13 +663,64 @@ namespace CLab.ViewModels
             SituazioneRitenuteVersate = ritenute.Count(r => r.StatoVersamento == "Versato");
             SituazioneRitenuteAnomalie = ritenute.Count(r => r.HaAnomalie);
 
+            // FASE 7: Studio associato (il Referente). Le fatture NON vengono
+            // mostrate qui: appartengono allo Studio attraverso Fattura.ReferenteId.
+            SituazioneStudioNome = Dettaglio.FormReferente?.Nome ?? string.Empty;
+            SituazioneStudioId = Dettaglio.FormReferente?.Id;
+
+            // FASE 7: timeline minima (3-5 eventi) costruita SOLO da date già
+            // presenti nei modelli: assegnazioni attività, ToDo creati/completati,
+            // ritenute (data fattura). Nessuna tabella di log.
+            var eventi = new List<VoceSituazioneTimeline>();
+
+            var assegnazioni = db.ClientiAttivita.AsNoTracking()
+                .Where(ca => ca.ClienteId == _formId)
+                .OrderByDescending(ca => ca.DataAssegnazione)
+                .Take(5)
+                .ToList();
+            foreach (var ca in assegnazioni)
+            {
+                var nome = attivitaAssegnate.FirstOrDefault(a => a.Id == ca.AttivitaId)?.Nome ?? "Attività";
+                eventi.Add(new VoceSituazioneTimeline
+                {
+                    Data = ca.DataAssegnazione,
+                    Titolo = "Attività assegnata",
+                    Dettaglio = nome
+                });
+            }
+
+            foreach (var t in todo)
+            {
+                if (t.Completato && t.DataCompletamento.HasValue)
+                    eventi.Add(new VoceSituazioneTimeline { Data = t.DataCompletamento.Value, Titolo = "ToDo completato", Dettaglio = t.Titolo });
+                else
+                    eventi.Add(new VoceSituazioneTimeline { Data = t.DataCreazione, Titolo = "ToDo creato", Dettaglio = t.Titolo });
+            }
+
+            foreach (var r in ritenute.Take(3))
+                eventi.Add(new VoceSituazioneTimeline
+                {
+                    Data = r.DataFattura,
+                    Titolo = "Ritenuta d'acconto",
+                    Dettaglio = $"Fattura {r.NumeroFattura}"
+                });
+
+            foreach (var e in eventi.OrderByDescending(x => x.Data).Take(5))
+                SituazioneTimeline.Add(e);
+
             OnPropertyChanged(nameof(SituazioneHaAdempimenti));
             OnPropertyChanged(nameof(SituazioneHaRitardi));
+            OnPropertyChanged(nameof(SituazioneHaRitardiDettaglio));
             OnPropertyChanged(nameof(SituazioneHaToDo));
             OnPropertyChanged(nameof(SituazioneHaToDoScaduti));
             OnPropertyChanged(nameof(SituazioneToDoTesto));
+            OnPropertyChanged(nameof(SituazioneHaToDoDettaglio));
             OnPropertyChanged(nameof(SituazioneHaRitenute));
             OnPropertyChanged(nameof(SituazioneRitenuteTesto));
+            OnPropertyChanged(nameof(SituazioneStudioNome));
+            OnPropertyChanged(nameof(SituazioneHaStudio));
+            OnPropertyChanged(nameof(SituazioneHaNote));
+            OnPropertyChanged(nameof(SituazioneHaTimeline));
         }
 
         private void SalvaTelefono()
@@ -600,6 +748,7 @@ namespace CLab.ViewModels
                 var es = Dettaglio.TelefoniCliente.FirstOrDefault(t => t.Id == _telefonoInModificaId);
                 if (es != null) { es.Valore = Dettaglio.NuovoTelefonoValore; es.Etichetta = Dettaglio.NuovoTelefonoEtichetta; }
             }
+            Dettaglio.HaModifiche = true; // FASE 3: per la conferma di chiusura
             AnnullaModificaTelefono();
         }
 
@@ -625,6 +774,7 @@ namespace CLab.ViewModels
             Dettaglio.TelefoniCliente.Remove(t);
             if (era && Dettaglio.TelefoniCliente.Any()) Dettaglio.TelefoniCliente.First().Principale = true;
             if (_telefonoInModificaId == t.Id) AnnullaModificaTelefono();
+            Dettaglio.HaModifiche = true; // FASE 3: per la conferma di chiusura
         }
 
         private void ImpostaTelefonoPrincipale(Contatti? t)
@@ -658,6 +808,7 @@ namespace CLab.ViewModels
                 var es = Dettaglio.EmailCliente.FirstOrDefault(e => e.Id == _emailInModificaId);
                 if (es != null) { es.Valore = Dettaglio.NuovaEmailValore; es.Etichetta = Dettaglio.NuovaEmailEtichetta; }
             }
+            Dettaglio.HaModifiche = true; // FASE 3: per la conferma di chiusura
             AnnullaModificaEmail();
         }
 
@@ -683,6 +834,7 @@ namespace CLab.ViewModels
             Dettaglio.EmailCliente.Remove(em);
             if (era && Dettaglio.EmailCliente.Any()) Dettaglio.EmailCliente.First().Principale = true;
             if (_emailInModificaId == em.Id) AnnullaModificaEmail();
+            Dettaglio.HaModifiche = true; // FASE 3: per la conferma di chiusura
         }
 
         private void ImpostaEmailPrincipale(Contatti? em)
@@ -881,5 +1033,33 @@ namespace CLab.ViewModels
             db.SaveChanges();
             CaricaProgrammi();
         }
+    }
+
+    /// <summary>FASE 7: adempimento in ritardo cliccabile nella Situazione Cliente.</summary>
+    public class VoceSituazioneRitardo
+    {
+        public string AttivitaNome { get; set; } = string.Empty;
+        public string PeriodoTesto { get; set; } = string.Empty;
+        public string Testo => $"{AttivitaNome} · {PeriodoTesto}";
+    }
+
+    /// <summary>FASE 7: ToDo aperto cliccabile nella Situazione Cliente (apre il pannello di modifica).</summary>
+    public class VoceSituazioneToDo
+    {
+        public int Id { get; set; }
+        public string Titolo { get; set; } = string.Empty;
+        public string ScadenzaTesto { get; set; } = string.Empty;
+        public bool IsScaduto { get; set; }
+    }
+
+    /// <summary>FASE 7: evento della timeline del cliente. Usa solo date già presenti nei modelli.</summary>
+    public class VoceSituazioneTimeline
+    {
+        public DateTime Data { get; set; }
+        public string Titolo { get; set; } = string.Empty;
+        public string Dettaglio { get; set; } = string.Empty;
+
+        public string DataTesto => Data.ToString("dd/MM/yyyy");
+        public string Testo => string.IsNullOrEmpty(Dettaglio) ? Titolo : $"{Titolo} · {Dettaglio}";
     }
 }

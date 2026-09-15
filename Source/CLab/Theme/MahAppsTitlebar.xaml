@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================ -->
+    <!-- TITLEBAR CHIARA: override dei brush MahApps dei controlli    -->
+    <!-- finestra. Su tema Light i caption dei WindowButtonCommands   -->
+    <!-- usano IdealForeground (pensato per contrasto su sfondi       -->
+    <!-- scuri = bianco): su titlebar chiara diventano invisibili.    -->
+    <!-- Foreground neutro scuro, hover neutro, hover CHIUDI rosso    -->
+    <!-- semantico (Danger del design system). Comportamento e        -->
+    <!-- comandi MahApps invariati: cambia solo il colore.            -->
+    <!-- ============================================================ -->
+    <SolidColorBrush x:Key="MahApps.Brushes.IdealForeground" Color="{StaticResource ColorTestoPrimario}"/>
+    <SolidColorBrush x:Key="MahApps.Brushes.WindowButtonCommands.HoverForeground" Color="{StaticResource ColorTestoPrimario}"/>
+    <SolidColorBrush x:Key="MahApps.Brushes.WindowButtonCommands.HoverBackground" Color="{StaticResource ColorBordoLeggero}"/>
+    <SolidColorBrush x:Key="MahApps.Brushes.WindowButtonCommands.ClosedForeground" Color="White"/>
+    <SolidColorBrush x:Key="MahApps.Brushes.WindowButtonCommands.ClosedBackground" Color="{StaticResource ColorDanger}"/>
+
+</ResourceDictionary>

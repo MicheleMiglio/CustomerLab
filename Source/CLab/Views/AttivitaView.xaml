@@ -5,7 +5,8 @@
              xmlns:local="clr-namespace:CLab.Models"
              xmlns:converters="clr-namespace:CLab.Converters"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls">
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:views="clr-namespace:CLab.Views">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -484,44 +485,17 @@
 
         </Grid>
 
-        <!-- OVERLAY -->
-        <Border Grid.Row="0" Grid.RowSpan="2"
-            Style="{StaticResource OverlayScuroStyle}"
-            Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.InputBindings>
-                <MouseBinding MouseAction="LeftClick" Command="{Binding AnnullaCommand}"/>
-            </Border.InputBindings>
-        </Border>
+        <!-- FASE 3: pannello laterale condiviso (SidePanelControl): stesso form,
+             nuovo contenitore con Esc, overlay cliccabile, larghezza dinamica. -->
+        <views:SidePanelControl Grid.Row="0" Grid.RowSpan="2"
+            IsAperto="{Binding PannelloAperto}"
+            Titolo="Attività"
+            ComandoChiudi="{Binding AnnullaCommand}"
+            ComandoSalva="{Binding SalvaCommand}"
+            HaModificheNonSalvate="{Binding HaModifiche}">
 
-        <!-- PANNELLO NUOVA/MODIFICA ATTIVITÀ -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Width="400" HorizontalAlignment="Right"
-            Style="{StaticResource PanelLateraleStyle}"
-            Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Attività" Style="{StaticResource ModuleTitleStyle}"/>
-                        <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}"
-                            Command="{Binding AnnullaCommand}"
-                            ToolTip="Chiudi" VerticalAlignment="Top">
-                            <iconPacks:PackIconBootstrapIcons Kind="XLg"
-                            Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
-                        </Button>
-                    </Grid>
-                </Border>
-
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="22,16">
+            <views:SidePanelControl.Contenuto>
+                <StackPanel>
 
                         <TextBlock Text="NOME" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding FormNome, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
@@ -561,14 +535,16 @@
                                             Padding="8,4" Margin="0,0,6,6">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource BrushTestoPrimario}"/>
-                                                <TextBlock Text=" ✕" FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"
-                                                       Cursor="Hand" Margin="6,0,0,0">
-                                                    <TextBlock.InputBindings>
+                                                <!-- Icona "rimuovi opzione" (icon pack, nessun glifo unicode) -->
+                                                <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="9" Height="9"
+                                                       Foreground="{StaticResource BrushTestoSecondario}"
+                                                       Cursor="Hand" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                    <iconPacks:PackIconBootstrapIcons.InputBindings>
                                                         <MouseBinding MouseAction="LeftClick"
                                                             Command="{Binding DataContext.RimuoviOpzioneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}"/>
-                                                    </TextBlock.InputBindings>
-                                                </TextBlock>
+                                                    </iconPacks:PackIconBootstrapIcons.InputBindings>
+                                                </iconPacks:PackIconBootstrapIcons>
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
@@ -594,23 +570,8 @@
                         </StackPanel>
 
                     </StackPanel>
-                </ScrollViewer>
-
-                <Border Grid.Row="2" BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Padding="22,14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="Salva" Command="{Binding SalvaCommand}"
-                            Style="{StaticResource BtnPrimary}" HorizontalAlignment="Stretch"/>
-                        <Button Grid.Column="2" Content="Annulla" Command="{Binding AnnullaCommand}"
-                            Style="{StaticResource BtnOutline}"/>
-                    </Grid>
-                </Border>
-            </Grid>
-        </Border>
+            </views:SidePanelControl.Contenuto>
+        </views:SidePanelControl>
 
     </Grid>
 </UserControl>

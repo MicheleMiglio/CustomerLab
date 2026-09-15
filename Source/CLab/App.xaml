@@ -21,6 +21,10 @@
                 <views:HomeView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type vm:StudiViewModel}">
+                <views:StudiView/>
+            </DataTemplate>
+
             <DataTemplate DataType="{x:Type vm:PromemoriaViewModel}">
                 <views:PromemoriaView/>
             </DataTemplate>
@@ -46,6 +50,10 @@
             </DataTemplate>
 
             <conv:IconaBootstrapConverter x:Key="IconaBootstrapConverter"/>
+
+            <!-- Controlli titlebar chiara: gli override dei brush MahApps
+                 (IdealForeground + WindowButtonCommands) sono in
+                 Theme/MahAppsTitlebar.xaml, mergiato dopo i Theme. -->
 
             <ResourceDictionary.MergedDictionaries>
 
@@ -78,6 +86,10 @@
                 <!-- Pattern di layout condivisi: overlay, pannelli laterali,
                      header pannello, tab-switch (dipende da Colors/ModulePage) -->
                 <ResourceDictionary Source="Theme/Panels.xaml"/>
+
+                <!-- Override brush MahApps per la titlebar chiara (dipende da
+                     Colors.xaml; deve venire dopo i dictionary del Theme) -->
+                <ResourceDictionary Source="Theme/MahAppsTitlebar.xaml"/>
 
             </ResourceDictionary.MergedDictionaries>
 

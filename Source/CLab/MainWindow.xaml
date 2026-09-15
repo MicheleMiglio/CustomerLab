@@ -6,50 +6,51 @@
         Title="CustomerLab"
         Height="800"
         Width="1200"
+        MinHeight="760"
+        MinWidth="1120"
         WindowTitleBrush="{StaticResource BrushSidebarBackground}"
         NonActiveWindowTitleBrush="{StaticResource BrushSidebarBackground}"
-        GlowBrush="{StaticResource BrushSidebarBackground}"
-        TitleForeground="{StaticResource BrushTestoSuScuro}"
+        GlowBrush="{StaticResource BrushBordoLeggero}"
+        TitleForeground="{StaticResource BrushTestoPrimario}"
         TitleCharacterCasing="Normal"
         ShowIconOnTitleBar="True"
         ShowTitleBar="True"
         SaveWindowPosition="True"
         WindowState="Maximized">
 
-    <!-- Titolo di finestra più piccolo e discreto, separato dall'icona: testo
-         secondario invece del titolo bianco pieno di default. -->
+    <mah:MetroWindow.InputBindings>
+        <!-- FASE 12: Ctrl+K apre la ricerca globale -->
+        <KeyBinding Modifiers="Control" Key="K" Command="{Binding Ricerca.ApriCommand}"/>
+    </mah:MetroWindow.InputBindings>
+
+    <!-- Titolo di finestra piccolo e discreto su titlebar chiara: testo
+         secondario, si nota appena (il contenuto è il protagonista). -->
     <mah:MetroWindow.TitleTemplate>
         <DataTemplate>
             <TextBlock Text="{Binding RelativeSource={RelativeSource AncestorType=mah:MetroWindow}, Path=Title}"
                        FontSize="11" FontWeight="SemiBold"
-                       Foreground="{StaticResource BrushTestoSuScuroSecondario}"
-                       Margin="10,0,0,0" VerticalAlignment="Center"
-                       Opacity="0.85"/>
+                       Foreground="{StaticResource BrushTestoSecondario}"
+                       Margin="10,0,0,0" VerticalAlignment="Center"/>
         </DataTemplate>
     </mah:MetroWindow.TitleTemplate>
 
-    <!-- Icona di sistema in titlebar: stesso marchio "C" a gradiente della sidebar,
-         cosi' titlebar e app sono un unico blocco visivo, non "finestra di Windows
-         sopra app tematizzata". -->
+    <!-- Icona di sistema in titlebar: stesso marchio "C" della sidebar,
+         così titlebar e app sono un unico blocco visivo. -->
     <mah:MetroWindow.IconTemplate>
         <DataTemplate>
-            <Border Width="16" Height="16" CornerRadius="4" Margin="6,0,0,0">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="{StaticResource ColorPrimaryLight}" Offset="0"/>
-                        <GradientStop Color="{StaticResource ColorPrimary}" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
+            <Border Width="16" Height="16" CornerRadius="4" Margin="6,0,0,0"
+                    Background="{StaticResource BrushPrimary}">
                 <TextBlock Text="C" FontSize="9" FontWeight="Bold" Foreground="White"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
         </DataTemplate>
     </mah:MetroWindow.IconTemplate>
 
-    <!-- Sfondo navy: dove il pannello di contenuto (arrotondato in alto a
-         sinistra) non copre tutto, si vede il navy dietro - dà l'idea di un
-         pannello "incastonato" nella cornice scura, non incollato di netto. -->
-    <Grid Background="{StaticResource BrushSidebarBackground}">
+    <!-- Sfondo della shell: stessa tinta off-white della sidebar. Sidebar e
+         contenuto si distinguono solo per il bordo 1px (in SidebarView):
+         nessuna cornice scura, un'unica superficie luminosa. -->
+    <Grid Background="{StaticResource BrushSidebarBackground}"
+          TextElement.FontFamily="{StaticResource FontFamilyBase}">
 
         <Grid.ColumnDefinitions>
 
@@ -75,26 +76,17 @@
              Theme/ModulePage.xaml → ModuleHeaderBorderStyle). -->
         <Border Grid.Column="1"
         Background="{StaticResource BrushSfondoChiaro}"
-        CornerRadius="16,0,0,0"
+        BorderBrush="{StaticResource BrushBordoLeggero}"
+        BorderThickness="0,1,0,0"
         ClipToBounds="True">
 
-            <Grid>
-
-                <Border VerticalAlignment="Top" Height="150" CornerRadius="16,0,0,0">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#E6F1FB" Offset="0"/>
-                            <GradientStop Color="{StaticResource ColorSfondoChiaro}" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
-
-                <ContentControl
+            <ContentControl
         Content="{Binding VistaCorrente}"/>
 
-            </Grid>
-
         </Border>
+
+        <!-- FASE 12: ricerca globale (Ctrl+K), overlay sull'intera finestra -->
+        <views:GlobalSearchControl Grid.Column="0" Grid.ColumnSpan="2" DataContext="{Binding Ricerca}"/>
 
     </Grid>
 

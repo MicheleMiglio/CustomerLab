@@ -68,6 +68,11 @@ namespace CLab.ViewModels
         public ObservableCollection<VoceHomePromemoria> PromemoriaInEvidenza { get; } = new();
         public bool HaPromemoriaInEvidenza => PromemoriaInEvidenza.Count > 0;
 
+        // --- 4B. Studi da incassare (FASE 6): studi con maggiore importo scaduto ---
+
+        public ObservableCollection<VoceHomeStudio> StudiDaIncassare { get; } = new();
+        public bool HaStudiDaIncassare => StudiDaIncassare.Count > 0;
+
         // --- 5. Fatture (anno corrente) ---
 
         public string AnnoCorrente => DateTime.Now.Year.ToString();
@@ -81,6 +86,14 @@ namespace CLab.ViewModels
         public int FattureAnnoCorrente { get; private set; }
         public int ToDoAperti { get; private set; }
         public int PromemoriaTotali { get; private set; }
+
+        // PASS 2 — contatori di contesto "N di M": dicono quanto esiste oltre
+        // ciò che la lista mostra, senza mostrare tutto. Derivati dalle stesse
+        // query (conteggio pre-take), nessuna nuova interrogazione.
+        public int TotaleClientiInRitardo { get; private set; }
+        public int TotaleToDoUrgenti { get; private set; }
+        public int TotaleProssimeScadenze { get; private set; }
+        public int TotaleStudiDaIncassare { get; private set; }
 
         // --- 7. Adempimenti anno corrente (barra segmentata, standard WPF) ---
 
@@ -103,6 +116,8 @@ namespace CLab.ViewModels
         public ICommand ApriRitardoClienteCommand { get; }
         public ICommand ApriToDoFiltratoCommand { get; }
         public ICommand ApriToDoScadutiCommand { get; }
+        public ICommand ApriStudioCommand { get; }
+        public ICommand ApriStudiCommand { get; }
 
         public HomeViewModel(INavigatore? navigatore)
         {
@@ -136,6 +151,12 @@ namespace CLab.ViewModels
                     _navigatore?.ApriToDo(v.ClienteId, v.IsScaduto, v.Priorita == PrioritaToDo.Alta);
             });
             ApriToDoScadutiCommand = new RelayCommand(() => _navigatore?.ApriToDo(soloScaduti: true));
+            ApriStudioCommand = new RelayCommand<VoceHomeStudio>(v =>
+            {
+                if (v != null)
+                    _navigatore?.ApriStudi(v.Id);
+            });
+            ApriStudiCommand = new RelayCommand(() => _navigatore?.ApriStudi());
 
             var (ritardoPerCliente, completati, inCorso, inRitardo) = CalcolaAdempimenti();
             AdempimentiCompletati = completati;
@@ -152,6 +173,7 @@ namespace CLab.ViewModels
             }
 
             var nomiClienti = CaricaNomiClienti();
+            TotaleClientiInRitardo = ritardoPerCliente.Count;
             foreach (var coppia in ritardoPerCliente
                          .OrderByDescending(c => c.Value)
                          .ThenBy(c => nomiClienti.TryGetValue(c.Key, out var nome) ? nome : string.Empty, StringComparer.CurrentCulture)
@@ -168,6 +190,7 @@ namespace CLab.ViewModels
             CaricaToDo(nomiClienti);
             CaricaPromemoria();
             CaricaFatture();
+            CaricaStudi();
             ClientiAttivi = ContaClientiAttivi();
 
             var parti = new List<string>();
@@ -203,7 +226,14 @@ namespace CLab.ViewModels
             ToDoAperti = aperti.Count;
             ToDoScaduti = aperti.Count(t => t.IsScaduto);
 
+            // PASS 2: il totale "urgenti" è il numero di ToDo che MERITANO la
+            // sezione (scaduti + alta priorità), mentre la lista ne mostra al
+            // massimo 3: il titolo della sezione comunica "N urgenti", la
+            // dimensione del lavoro aperto è nel KPI "ToDo aperti".
+            TotaleToDoUrgenti = aperti.Count(t => t.IsScaduto || t.Priorita == PrioritaToDo.Alta);
+
             // Urgenti: prima gli scaduti (i più vecchi), poi l'alta priorità imminente.
+            // Massimo 3 elementi: oltre, parla il contatore nel titolo.
             foreach (var t in aperti.Where(t => t.IsScaduto)
                          .OrderBy(t => t.DataScadenza ?? DateTime.MaxValue)
                          .ThenByDescending(t => t.Priorita)
@@ -213,7 +243,7 @@ namespace CLab.ViewModels
             foreach (var t in aperti.Where(t => !t.IsScaduto && t.Priorita == PrioritaToDo.Alta)
                          .OrderBy(t => t.DataScadenza ?? DateTime.MaxValue)
                          .ThenByDescending(t => t.DataCreazione)
-                         .Take(Math.Max(0, 5 - ToDoUrgenti.Count)))
+                         .Take(Math.Max(0, 3 - ToDoUrgenti.Count)))
                 ToDoUrgenti.Add(CreaVoce(t));
 
             // Prossime scadenze: entro 7 giorni, escluse le voci già in "urgenti".
@@ -221,14 +251,17 @@ namespace CLab.ViewModels
             var oggi = DateTime.Today;
             var limite = oggi.AddDays(7);
 
-            foreach (var t in aperti
-                         .Where(t => t.DataScadenza.HasValue
-                             && t.DataScadenza.Value.Date >= oggi
-                             && t.DataScadenza.Value.Date <= limite
-                             && !giaMostrati.Contains(t.Id))
-                         .OrderBy(t => t.DataScadenza)
-                         .ThenByDescending(t => t.Priorita)
-                         .Take(6))
+            var scadenzeSettimana = aperti
+                .Where(t => t.DataScadenza.HasValue
+                    && t.DataScadenza.Value.Date >= oggi
+                    && t.DataScadenza.Value.Date <= limite
+                    && !giaMostrati.Contains(t.Id))
+                .OrderBy(t => t.DataScadenza)
+                .ThenByDescending(t => t.Priorita)
+                .ToList();
+            TotaleProssimeScadenze = scadenzeSettimana.Count;
+
+            foreach (var t in scadenzeSettimana.Take(5))
                 ProssimeScadenze.Add(CreaVoce(t));
         }
 
@@ -351,10 +384,15 @@ namespace CLab.ViewModels
             using var db = new ClabDbContext();
             int anno = DateTime.Now.Year;
 
-            var fattureAnno = db.Fatture.AsNoTracking().Where(f => f.DataEmissione.Year == anno).ToList();
-            FattureAnnoCorrente = fattureAnno.Count;
+            // FASE 10 — REGOLA DELL'ANNO: un'unica regola di dominio, centralizzata
+            // in FattureViewModel.AnnoFattura (anno di DataPagamento se presente,
+            // altrimenti anno corrente). Prima qui si usava DataEmissione.Year e
+            // il KPI Home non coincideva con il filtro anno del modulo Fatture.
+            // Il conteggio "scadute" resta basato su DataScadenza (semantica invariata).
+            var tutte = db.Fatture.AsNoTracking().ToList();
+            FattureAnnoCorrente = tutte.Count(f => FattureViewModel.AnnoFattura(f) == anno);
 
-            var valide = fattureAnno.Where(f => !f.Annullata).ToList();
+            var valide = tutte.Where(f => !f.Annullata && FattureViewModel.AnnoFattura(f) == anno).ToList();
             var daIncassare = valide.Where(f => !f.DataPagamento.HasValue).ToList();
 
             FattureDaIncassareNumero = daIncassare.Count;
@@ -365,6 +403,57 @@ namespace CLab.ViewModels
                 f.DataScadenza.HasValue
                 && f.DataScadenza.Value.Date < DateTime.Now.Date
                 && !f.DataPagamento.HasValue);
+        }
+
+        /// <summary>
+        /// PASS 2 — studi con crediti aperti (top 4 per importo da incassare),
+        /// per il blocco "Studi da incassare". PRIMA qui comparivano solo gli
+        /// studi con importo SCADUTO: una fattura emessa e non pagata è però
+        /// comunque un credito da incassare, con o senza data di scadenza.
+        /// Regola (stessa semantica di FattureViewModel/StudiViewModel):
+        ///   - da incassare = fatture non annullate con DataPagamento == null;
+        ///   - quota scaduta = parte di quella con DataScadenza passata;
+        ///   - fatture pagate non entrano in nessun totale.
+        /// FIX Sum(decimal): il provider SQLite non traduce Sum su decimal;
+        /// proiezione lato database (solo colonne necessarie), somme lato
+        /// client in decimal come in StudiViewModel.Carica.
+        /// </summary>
+        private void CaricaStudi()
+        {
+            using var db = new ClabDbContext();
+            var oggi = DateTime.Now.Date;
+
+            var fatture = db.Fatture.AsNoTracking()
+                .Where(f => !f.Annullata && f.DataPagamento == null)
+                .Select(f => new { f.ReferenteId, f.Importo, f.DataScadenza })
+                .ToList();
+
+            var righe = db.Referenti.AsNoTracking()
+                .Select(r => new { r.Id, r.Nome })
+                .ToList()
+                .Select(r => new
+                {
+                    r.Id,
+                    r.Nome,
+                    DaIncassare = fatture.Where(f => f.ReferenteId == r.Id).Sum(f => f.Importo),
+                    Scaduto = fatture.Where(f => f.ReferenteId == r.Id
+                                                 && f.DataScadenza != null
+                                                 && f.DataScadenza.Value.Date < oggi).Sum(f => f.Importo)
+                })
+                .ToList();
+
+            TotaleStudiDaIncassare = righe.Count(x => x.DaIncassare > 0);
+            foreach (var r in righe.Where(x => x.DaIncassare > 0)
+                                    .OrderByDescending(x => x.DaIncassare)
+                                    .ThenByDescending(x => x.Scaduto)
+                                    .Take(4))
+                StudiDaIncassare.Add(new VoceHomeStudio
+                {
+                    Id = r.Id,
+                    Nome = r.Nome,
+                    Scaduto = r.Scaduto,
+                    DaIncassare = r.DaIncassare
+                });
         }
 
         private static int ContaClientiAttivi()
@@ -405,5 +494,18 @@ namespace CLab.ViewModels
         public string Descrizione { get; set; } = string.Empty;
         public PrioritaPromemoria Priorita { get; set; }
         public bool HaDescrizione { get; set; }
+    }
+
+    /// <summary>Studio con crediti aperti per il blocco "Studi da incassare" della Home.</summary>
+    public class VoceHomeStudio
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public decimal Scaduto { get; set; }
+        public decimal DaIncassare { get; set; }
+
+        public bool HaScaduto => Scaduto > 0;
+        public string ScadutoTesto => $"\u20AC {Scaduto:N0} scaduti";
+        public string DaIncassareTesto => $"\u20AC {DaIncassare:N0} da incassare";
     }
 }

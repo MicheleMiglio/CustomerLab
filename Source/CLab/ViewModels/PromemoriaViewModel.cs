@@ -34,17 +34,23 @@ namespace CLab.ViewModels
         private bool _pannelloAperto;
         public bool PannelloAperto { get => _pannelloAperto; set { _pannelloAperto = value; OnPropertyChanged(); } }
 
+        // FASE 3: modifiche non salvate, per la conferma di chiusura del
+        // SidePanelControl. Azzerato a ogni apertura del form (Nuovo/Modifica).
+        private bool _haModifiche;
+        public bool HaModifiche { get => _haModifiche; set { _haModifiche = value; OnPropertyChanged(); } }
+        private void SegnaModificato() => HaModifiche = true;
+
         private string _titoloPannello = "Nuovo promemoria";
         public string TitoloPannello { get => _titoloPannello; set { _titoloPannello = value; OnPropertyChanged(); } }
 
         private string _formTitolo = string.Empty;
-        public string FormTitolo { get => _formTitolo; set { _formTitolo = value; OnPropertyChanged(); } }
+        public string FormTitolo { get => _formTitolo; set { _formTitolo = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private string _formDescrizione = string.Empty;
-        public string FormDescrizione { get => _formDescrizione; set { _formDescrizione = value; OnPropertyChanged(); } }
+        public string FormDescrizione { get => _formDescrizione; set { _formDescrizione = value; OnPropertyChanged(); SegnaModificato(); } }
 
         private PrioritaPromemoria _formPriorita = PrioritaPromemoria.Media;
-        public PrioritaPromemoria FormPriorita { get => _formPriorita; set { _formPriorita = value; OnPropertyChanged(); } }
+        public PrioritaPromemoria FormPriorita { get => _formPriorita; set { _formPriorita = value; OnPropertyChanged(); SegnaModificato(); } }
 
         public ICommand MostraPerDataCommand { get; }
         public ICommand MostraPerPrioritaCommand { get; }
@@ -104,6 +110,7 @@ namespace CLab.ViewModels
             FormTitolo = string.Empty;
             FormDescrizione = string.Empty;
             FormPriorita = PrioritaPromemoria.Media;
+            HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
             PannelloAperto = true;
         }
 
@@ -116,6 +123,7 @@ namespace CLab.ViewModels
             FormTitolo = p.Titolo;
             FormDescrizione = p.Descrizione ?? string.Empty;
             FormPriorita = p.Priorita;
+            HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
             PannelloAperto = true;
         }
 

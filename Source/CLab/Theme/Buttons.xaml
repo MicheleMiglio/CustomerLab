@@ -15,10 +15,11 @@
          stato vuoto).
          ============================================================ -->
 
-    <!-- Label campo -->
+    <!-- Label campo: label-tier del design system (11px Medium, maiuscolo
+         solo perché il testo lo prevede semanticamente nei form) -->
     <Style x:Key="FieldLabel" TargetType="TextBlock">
-        <Setter Property="FontSize"   Value="9"/>
-        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize"   Value="11"/>
+        <Setter Property="FontWeight" Value="Medium"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
         <Setter Property="Margin"     Value="0,0,0,4"/>
     </Style>
@@ -29,22 +30,26 @@
         <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
     </Style>
 
-    <!-- Titolo sezione -->
+    <!-- Titolo sezione (gruppi di campi: TELEFONI, EMAIL...): label-tier,
+         discreto, niente bold pesante né 9px illeggibili -->
     <Style x:Key="SectionTitle" TargetType="TextBlock">
-        <Setter Property="FontSize"   Value="9"/>
-        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize"   Value="11"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
         <Setter Property="Margin"     Value="0,0,0,10"/>
     </Style>
 
-    <!-- Bottone primario navy -->
+    <!-- Bottone primario: blu ColorPrimary, hover più scuro. L'azione primaria
+         è l'unico punto in cui il blu si fa pieno: nessun riempimento massiccio
+         altrove. -->
     <Style x:Key="BtnPrimary" TargetType="Button">
-        <Setter Property="Background"      Value="{StaticResource BrushPrimaryDark}"/>
+        <Setter Property="Background"      Value="{StaticResource BrushPrimary}"/>
         <Setter Property="Foreground"      Value="White"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding"         Value="16,9"/>
         <Setter Property="Cursor"          Value="Hand"/>
         <Setter Property="FontSize"        Value="13"/>
+        <Setter Property="FontWeight"      Value="Medium"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -54,7 +59,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushPrimary}"/>
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushPrimaryHover}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45"/>
@@ -65,7 +70,8 @@
         </Setter>
     </Style>
 
-    <!-- Bottone outline -->
+    <!-- Bottone outline: hover = superficie morbida neutra, testo più scuro.
+         Nessun bordo che si scurisce aggressiveamente. -->
     <Style x:Key="BtnOutline" TargetType="Button">
         <Setter Property="Background"      Value="Transparent"/>
         <Setter Property="Foreground"      Value="{StaticResource BrushTestoSecondario}"/>
@@ -74,6 +80,7 @@
         <Setter Property="Padding"         Value="16,9"/>
         <Setter Property="Cursor"          Value="Hand"/>
         <Setter Property="FontSize"        Value="13"/>
+        <Setter Property="FontWeight"      Value="Medium"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -86,7 +93,8 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushTestoSecondario}"/>
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -94,7 +102,7 @@
         </Setter>
     </Style>
 
-    <!-- Bottone icona neutro -->
+    <!-- Bottone icona neutro: hover wash neutro, discreto -->
     <Style x:Key="BtnIcon" TargetType="Button">
         <Setter Property="Background"      Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
@@ -109,7 +117,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushInfoLight}"/>
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -162,7 +170,7 @@
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="bd"
                             Background="{TemplateBinding Background}"
-                            CornerRadius="{StaticResource RadiusLarge}" Padding="{TemplateBinding Padding}">
+                            CornerRadius="{StaticResource RadiusMedium}" Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -198,7 +206,7 @@
                         <Grid>
                             <TextBlock x:Name="segnaposto"
                                    Text="{TemplateBinding mah:TextBoxHelper.Watermark}"
-                                   Foreground="{StaticResource BrushTestoSecondario}"
+                                   Foreground="{StaticResource BrushTestoTerziario}"
                                    FontSize="{TemplateBinding FontSize}"
                                    Margin="{TemplateBinding Padding}"
                                    VerticalAlignment="Center"
@@ -310,10 +318,10 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsHighlighted" Value="True">
-                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushInfoLight}"/>
+                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushInfoHoverForte}"/>
+                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushInfoLight}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -439,6 +447,25 @@
                             <Setter Property="Foreground" Value="White"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- FASE 3 CLab 2.0: link discreto di azione secondaria (es. "Apri ToDo ->",
+         "Apri modulo Fatture ->"). Promosso qui perché condiviso da più moduli
+         (Clienti, Studi) invece che duplicato per view. -->
+    <Style x:Key="LinkAzione" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushPrimary}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <ContentPresenter/>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

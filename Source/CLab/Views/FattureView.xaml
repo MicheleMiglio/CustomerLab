@@ -3,10 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
-             xmlns:converters="clr-namespace:CLab.Converters">
+             xmlns:converters="clr-namespace:CLab.Converters"
+             xmlns:views="clr-namespace:CLab.Views">
 
     <UserControl.Resources>
-        <converters:StatoFatturaAColoreConverter x:Key="StatoFatturaAColore"/>
+        <!-- FASE 2: StatoFatturaAColoreConverter ritirato, badge semantico unificato -->
     </UserControl.Resources>
 
     <Grid>
@@ -123,16 +124,31 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="REFERENTE" Binding="{Binding ReferenteRagioneSociale}" Width="1.3*">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="FontSize" Value="12"/>
-                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                                <Setter Property="VerticalAlignment" Value="Center"/>
-                                <Setter Property="Padding" Value="14,0"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Header="STUDIO" Width="1.3*" SortMemberPath="ReferenteRagioneSociale">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <!-- FASE 10: lo Studio è cliccabile e porta al dettaglio
+                                         (Fattura → Referente, nessun Fattura.ClienteId) -->
+                                    <Button Style="{StaticResource LinkAzione}" HorizontalAlignment="Left" Margin="14,0,0,0"
+                                        Command="{Binding DataContext.ApriStudioCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        Visibility="{Binding HaStudio, Converter={StaticResource BoolToVisibility}}"
+                                        ToolTip="Apri dettaglio Studio">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding ReferenteRagioneSociale}" FontSize="12"
+                                                Foreground="{StaticResource BrushPrimary}"/>
+                                            <iconPacks:PackIconBootstrapIcons Kind="BoxArrowUpRight" Width="9" Height="9"
+                                                Foreground="{StaticResource BrushPrimary}" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <ContentControl Content="{Binding ReferenteRagioneSociale}" Margin="14,0,0,0"
+                                        Visibility="{Binding HaStudio, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"
+                                        FontSize="12" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="DATA EMISSIONE" Binding="{Binding Fattura.DataEmissione, StringFormat=dd/MM/yyyy}" Width="1*">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
@@ -167,9 +183,8 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0">
-                                    <Ellipse Width="6" Height="6" Margin="0,0,6,0" Fill="{Binding Fattura.Stato, Converter={StaticResource StatoFatturaAColore}}"/>
-                                    <TextBlock Text="{Binding Fattura.Stato}" FontSize="12" FontWeight="Medium"
-                                        Foreground="{Binding Fattura.Stato, Converter={StaticResource StatoFatturaAColore}}"/>
+                                    <!-- FASE 2: badge di stato unificato -->
+                                    <views:StatusBadgeControl Stato="{Binding Fattura.Stato}" VerticalAlignment="Center"/>
                                     <iconPacks:PackIconBootstrapIcons Kind="ExclamationTriangleFill"
                                         Width="11" Height="11" Foreground="{StaticResource BrushDanger}" Margin="6,0,0,0"
                                         Visibility="{Binding Fattura.HaAnomalie, Converter={StaticResource BoolToVisibility}}"
@@ -234,40 +249,18 @@
             </StackPanel>
         </Grid>
 
-        <!-- OVERLAY + PANNELLO NUOVA/MODIFICA -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Style="{StaticResource OverlayScuroStyle}"
-            Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
-            <Border.InputBindings>
-                <MouseBinding MouseAction="LeftClick" Command="{Binding AnnullaCommand}"/>
-            </Border.InputBindings>
-        </Border>
+        <!-- FASE 3: pannello laterale condiviso (SidePanelControl): stesso form,
+             nuovo contenitore con Esc, overlay cliccabile, conferma modifiche
+             non salvate e larghezza dinamica. -->
+        <views:SidePanelControl Grid.Row="0" Grid.RowSpan="2"
+            IsAperto="{Binding PannelloAperto}"
+            Titolo="Fattura"
+            ComandoChiudi="{Binding AnnullaCommand}"
+            ComandoSalva="{Binding SalvaCommand}"
+            HaModificheNonSalvate="{Binding HaModifiche}">
 
-        <Border Grid.Row="0" Grid.RowSpan="2" Width="380" HorizontalAlignment="Right"
-            Style="{StaticResource PanelLateraleStyle}"
-            Visibility="{Binding PannelloAperto, Converter={StaticResource BoolToVisibility}}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Border Grid.Row="0" Style="{StaticResource PanelHeaderStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Fattura" Style="{StaticResource ModuleTitleStyle}"/>
-                        <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}"
-                            Command="{Binding AnnullaCommand}" ToolTip="Chiudi" VerticalAlignment="Top">
-                            <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
-                        </Button>
-                    </Grid>
-                </Border>
-
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="22,16">
+            <views:SidePanelControl.Contenuto>
+                    <StackPanel>
 
                         <TextBlock Text="REFERENTE" Style="{StaticResource FieldLabel}"/>
                         <ComboBox ItemsSource="{Binding ReferentiDisponibili}"
@@ -348,22 +341,8 @@
                              VerticalContentAlignment="Top" Margin="0,4,0,0"/>
 
                     </StackPanel>
-                </ScrollViewer>
 
-                <Border Grid.Row="2" BorderBrush="{StaticResource BrushBordo}" BorderThickness="0,1,0,0" Padding="22,14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="Salva" Command="{Binding SalvaCommand}"
-                            Style="{StaticResource BtnPrimary}" HorizontalAlignment="Stretch"/>
-                        <Button Grid.Column="2" Content="Annulla" Command="{Binding AnnullaCommand}"
-                            Style="{StaticResource BtnOutline}"/>
-                    </Grid>
-                </Border>
-            </Grid>
-        </Border>
+            </views:SidePanelControl.Contenuto>
+        </views:SidePanelControl>
     </Grid>
 </UserControl>

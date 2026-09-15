@@ -12,7 +12,6 @@ namespace CLab.Views
 {
     public partial class ToDoView : UserControl
     {
-        private bool _pannelloAperto;
         private bool _filtriAperti;
 
         public ToDoView()
@@ -33,14 +32,9 @@ namespace CLab.Views
             if (DataContext is not ToDoViewModel vm)
                 return;
 
-            if (e.PropertyName == nameof(ToDoViewModel.OverlayAperto))
-            {
-                if (vm.OverlayAperto && !_pannelloAperto)
-                    AprirePannello(PannelloLaterale, PannelloTranslate, 400, () => _pannelloAperto = true);
-                else if (!vm.OverlayAperto && _pannelloAperto)
-                    ChiuderePannello(PannelloLaterale, PannelloTranslate, 400, () => _pannelloAperto = false);
-            }
-
+            // FASE 3: il pannello crea/modifica è un SidePanelControl condiviso
+            // (aperto/chiuso da OverlayAperto via binding). Qui resta solo la
+            // gestione del pannello filtri.
             if (e.PropertyName == nameof(ToDoViewModel.FiltriAperti))
             {
                 if (vm.FiltriAperti && !_filtriAperti)

@@ -26,6 +26,193 @@
                 </ObjectDataProvider.MethodParameters>
             </ObjectDataProvider>
 
+            <!-- ============================================================ -->
+            <!-- RESTYLE (stile Studi): tab a chip (segmented), azioni griglia -->
+            <!-- ghost, header colonna con indicatore di ordinamento. Stili    -->
+            <!-- locali: pattern già usato nel modulo Studi (risorsa locale,  -->
+            <!-- non condivisa).                                              -->
+            <!-- ============================================================ -->
+
+            <!-- Chip tab (segmented): ghost, hover neutro, selezione wash blu. -->
+            <Style x:Key="ChipTab" TargetType="Button">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Focusable" Value="False"/>
+                <Setter Property="Padding" Value="12,4"/>
+                <Setter Property="Margin" Value="2"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                    CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
+                                </Trigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                        <Condition Binding="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" Value="Sel"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushSidebarSelectedBadge}"/>
+                                </MultiDataTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="ChipTabCatalogo" TargetType="Button" BasedOn="{StaticResource ChipTab}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ConfigurazioneAttiva}" Value="False">
+                        <Setter Property="Tag" Value="Sel"/>
+                        <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="ChipTabConfigurazione" TargetType="Button" BasedOn="{StaticResource ChipTab}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ConfigurazioneAttiva}" Value="True">
+                        <Setter Property="Tag" Value="Sel"/>
+                        <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="ChipTabPerCliente" TargetType="Button" BasedOn="{StaticResource ChipTab}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ModalitaPerCliente}" Value="True">
+                        <Setter Property="Tag" Value="Sel"/>
+                        <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="ChipTabPerAttivita" TargetType="Button" BasedOn="{StaticResource ChipTab}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ModalitaPerCliente}" Value="False">
+                        <Setter Property="Tag" Value="Sel"/>
+                        <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Azioni inline della griglia: icone ghost (nessun chrome), grigie,
+                 feedback solo in hover (come Studi). -->
+            <Style x:Key="AzioneGriglia" TargetType="Button">
+                <Setter Property="Width" Value="26"/>
+                <Setter Property="Height" Value="26"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Focusable" Value="False"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bd" Background="Transparent" CornerRadius="6">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Elimina: neutra a riposo, rosso solo in hover. -->
+            <Style x:Key="AzioneGrigliaElimina" TargetType="Button" BasedOn="{StaticResource AzioneGriglia}">
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource BrushStatoCessato}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Header di colonna locale: kit del Theme + indicatore di direzione. -->
+            <Style x:Key="AttivitaColumnHeaderStyle" TargetType="DataGridColumnHeader">
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                <Setter Property="FontSize" Value="11"/>
+                <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="Padding" Value="14,10"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="DataGridColumnHeader">
+                            <Grid>
+                                <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                        BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="0,0,0,1">
+                                    <Grid>
+                                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                            VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="freccia" Text="▼" FontSize="8"
+                                            Foreground="{StaticResource BrushPrimary}" HorizontalAlignment="Right"
+                                            VerticalAlignment="Center" Margin="0,1,12,0" Visibility="Collapsed"/>
+                                    </Grid>
+                                </Border>
+                                <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left"
+                                    Width="4" Cursor="SizeWE">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Rectangle Fill="Transparent"/>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                                <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right"
+                                    Width="4" Cursor="SizeWE">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Rectangle Fill="Transparent"/>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="SortDirection" Value="Ascending">
+                                    <Setter TargetName="freccia" Property="Text" Value="▲"/>
+                                    <Setter TargetName="freccia" Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushPrimary}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                </Trigger>
+                                <Trigger Property="SortDirection" Value="Descending">
+                                    <Setter TargetName="freccia" Property="Text" Value="▼"/>
+                                    <Setter TargetName="freccia" Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushPrimary}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushSfondoChiaro}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -38,46 +225,38 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- HEADER -->
+        <!-- HEADER: titolo + tab (Catalogo/Configurazione, stile chip) + azione primaria -->
         <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0" Height="64">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Attività" Style="{StaticResource ModuleTitleStyle}"/>
-                    <TextBlock Text="GESTIONE E CONFIGURAZIONE ATTIVITÀ" Style="{StaticResource ModuleSubtitleStyle}"/>
-                </StackPanel>
+                <TextBlock Grid.Column="0" Text="Attività" Style="{StaticResource ModuleTitleStyle}"
+                           VerticalAlignment="Center"/>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="Catalogo" Command="{Binding MostraCatalogoCommand}"
-                        Margin="0,0,20,0">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding ConfigurazioneAttiva}" Value="False">
-                                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                                        <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <Button Content="Configurazione" Command="{Binding MostraConfigurazioneCommand}">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding ConfigurazioneAttiva}" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                                        <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </StackPanel>
+                <Border Grid.Column="1" Background="{StaticResource BrushSfondoFine}"
+                        CornerRadius="{StaticResource RadiusSmall}" Padding="2" Margin="10,0,0,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Catalogo" Style="{StaticResource ChipTabCatalogo}"
+                                Command="{Binding MostraCatalogoCommand}"/>
+                        <Button Content="Configurazione" Style="{StaticResource ChipTabConfigurazione}"
+                                Command="{Binding MostraConfigurazioneCommand}"/>
+                    </StackPanel>
+                </Border>
+
+                <Button Grid.Column="3" Style="{StaticResource BtnPrimary}" Height="32" MinWidth="120" Padding="12,0"
+                        Margin="20,0,0,0" Command="{Binding NuovoCommand}"
+                        >
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="11" Height="11"
+                            Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Nuova attività" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </Grid>
         </Border>
 
@@ -85,69 +264,52 @@
         <Grid Grid.Row="1" Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Toolbar: solo per il Catalogo, la Configurazione ha i suoi controlli sotto -->
-            <Grid Grid.Row="0" Margin="28,14,28,12"
+            <!-- Toolbar: solo per il Catalogo, ricerca posizionata a destra (come Studi) -->
+            <Grid Grid.Row="0" Margin="28,10,28,0"
                 Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="300"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Background="White"
-                    BorderBrush="{StaticResource BrushBordo}" BorderThickness="1"
-                    CornerRadius="6" Height="34">
+                <Border Width="250" Height="32" Background="White" Grid.Column="1"
+                        BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <iconPacks:PackIconBootstrapIcons Grid.Column="0"
-                        Kind="Search" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"
-                        Margin="10,0,6,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <iconPacks:PackIconBootstrapIcons Grid.Column="0" Kind="Search" Width="13" Height="13"
+                                Foreground="{StaticResource BrushTestoSecondario}" Margin="10,0,0,0" VerticalAlignment="Center"/>
                         <TextBox Grid.Column="1"
-                             Text="{Binding FiltroCatalogoTesto, UpdateSourceTrigger=PropertyChanged}"
-                             BorderThickness="0" Background="Transparent"
-                             FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
-                             VerticalContentAlignment="Center" Height="32"
-                             mah:TextBoxHelper.Watermark="  Cerca attività…"/>
+                                 Text="{Binding FiltroCatalogoTesto, UpdateSourceTrigger=PropertyChanged}"
+                                 BorderThickness="0" Background="Transparent" FontSize="12"
+                                 Foreground="{StaticResource BrushTestoPrimario}"
+                                 VerticalContentAlignment="Center"
+                                 mah:TextBoxHelper.Watermark="  Cerca attività…"/>
                     </Grid>
                 </Border>
-
-                <Button Grid.Column="2" Style="{StaticResource BtnOutlineGold}" Height="34"
-                    Command="{Binding NuovoCommand}">
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconBootstrapIcons Kind="Plus"
-                        Width="11" Height="11"
-                        Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="Nuova attività" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
             </Grid>
 
             <!-- Elenco catalogo -->
-            <DataGrid Grid.Row="1" ItemsSource="{Binding ElencoFiltrato}"
+            <DataGrid Grid.Row="1" x:Name="gridAttivita" ItemsSource="{Binding ElencoFiltrato}"
                   AutoGenerateColumns="False" IsReadOnly="True"
                   CanUserAddRows="False"
                   SelectionMode="Single"
-                  BorderThickness="1" BorderBrush="{StaticResource BrushBordo}"
+                  Style="{StaticResource ModuleDataGridStyle}"
                   RowHeight="44" HeadersVisibility="Column"
-                  GridLinesVisibility="None"
-                  Background="White" RowBackground="White"
-                  AlternatingRowBackground="{StaticResource BrushSfondoAlternato}"
-                  Margin="28,0,28,24"
+                  Margin="28,12,28,0"
+                  MouseDoubleClick="gridAttivita_MouseDoubleClick"
                   Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
                 <DataGrid.ColumnHeaderStyle>
-                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModuleDataGridColumnHeaderStyle}"/>
+                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AttivitaColumnHeaderStyle}"/>
                 </DataGrid.ColumnHeaderStyle>
-                <DataGrid.CellStyle>
-                    <Style TargetType="DataGridCell" BasedOn="{StaticResource ModuleDataGridCellStyle}"/>
-                </DataGrid.CellStyle>
                 <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow" BasedOn="{StaticResource ModuleDataGridRowStyle}"/>
+                    <Style TargetType="DataGridRow" BasedOn="{StaticResource ModuleDataGridRowClickableSelectedStyle}"/>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="NOME" Binding="{Binding Nome}" Width="2*" SortMemberPath="Nome">
@@ -158,6 +320,7 @@
                                 <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                 <Setter Property="Padding" Value="14,0"/>
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
@@ -185,17 +348,17 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <Button Style="{StaticResource BtnIcon}"
+                                    <Button Style="{StaticResource AzioneGriglia}"
                                         Command="{Binding DataContext.ModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}" ToolTip="Modifica">
                                         <iconPacks:PackIconBootstrapIcons Kind="Pencil"
-                                        Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        Width="13" Height="13" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                                     </Button>
-                                    <Button Style="{StaticResource BtnIconRed}" Margin="3,0,0,0"
+                                    <Button Style="{StaticResource AzioneGrigliaElimina}" Margin="2,0,0,0"
                                         Command="{Binding DataContext.EliminaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}" ToolTip="Elimina">
                                         <iconPacks:PackIconBootstrapIcons Kind="Trash"
-                                        Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"/>
+                                        Width="13" Height="13" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                                     </Button>
                                 </StackPanel>
                             </DataTemplate>
@@ -204,6 +367,14 @@
                 </DataGrid.Columns>
             </DataGrid>
 
+            <!-- EMPTY STATE: solo per il catalogo (nessuna attività / nessun risultato dalla ricerca) -->
+            <StackPanel Grid.Row="2" Margin="28,0,28,24" HorizontalAlignment="Center"
+                Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                <TextBlock Text="{Binding EmptyStateTesto}" FontSize="14"
+                    Foreground="{StaticResource BrushTestoSecondario}" HorizontalAlignment="Center"
+                    Visibility="{Binding NessunRisultato, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+
             <!-- Configurazione: doppia lista -->
             <Grid Grid.Row="1" Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}}">
                 <Grid.RowDefinitions>
@@ -211,58 +382,75 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Sotto-schede + selettore -->
-                <Grid Grid.Row="0" Margin="28,15,28,14">
+                <!-- Sotto-schede (stile chip) + selettore -->
+                <Grid Grid.Row="0" Margin="28,5,28,14">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Content="Per cliente" Command="{Binding MostraConfigPerClienteCommand}"
-                            Padding="4,6" Margin="0,0,16,0">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ModalitaPerCliente}" Value="True">
-                                            <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                                            <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Button Content="Per attività" Command="{Binding MostraConfigPerAttivitaCommand}"
-                            Padding="4,6">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ModalitaPerCliente}" Value="False">
-                                            <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                                            <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <ComboBox Width="170" Height="34" Margin="0,0,10,0"
-                            Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}"
-                            IsTextSearchEnabled="True" TextSearch.TextPath="Nome"
-                            ItemsSource="{Binding ReferentiFiltroConfigurazione}"
-                            SelectedItem="{Binding ReferenteFiltroConfigurazione}"/>
+                    <Border Grid.Column="0" Background="{StaticResource BrushSfondoFine}"
+                            CornerRadius="{StaticResource RadiusSmall}" Padding="2" VerticalAlignment="Bottom">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Per cliente" Style="{StaticResource ChipTabPerCliente}"
+                                    Command="{Binding MostraConfigPerClienteCommand}"/>
+                            <Button Content="Per attività" Style="{StaticResource ChipTabPerAttivita}"
+                                    Command="{Binding MostraConfigPerAttivitaCommand}"/>
+                        </StackPanel>
+                    </Border>
 
-                        <ComboBox Width="260" Height="34" Margin="0,0,10,0"
-                            Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}"
-                            ItemsSource="{Binding ClientiPerConfigurazione}"
-                            TextSearch.TextPath="RagioneSociale"
-                            SelectedItem="{Binding ClienteConfigurazione}"/>
+                    <StackPanel Grid.Column="1"
+            Orientation="Horizontal"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top">
 
-                        <ComboBox Width="260" Height="34"
-                            Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"
-                            ItemsSource="{Binding ElencoFiltrato}"
-                            SelectedItem="{Binding AttivitaConfigurazione}"/>
+                        <StackPanel Margin="0,0,10,0"
+                Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}">
+
+                            <TextBlock Text="SELEZIONA STUDIO"
+                   Margin="0,0,0,2"
+                   FontSize="10"
+                   FontWeight="Medium"
+                   Foreground="{StaticResource BrushTestoSecondario}"/>
+
+                            <ComboBox Width="170"
+                  Height="34"
+                  IsTextSearchEnabled="True"
+                  TextSearch.TextPath="Nome"
+                  ItemsSource="{Binding ReferentiFiltroConfigurazione}"
+                  SelectedItem="{Binding ReferenteFiltroConfigurazione}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,10,0"
+                Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}}">
+
+                            <TextBlock Text="SELEZIONA CLIENTE"
+                   Margin="0,0,0,2"
+                   FontSize="10"
+                   FontWeight="Medium"
+                   Foreground="{StaticResource BrushTestoSecondario}"/>
+
+                            <ComboBox Width="260"
+                  Height="34"
+                  ItemsSource="{Binding ClientiPerConfigurazione}"
+                  TextSearch.TextPath="RagioneSociale"
+                  SelectedItem="{Binding ClienteConfigurazione}"/>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding ModalitaPerCliente, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+
+                            <TextBlock Text="SELEZIONA ATTIVITÀ"
+                   Margin="0,0,0,2"
+                   FontSize="10"
+                   FontWeight="Medium"
+                   Foreground="{StaticResource BrushTestoSecondario}"/>
+
+                            <ComboBox Width="260"
+                  Height="34"
+                  ItemsSource="{Binding ElencoFiltrato}"
+                  SelectedItem="{Binding AttivitaConfigurazione}"/>
+                        </StackPanel>
+
                     </StackPanel>
                 </Grid>
 
@@ -333,7 +521,7 @@
                                                                 <Run Text="{Binding TipoCampo, Converter={StaticResource TipoCampoLabel}}"/>
                                                             </TextBlock>
                                                         </StackPanel>
-                                                        <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="4" VerticalAlignment="Center"
+                                                        <Button Grid.Column="1" Style="{StaticResource AzioneGriglia}" Padding="4" VerticalAlignment="Center"
                                                             Command="{Binding DataContext.RimuoviAttivitaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}" ToolTip="Non assegnare">
                                                             <iconPacks:PackIconBootstrapIcons Kind="Dash" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"/>
@@ -361,7 +549,7 @@
                                                                    FontSize="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,2,0,0"
                                                                    Visibility="{Binding PartitaIva, Converter={StaticResource BoolToVisibility}}"/>
                                                         </StackPanel>
-                                                        <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="4" VerticalAlignment="Center"
+                                                        <Button Grid.Column="1" Style="{StaticResource AzioneGriglia}" Padding="4" VerticalAlignment="Center"
                                                             Command="{Binding DataContext.RimuoviClienteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}" ToolTip="Non assegnare">
                                                             <iconPacks:PackIconBootstrapIcons Kind="Dash" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"/>
@@ -436,7 +624,7 @@
                                                                 <Run Text="{Binding TipoCampo, Converter={StaticResource TipoCampoLabel}}"/>
                                                             </TextBlock>
                                                         </StackPanel>
-                                                        <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="4" VerticalAlignment="Center"
+                                                        <Button Grid.Column="1" Style="{StaticResource AzioneGriglia}" Padding="4" VerticalAlignment="Center"
                                                             Command="{Binding DataContext.AggiungiAttivitaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}" ToolTip="Assegna">
                                                             <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"/>
@@ -464,7 +652,7 @@
                                                                    FontSize="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,2,0,0"
                                                                    Visibility="{Binding PartitaIva, Converter={StaticResource BoolToVisibility}}"/>
                                                         </StackPanel>
-                                                        <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="4" VerticalAlignment="Center"
+                                                        <Button Grid.Column="1" Style="{StaticResource AzioneGriglia}" Padding="4" VerticalAlignment="Center"
                                                             Command="{Binding DataContext.AggiungiClienteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}" ToolTip="Assegna">
                                                             <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"/>
@@ -485,93 +673,94 @@
 
         </Grid>
 
-        <!-- FASE 3: pannello laterale condiviso (SidePanelControl): stesso form,
-             nuovo contenitore con Esc, overlay cliccabile, larghezza dinamica. -->
-        <views:SidePanelControl Grid.Row="0" Grid.RowSpan="2"
+        <!-- MODAL nuova/modifica attività (pattern Studi): campo Nome, Periodicità,
+             Tipo di campo e i campi specifici del tipo, più, in modifica, l'elenco
+             dei clienti a cui l'attività è assegnata (sola lettura). La conferma
+             delle modifiche non salvate è già prevista dal ModalDialogControl. -->
+        <views:ModalDialogControl Grid.Row="0" Grid.RowSpan="2"
             IsAperto="{Binding PannelloAperto}"
-            Titolo="Attività"
+            Titolo="{Binding TitoloPannello}"
             ComandoChiudi="{Binding AnnullaCommand}"
             ComandoSalva="{Binding SalvaCommand}"
             HaModificheNonSalvate="{Binding HaModifiche}">
 
-            <views:SidePanelControl.Contenuto>
+            <views:ModalDialogControl.Contenuto>
                 <StackPanel>
 
-                        <TextBlock Text="NOME" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Text="{Binding FormNome, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
+                    <TextBlock Text="NOME" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding FormNome, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
 
-                        <TextBlock Text="PERIODICITÀ" Style="{StaticResource FieldLabel}"/>
-                        <ComboBox ItemsSource="{Binding Source={StaticResource Periodicita}}"
-                              SelectedItem="{Binding FormPeriodicita}" Margin="0,4,0,16"/>
+                    <TextBlock Text="PERIODICITÀ" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{Binding Source={StaticResource Periodicita}}"
+                          SelectedItem="{Binding FormPeriodicita}" Margin="0,4,0,16"/>
 
-                        <TextBlock Text="TIPO DI CAMPO" Style="{StaticResource FieldLabel}"/>
-                        <ComboBox ItemsSource="{Binding Source={StaticResource TipiCampo}}"
-                              SelectedItem="{Binding FormTipoCampo}" Margin="0,4,0,16"/>
+                    <TextBlock Text="TIPO DI CAMPO" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{Binding Source={StaticResource TipiCampo}}"
+                          SelectedItem="{Binding FormTipoCampo}" Margin="0,4,0,16"/>
 
-                        <StackPanel Visibility="{Binding FormTipoCampo, Converter={StaticResource EnumToVisibility}, ConverterParameter=TestoLibero}">
-                            <TextBlock Text="LUNGHEZZA MASSIMA" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding FormTestoLunghezzaMassima, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
-                        </StackPanel>
+                    <StackPanel Visibility="{Binding FormTipoCampo, Converter={StaticResource EnumToVisibility}, ConverterParameter=TestoLibero}">
+                        <TextBlock Text="LUNGHEZZA MASSIMA" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding FormTestoLunghezzaMassima, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
+                    </StackPanel>
 
-                        <StackPanel Visibility="{Binding FormTipoCampo, Converter={StaticResource EnumToVisibility}, ConverterParameter=Numero}"
-                                Orientation="Horizontal" Margin="0,0,0,16">
-                            <CheckBox IsChecked="{Binding FormNumeroEImporto}"/>
-                            <TextBlock Text="È un importo in euro" Margin="6,0,0,0"
+                    <StackPanel Visibility="{Binding FormTipoCampo, Converter={StaticResource EnumToVisibility}, ConverterParameter=Numero}"
+                            Orientation="Horizontal" Margin="0,0,0,16">
+                        <CheckBox IsChecked="{Binding FormNumeroEImporto}"/>
+                        <TextBlock Text="È un importo in euro" Margin="6,0,0,0"
+                               Foreground="{StaticResource BrushTestoSecondario}" FontSize="12"/>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding FormTipoCampo, Converter={StaticResource EnumToVisibility}, ConverterParameter=Tendina}">
+
+                        <TextBlock Text="OPZIONI" Style="{StaticResource FieldLabel}"/>
+                        <ItemsControl ItemsSource="{Binding FormOpzioni}" Margin="0,4,0,8">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="4"
+                                        Padding="8,4" Margin="0,0,6,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource BrushTestoPrimario}"/>
+                                            <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="9" Height="9"
+                                                   Foreground="{StaticResource BrushTestoSecondario}"
+                                                   Cursor="Hand" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                <iconPacks:PackIconBootstrapIcons.InputBindings>
+                                                    <MouseBinding MouseAction="LeftClick"
+                                                        Command="{Binding DataContext.RimuoviOpzioneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"/>
+                                                </iconPacks:PackIconBootstrapIcons.InputBindings>
+                                            </iconPacks:PackIconBootstrapIcons>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding FormNuovaOpzione, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Grid.Column="1" Style="{StaticResource BtnOutline}" Margin="6,0,0,0"
+                                Content="Aggiungi" Command="{Binding AggiungiOpzioneCommand}"/>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                            <CheckBox IsChecked="{Binding FormTendinaRichiedeImporto}"/>
+                            <TextBlock Text="Richiedi anche un importo abbinato" Margin="6,0,0,0"
                                    Foreground="{StaticResource BrushTestoSecondario}" FontSize="12"/>
                         </StackPanel>
 
-                        <StackPanel Visibility="{Binding FormTipoCampo, Converter={StaticResource EnumToVisibility}, ConverterParameter=Tendina}">
-
-                            <TextBlock Text="OPZIONI" Style="{StaticResource FieldLabel}"/>
-                            <ItemsControl ItemsSource="{Binding FormOpzioni}" Margin="0,4,0,8">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="{StaticResource BrushSfondoChiaro}" CornerRadius="4"
-                                            Padding="8,4" Margin="0,0,6,6">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource BrushTestoPrimario}"/>
-                                                <!-- Icona "rimuovi opzione" (icon pack, nessun glifo unicode) -->
-                                                <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="9" Height="9"
-                                                       Foreground="{StaticResource BrushTestoSecondario}"
-                                                       Cursor="Hand" Margin="6,0,0,0" VerticalAlignment="Center">
-                                                    <iconPacks:PackIconBootstrapIcons.InputBindings>
-                                                        <MouseBinding MouseAction="LeftClick"
-                                                            Command="{Binding DataContext.RimuoviOpzioneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            CommandParameter="{Binding}"/>
-                                                    </iconPacks:PackIconBootstrapIcons.InputBindings>
-                                                </iconPacks:PackIconBootstrapIcons>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <Grid Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBox Grid.Column="0" Text="{Binding FormNuovaOpzione, UpdateSourceTrigger=PropertyChanged}"/>
-                                <Button Grid.Column="1" Style="{StaticResource BtnOutline}" Margin="6,0,0,0"
-                                    Content="Aggiungi" Command="{Binding AggiungiOpzioneCommand}"/>
-                            </Grid>
-
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <CheckBox IsChecked="{Binding FormTendinaRichiedeImporto}"/>
-                                <TextBlock Text="Richiedi anche un importo abbinato" Margin="6,0,0,0"
-                                       Foreground="{StaticResource BrushTestoSecondario}" FontSize="12"/>
-                            </StackPanel>
-
-                        </StackPanel>
-
                     </StackPanel>
-            </views:SidePanelControl.Contenuto>
-        </views:SidePanelControl>
+
+                </StackPanel>
+            </views:ModalDialogControl.Contenuto>
+        </views:ModalDialogControl>
 
     </Grid>
 </UserControl>

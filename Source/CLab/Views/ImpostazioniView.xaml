@@ -4,7 +4,30 @@
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
 
     <UserControl.Resources>
-        <!-- Bottone rosso pieno, usato solo qui: azione distruttiva unica nell'app -->
+        
+        <Style x:Key="CardImpostazioni" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusMedium}"/>
+            <Setter Property="Padding" Value="18"/>
+        </Style>
+
+        <!-- Titolo interno alle sezioni -->
+        <Style x:Key="TitoloSezioneImpostazioni"
+               TargetType="TextBlock"
+               BasedOn="{StaticResource SectionTitleTextStyle}">
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <!-- Testo descrittivo secondario -->
+        <Style x:Key="DescrizioneImpostazioni" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <!-- Bottone rosso: rimane esclusivo dell'azione distruttiva -->
         <Style x:Key="BtnDanger" TargetType="Button">
             <Setter Property="Background" Value="{StaticResource BrushDanger}"/>
             <Setter Property="Foreground" Value="White"/>
@@ -16,10 +39,14 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" Background="{TemplateBinding Background}"
-                                CornerRadius="5" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{StaticResource RadiusSmall}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
                         </Border>
+
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.4"/>
@@ -29,90 +56,264 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
     </UserControl.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
 
-        <!-- HEADER -->
-        <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0" Height="64">
-            <StackPanel VerticalAlignment="Center">
-                <TextBlock Text="Impostazioni" Style="{StaticResource ModuleTitleStyle}"/>
-                <TextBlock Text="APP E DATI" Style="{StaticResource ModuleSubtitleStyle}"/>
-            </StackPanel>
-        </Border>
+    <!-- ============================================================ -->
+    <!-- PAGINA                                                        -->
+    <!-- ============================================================ -->
 
-        <!-- CONTENUTO -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="28,24,28,28" MaxWidth="620" HorizontalAlignment="Left">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">        
+        <Grid MaxWidth="1400"
+      HorizontalAlignment="Stretch"
+      Margin="28,20,28,28">
 
-                <!-- Applicazione -->
-                <TextBlock Text="VERSIONE APPLICAZIONE" Style="{StaticResource SectionTitle}"/>
-                <TextBlock Text="{Binding Versione}" Style="{StaticResource FieldValue}" TextWrapping="Wrap" Margin="0,0,0,30"/>
-                
-                <!-- Dati -->
-                <TextBlock Text="POSIZIONE ARCHIVIO" Style="{StaticResource SectionTitle}"/>
-                <TextBlock Text="{Binding PercorsoDatabase}" Style="{StaticResource FieldValue}" TextWrapping="Wrap"/>
-                <Button Grid.Column="1" Content="Apri cartella" Style="{StaticResource BtnOutline}" Margin="0,10,0,30"
-        Command="{Binding ApriCartellaDatiCommand}" VerticalAlignment="Top" HorizontalAlignment="Left" Width="120"/>
-                
-                <TextBlock Text="DIMENSIONE DATABASE" Style="{StaticResource SectionTitle}"/>
-                <TextBlock Text="{Binding DimensioneDatabaseTesto}" Style="{StaticResource FieldValue}" TextWrapping="Wrap" Margin="0,0,0,24"/>
+            <Grid.RowDefinitions>
+                <!-- Titolo -->
+                <RowDefinition Height="Auto"/>
 
-                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,0,24">
-    Tutti i dati sono salvati in questo unico file, sul computer. Non esiste un backup automatico:
-    per essere al sicuro, crea periodicamente un backup di questo file (es. su una chiavetta o su
-    un cloud come Google Drive/OneDrive), specialmente prima di aggiornare il programma.
-                </TextBlock>
-
-                <!-- FASE 9: MANUTENZIONE — backup database -->
-                <TextBlock Text="MANUTENZIONE" Style="{StaticResource SectionTitle}"/>
-                <Border Background="{StaticResource BrushSfondoChiaro}" BorderBrush="{StaticResource BrushBordo}"
-                        BorderThickness="1" CornerRadius="10" Padding="20" Margin="0,0,0,24">
-                    <StackPanel>
-                        <TextBlock Text="Backup database" FontSize="14" FontWeight="Medium"
-                                   Foreground="{StaticResource BrushTestoPrimario}" Margin="0,0,0,6"/>
-                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,0,14">
-                            Crea una copia completa e sicura del database CLab in una cartella a tua scelta.
-                            Il backup non modifica i dati correnti.
-                        </TextBlock>
-                        <Button Style="{StaticResource BtnPrimary}" Content="Esegui backup"
-                                Command="{Binding EseguiBackupCommand}" HorizontalAlignment="Left"/>
-                    </StackPanel>
-                </Border>
+                <!-- Applicazione + Manutenzione -->
+                <RowDefinition Height="Auto"/>
 
                 <!-- Zona pericolosa -->
-                <Border Background="{StaticResource BrushDangerLight}" BorderBrush="{StaticResource BrushDanger}"
-                        BorderThickness="1" CornerRadius="10" Padding="20">
-                    <StackPanel>
-                        <TextBlock Text="Elimina tutti i dati" FontSize="14" FontWeight="Medium"
-                                   Foreground="{StaticResource BrushDanger}" Margin="0,0,0,6"/>
-                        <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource BrushDanger}" Margin="0,0,0,14">
-                            Cancella definitivamente clienti, referenti, programmi, attività, scadenze e fatture.
-                            Non può essere annullato. Assicurati di avere una copia del file sopra, se ti serve conservarli.
-                        </TextBlock>
-                        <TextBlock Text="Scrivi ELIMINA per confermare" Style="{StaticResource FieldLabel}"
-                                   Foreground="{StaticResource BrushDanger}"/>
-                        <TextBox Text="{Binding TestoConferma, UpdateSourceTrigger=PropertyChanged}"
-                                 Width="220" HorizontalAlignment="Left" Padding="3,2" Margin="0,4,0,14"/>
-                        <Button Style="{StaticResource BtnDanger}"
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+
+            <!-- ============================================================ -->
+            <!-- HEADER                                                        -->
+            <!-- ============================================================ -->
+
+            <TextBlock Grid.Row="0"
+               Text="Impostazioni"
+               Style="{StaticResource ModuleTitleStyle}"
+               Margin="0,0,0,20"/>
+
+
+            <!-- ============================================================ -->
+            <!-- APPLICAZIONE + MANUTENZIONE                                   -->
+            <!-- ============================================================ -->
+
+            <Grid Grid.Row="1"
+          Margin="0,0,0,16">
+
+                <Grid.ColumnDefinitions>
+                    <!-- Applicazione: più spazio perché contiene il percorso -->
+                    <ColumnDefinition Width="2*"/>
+
+                    <!-- Spaziatura -->
+                    <ColumnDefinition Width="16"/>
+
+                    <!-- Manutenzione -->
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+
+                <!-- ======================================================== -->
+                <!-- APPLICAZIONE                                               -->
+                <!-- ======================================================== -->
+
+                <Border Grid.Column="0"
+                Style="{StaticResource CardImpostazioni}">
+
+                    <Grid>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+
+                        <!-- Titolo -->
+                        <TextBlock Grid.Row="0"
+                           Text="Applicazione"
+                           Style="{StaticResource TitoloSezioneImpostazioni}"/>
+
+
+                        <!-- Contenuto -->
+                        <Grid Grid.Row="1">
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+
+                            <!-- VERSIONE -->
+                            <StackPanel Grid.Row="0"
+                                Margin="0,0,0,18">
+
+                                <TextBlock Text="VERSIONE APPLICAZIONE"
+                                   Style="{StaticResource FieldLabel}"/>
+
+                                <TextBlock Text="{Binding Versione}"
+                                   Style="{StaticResource FieldValue}"
+                                   TextWrapping="Wrap"/>
+
+                            </StackPanel>
+
+
+                            <!-- POSIZIONE ARCHIVIO -->
+                            <StackPanel Grid.Row="1"
+                                Margin="0,0,0,18">
+
+                                <TextBlock Text="POSIZIONE ARCHIVIO"
+                                   Style="{StaticResource FieldLabel}"/>
+
+                                <TextBlock Text="{Binding PercorsoDatabase}"
+                                   Style="{StaticResource FieldValue}"
+                                   TextWrapping="Wrap"/>
+
+                                <Button Content="Apri cartella"
+                                Style="{StaticResource BtnOutline}"
+                                Margin="0,10,0,0"
+                                Command="{Binding ApriCartellaDatiCommand}"
                                 HorizontalAlignment="Left"
-                                Command="{Binding EliminaDatiCommand}">
+                                Width="120"/>
+
+                            </StackPanel>
+
+
+                            <!-- DIMENSIONE DATABASE -->
+                            <StackPanel Grid.Row="2"
+                                Margin="0,0,0,18">
+
+                                <TextBlock Text="DIMENSIONE DATABASE"
+                                   Style="{StaticResource FieldLabel}"/>
+
+                                <TextBlock Text="{Binding DimensioneDatabaseTesto}"
+                                   Style="{StaticResource FieldValue}"
+                                   TextWrapping="Wrap"/>
+
+                            </StackPanel>
+
+
+                            <!-- INFORMAZIONE BACKUP -->
+                            <TextBlock Grid.Row="3"
+                               TextWrapping="Wrap"
+                               FontSize="12"
+                               Foreground="{StaticResource BrushTestoSecondario}">
+                        Tutti i dati sono salvati in questo unico file, sul computer.
+                        Non esiste un backup automatico: per essere al sicuro, crea
+                        periodicamente un backup di questo file (es. su una chiavetta
+                        o su un cloud come Google Drive/OneDrive), specialmente prima
+                        di aggiornare il programma.
+                            </TextBlock>
+
+                        </Grid>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- ======================================================== -->
+                <!-- MANUTENZIONE                                               -->
+                <!-- ======================================================== -->
+
+                <Border Grid.Column="2"
+                Style="{StaticResource CardImpostazioni}">
+
+                    <StackPanel>
+
+                        <TextBlock Text="Backup database"
+                           Style="{StaticResource TitoloSezioneImpostazioni}"/>
+
+                        <TextBlock TextWrapping="Wrap"
+                           Style="{StaticResource DescrizioneImpostazioni}"
+                           Margin="0,0,0,14">
+                    Crea una copia completa e sicura del database CLab in una
+                    cartella a tua scelta. Il backup non modifica i dati correnti.
+                        </TextBlock>
+
+                        <Button Command="{Binding EseguiBackupCommand}" MaxWidth="140" HorizontalAlignment="Left">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource BtnPrimary}">
+                                    <Setter Property="Padding" Value="14,7"/>
+                                </Style>
+                            </Button.Style>
                             <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconBootstrapIcons Kind="Trash"
-Width="11" Height="11"
- VerticalAlignment="Center"/>
+                                <iconPacks:PackIconBootstrapIcons Kind="Download" Width="12" Height="12"
+VerticalAlignment="Center" Margin="0,0,7,0"/>
+                                <TextBlock Text="Esegui backup" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
                     </StackPanel>
+
                 </Border>
 
-            </StackPanel>
-        </ScrollViewer>
+            </Grid>
 
-    </Grid>
+            <Border Grid.Row="2"
+        Style="{StaticResource CardImpostazioni}">
+
+                <StackPanel>
+
+                    <TextBlock Text="Elimina tutti i dati"
+                           Style="{StaticResource TitoloSezioneImpostazioni}"/>
+
+                    <!-- Descrizione -->
+                    <TextBlock TextWrapping="Wrap"
+                   FontSize="12"
+                   Foreground="{StaticResource BrushTestoSecondario}"
+                   Margin="0,0,0,5">
+            Cancella definitivamente clienti, referenti, programmi,
+            attività, scadenze e fatture. L'operazione non può essere annullata.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap"
+                   FontSize="12"
+                   Foreground="{StaticResource BrushTestoSecondario}"
+                   Margin="0,0,0,20">            
+            Assicurati di avere una copia del database se vuoi conservarne i dati.
+                    </TextBlock>
+
+
+                    <!-- Conferma -->
+                    <TextBlock Style="{StaticResource FieldLabel}"
+                   Foreground="{StaticResource BrushTestoSecondario}">
+            Per confermare, scrivi <Run Text="ELIMINA"
+                                       Foreground="{StaticResource BrushDanger}"
+                                       FontWeight="SemiBold"/>
+                    </TextBlock>
+
+                    <TextBox Text="{Binding TestoConferma, UpdateSourceTrigger=PropertyChanged}"
+                 Width="220"
+                 HorizontalAlignment="Left"
+                 Padding="5,1"
+                 Margin="0,5,0,14"/>
+
+
+                    <!-- Azione distruttiva -->
+                    <Button Style="{StaticResource BtnDanger}"
+                HorizontalAlignment="Left"
+                Command="{Binding EliminaDatiCommand}">
+
+                        <StackPanel Orientation="Horizontal">
+
+                            <iconPacks:PackIconBootstrapIcons Kind="Trash"
+                                                  Width="12"
+                                                  Height="12"
+                                                  VerticalAlignment="Center"/>
+
+                            <TextBlock Text="Elimina dati"
+                           Margin="7,0,0,0"
+                           VerticalAlignment="Center"/>
+
+                        </StackPanel>
+
+                    </Button>
+
+                </StackPanel>
+
+            </Border>
+
+        </Grid>
+        
+    </ScrollViewer>
+
 </UserControl>

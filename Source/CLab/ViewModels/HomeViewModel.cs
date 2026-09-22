@@ -53,15 +53,33 @@ namespace CLab.ViewModels
 
         public bool TuttoOk => !HaAdempimentiRitardo && !HaToDoScaduti && !HaFattureScadute && !HaPromemoriaAlta;
 
-        // --- 2. Prossime scadenze (prossimi 7 giorni) ---
+        // --- 2/3. ToDo in evidenza: box unico (prima "ToDo urgenti" e
+        // "Prossime scadenze" raccontavano lo stesso modulo separatamente).
+        // Lista: scaduti prima, poi alta priorità/in scadenza entro 7 giorni.
+        // I ToDo senza scadenza non sono urgenti quindi non entrano in lista,
+        // ma restano visibili come nota di conteggio (ToDoSenzaScadenzaTesto).
 
-        public ObservableCollection<VoceHomeToDo> ProssimeScadenze { get; } = new();
-        public bool HaProssimeScadenze => ProssimeScadenze.Count > 0;
+        public ObservableCollection<VoceHomeToDo> ToDoInEvidenza { get; } = new();
+        public bool HaToDoInEvidenza => ToDoInEvidenza.Count > 0;
 
-        // --- 3. ToDo urgenti (scaduti + alta priorità) ---
+        public int ToDoInScadenza { get; private set; }
+        public int ToDoSenzaScadenza { get; private set; }
+        public bool HaToDoSenzaScadenza => ToDoSenzaScadenza > 0;
+        public string ToDoSenzaScadenzaTesto => ToDoSenzaScadenza == 1
+            ? "+1 ToDo senza scadenza da gestire"
+            : $"+{ToDoSenzaScadenza} ToDo senza scadenza da gestire";
 
-        public ObservableCollection<VoceHomeToDo> ToDoUrgenti { get; } = new();
-        public bool HaToDoUrgenti => ToDoUrgenti.Count > 0;
+        public bool HaToDoCaption => ToDoScaduti > 0 || ToDoInScadenza > 0;
+        public string ToDoCaptionTesto
+        {
+            get
+            {
+                var parti = new List<string>();
+                if (ToDoScaduti > 0) parti.Add(ToDoScaduti == 1 ? "1 scaduto" : $"{ToDoScaduti} scaduti");
+                if (ToDoInScadenza > 0) parti.Add(ToDoInScadenza == 1 ? "1 in scadenza" : $"{ToDoInScadenza} in scadenza");
+                return parti.Count == 0 ? string.Empty : "· " + string.Join(" · ", parti);
+            }
+        }
 
         // --- 4. Promemoria in evidenza (solo alta priorità) ---
 
@@ -74,11 +92,34 @@ namespace CLab.ViewModels
         public bool HaStudiDaIncassare => StudiDaIncassare.Count > 0;
 
         // --- 5. Fatture (anno corrente) ---
+        // Il KPI in alto mostra il totale ancora da incassare (invariato).
+        // La card sotto NON ripete quel numero: mostra la composizione del
+        // fatturato dell'anno in tre categorie mutuamente esclusive, con lo
+        // stesso pattern visivo della card Adempimenti (barra segmentata +
+        // tre contatori). Le tre categorie sommano sempre al totale anno.
 
         public string AnnoCorrente => DateTime.Now.Year.ToString();
         public int FattureDaIncassareNumero { get; private set; }
         public string FattureDaIncassareTesto { get; private set; } = "€ 0";
         public bool HaFattureDaIncassare => FattureDaIncassareNumero > 0;
+
+        public bool HaFattureAnno => FattureAnnoCorrente > 0;
+        private decimal FattureTotaleAnnoImporto { get; set; }
+
+        public int FattureIncassatoNumero { get; private set; }
+        private decimal FattureIncassatoImporto { get; set; }
+        public string FattureIncassatoTesto => $"€ {FattureIncassatoImporto:N0}";
+
+        public int FattureNonScaduteNumero { get; private set; }
+        private decimal FattureNonScaduteImporto { get; set; }
+        public string FattureNonScaduteTesto => $"€ {FattureNonScaduteImporto:N0}";
+
+        private decimal FattureScaduteImporto { get; set; }
+        public string FattureScaduteImportoTesto => $"€ {FattureScaduteImporto:N0}";
+
+        public double PctFattureIncassato { get; private set; }
+        public double PctFattureNonScadute { get; private set; }
+        public double PctFattureScadute { get; private set; }
 
         // --- 6. KPI secondari ---
 
@@ -91,9 +132,18 @@ namespace CLab.ViewModels
         // ciò che la lista mostra, senza mostrare tutto. Derivati dalle stesse
         // query (conteggio pre-take), nessuna nuova interrogazione.
         public int TotaleClientiInRitardo { get; private set; }
-        public int TotaleToDoUrgenti { get; private set; }
-        public int TotaleProssimeScadenze { get; private set; }
         public int TotaleStudiDaIncassare { get; private set; }
+
+        // --- Clienti: composizione per stato (Attivo/StandBy/Cessato).
+        // Riusa Cliente.Stato, già esistente: nessuna logica nuova, solo un
+        // conteggio raggruppato al posto del conteggio secco precedente. ---
+
+        public int ClientiStandBy { get; private set; }
+        public int ClientiCessati { get; private set; }
+        public bool HaClienti => (ClientiAttivi + ClientiStandBy + ClientiCessati) > 0;
+        public double PctClientiAttivi { get; private set; }
+        public double PctClientiStandBy { get; private set; }
+        public double PctClientiCessati { get; private set; }
 
         // --- 7. Adempimenti anno corrente (barra segmentata, standard WPF) ---
 
@@ -191,7 +241,7 @@ namespace CLab.ViewModels
             CaricaPromemoria();
             CaricaFatture();
             CaricaStudi();
-            ClientiAttivi = ContaClientiAttivi();
+            CaricaClienti();
 
             var parti = new List<string>();
             if (ToDoScaduti > 0) parti.Add($"{ToDoScaduti} ToDo scaduti");
@@ -226,43 +276,44 @@ namespace CLab.ViewModels
             ToDoAperti = aperti.Count;
             ToDoScaduti = aperti.Count(t => t.IsScaduto);
 
-            // PASS 2: il totale "urgenti" è il numero di ToDo che MERITANO la
-            // sezione (scaduti + alta priorità), mentre la lista ne mostra al
-            // massimo 3: il titolo della sezione comunica "N urgenti", la
-            // dimensione del lavoro aperto è nel KPI "ToDo aperti".
-            TotaleToDoUrgenti = aperti.Count(t => t.IsScaduto || t.Priorita == PrioritaToDo.Alta);
-
-            // Urgenti: prima gli scaduti (i più vecchi), poi l'alta priorità imminente.
-            // Massimo 3 elementi: oltre, parla il contatore nel titolo.
-            foreach (var t in aperti.Where(t => t.IsScaduto)
-                         .OrderBy(t => t.DataScadenza ?? DateTime.MaxValue)
-                         .ThenByDescending(t => t.Priorita)
-                         .Take(3))
-                ToDoUrgenti.Add(CreaVoce(t));
-
-            foreach (var t in aperti.Where(t => !t.IsScaduto && t.Priorita == PrioritaToDo.Alta)
-                         .OrderBy(t => t.DataScadenza ?? DateTime.MaxValue)
-                         .ThenByDescending(t => t.DataCreazione)
-                         .Take(Math.Max(0, 3 - ToDoUrgenti.Count)))
-                ToDoUrgenti.Add(CreaVoce(t));
-
-            // Prossime scadenze: entro 7 giorni, escluse le voci già in "urgenti".
-            var giaMostrati = ToDoUrgenti.Select(v => v.Id).ToHashSet();
             var oggi = DateTime.Today;
             var limite = oggi.AddDays(7);
 
-            var scadenzeSettimana = aperti
-                .Where(t => t.DataScadenza.HasValue
-                    && t.DataScadenza.Value.Date >= oggi
-                    && t.DataScadenza.Value.Date <= limite
-                    && !giaMostrati.Contains(t.Id))
-                .OrderBy(t => t.DataScadenza)
-                .ThenByDescending(t => t.Priorita)
-                .ToList();
-            TotaleProssimeScadenze = scadenzeSettimana.Count;
+            // Contatori di contesto per la caption e per la nota "senza scadenza"
+            // (visibili anche se non finiscono nella lista in evidenza).
+            ToDoInScadenza = aperti.Count(t => !t.IsScaduto
+                && t.DataScadenza.HasValue
+                && t.DataScadenza.Value.Date >= oggi
+                && t.DataScadenza.Value.Date <= limite);
+            ToDoSenzaScadenza = aperti.Count(t => !t.DataScadenza.HasValue);
 
-            foreach (var t in scadenzeSettimana.Take(5))
-                ProssimeScadenze.Add(CreaVoce(t));
+            // 1. Prendo gli scaduti (max 3)
+            var scaduti = aperti
+                .Where(t => t.IsScaduto)
+                .OrderBy(t => t.DataScadenza ?? DateTime.MaxValue)
+                .ThenByDescending(t => t.Priorita)
+                .Take(3)
+                .ToList();
+
+            foreach (var t in scaduti)
+                ToDoInEvidenza.Add(CreaVoce(t));
+
+            // 2. Se mancano elementi, prendo i non scaduti rilevanti
+            int mancanti = 3 - ToDoInEvidenza.Count;
+
+            if (mancanti > 0)
+            {
+                var rilevanti = aperti
+                    .Where(t => !t.IsScaduto)
+                    .OrderByDescending(t => t.Priorita)                 // prima la priorità
+                    .ThenBy(t => t.DataScadenza ?? DateTime.MaxValue)   // poi la scadenza (se c’è)
+                    .Take(mancanti)
+                    .ToList();
+
+                foreach (var t in rilevanti)
+                    ToDoInEvidenza.Add(CreaVoce(t));
+            }
+
         }
 
         private VoceHomeToDo CreaVoce(ToDo t) => new()
@@ -297,8 +348,7 @@ namespace CLab.ViewModels
             PromemoriaAltaPriorita = elenco.Count(p => p.Priorita == PrioritaPromemoria.Alta);
 
             foreach (var p in elenco
-                         .Where(p => p.Priorita == PrioritaPromemoria.Alta)
-                         .OrderByDescending(p => p.DataCreazione)
+                         .OrderByDescending(p => p.Priorita).ThenByDescending(p => p.DataCreazione)
                          .Take(3))
             {
                 string? desc = string.IsNullOrWhiteSpace(p.Descrizione) ? null : p.Descrizione.Trim();
@@ -384,11 +434,6 @@ namespace CLab.ViewModels
             using var db = new ClabDbContext();
             int anno = DateTime.Now.Year;
 
-            // FASE 10 — REGOLA DELL'ANNO: un'unica regola di dominio, centralizzata
-            // in FattureViewModel.AnnoFattura (anno di DataPagamento se presente,
-            // altrimenti anno corrente). Prima qui si usava DataEmissione.Year e
-            // il KPI Home non coincideva con il filtro anno del modulo Fatture.
-            // Il conteggio "scadute" resta basato su DataScadenza (semantica invariata).
             var tutte = db.Fatture.AsNoTracking().ToList();
             FattureAnnoCorrente = tutte.Count(f => FattureViewModel.AnnoFattura(f) == anno);
 
@@ -398,25 +443,42 @@ namespace CLab.ViewModels
             FattureDaIncassareNumero = daIncassare.Count;
             FattureDaIncassareTesto = $"€ {daIncassare.Sum(f => f.Importo):N0}";
 
-            // Stessa semantica del conteggio "scadute" già esistente in Home.
             FattureScaduteNumero = valide.Count(f =>
                 f.DataScadenza.HasValue
                 && f.DataScadenza.Value.Date < DateTime.Now.Date
                 && !f.DataPagamento.HasValue);
+
+            var oggi = DateTime.Now.Date;
+            var incassate = valide.Where(f => f.DataPagamento.HasValue).ToList();
+            var scadute = daIncassare.Where(f => f.DataScadenza.HasValue && f.DataScadenza.Value.Date < oggi).ToList();
+            var nonScadute = daIncassare.Where(f => !(f.DataScadenza.HasValue && f.DataScadenza.Value.Date < oggi)).ToList();
+
+            FattureTotaleAnnoImporto = valide.Sum(f => f.Importo);
+
+            FattureIncassatoNumero = incassate.Count;
+            FattureIncassatoImporto = incassate.Sum(f => f.Importo);
+
+            FattureNonScaduteNumero = nonScadute.Count;
+            FattureNonScaduteImporto = nonScadute.Sum(f => f.Importo);
+
+            FattureScaduteImporto = scadute.Sum(f => f.Importo);
+
+            if (FattureTotaleAnnoImporto > 0)
+            {
+                double totale = (double)FattureTotaleAnnoImporto;
+                PctFattureIncassato = (double)FattureIncassatoImporto / totale;
+                PctFattureNonScadute = (double)FattureNonScaduteImporto / totale;
+                PctFattureScadute = (double)FattureScaduteImporto / totale;
+            }
         }
 
         /// <summary>
         /// PASS 2 — studi con crediti aperti (top 4 per importo da incassare),
-        /// per il blocco "Studi da incassare". PRIMA qui comparivano solo gli
-        /// studi con importo SCADUTO: una fattura emessa e non pagata è però
-        /// comunque un credito da incassare, con o senza data di scadenza.
-        /// Regola (stessa semantica di FattureViewModel/StudiViewModel):
+        /// per il blocco "Studi da incassare". Regola (stessa semantica di
+        /// FattureViewModel/StudiViewModel):
         ///   - da incassare = fatture non annullate con DataPagamento == null;
         ///   - quota scaduta = parte di quella con DataScadenza passata;
         ///   - fatture pagate non entrano in nessun totale.
-        /// FIX Sum(decimal): il provider SQLite non traduce Sum su decimal;
-        /// proiezione lato database (solo colonne necessarie), somme lato
-        /// client in decimal come in StudiViewModel.Carica.
         /// </summary>
         private void CaricaStudi()
         {
@@ -456,10 +518,32 @@ namespace CLab.ViewModels
                 });
         }
 
-        private static int ContaClientiAttivi()
+        /// <summary>
+        /// Composizione clienti per stato (Attivo/StandBy/Cessato), per la card
+        /// "Clienti" accanto a "Situazione studi". Riusa Cliente.Stato, già
+        /// esistente: un solo conteggio raggruppato, nessuna query aggiuntiva
+        /// rispetto al precedente conteggio secco dei soli attivi.
+        /// </summary>
+        private void CaricaClienti()
         {
             using var db = new ClabDbContext();
-            return db.Clienti.AsNoTracking().Count(c => c.Stato == StatoCliente.Attivo);
+            var conteggi = db.Clienti.AsNoTracking()
+                .GroupBy(c => c.Stato)
+                .Select(g => new { Stato = g.Key, Numero = g.Count() })
+                .ToList();
+
+            ClientiAttivi = conteggi.FirstOrDefault(x => x.Stato == StatoCliente.Attivo)?.Numero ?? 0;
+            ClientiStandBy = conteggi.FirstOrDefault(x => x.Stato == StatoCliente.StandBy)?.Numero ?? 0;
+            ClientiCessati = conteggi.FirstOrDefault(x => x.Stato == StatoCliente.Cessato)?.Numero ?? 0;
+
+            int totale = ClientiAttivi + ClientiStandBy + ClientiCessati;
+            if (totale > 0)
+            {
+                double t = totale;
+                PctClientiAttivi = ClientiAttivi / t;
+                PctClientiStandBy = ClientiStandBy / t;
+                PctClientiCessati = ClientiCessati / t;
+            }
         }
     }
 

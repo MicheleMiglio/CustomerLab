@@ -40,8 +40,8 @@
          l'eventuale RenderTransform di animazione restano nella View,
          perché variano per contenuto. -->
     <Style x:Key="PanelLateraleStyle" TargetType="Border">
-        <Setter Property="Background" Value="White"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
+        <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushTestoTerziario}"/>
         <Setter Property="BorderThickness" Value="1,0,0,0"/>
         <Setter Property="Effect" Value="{StaticResource PanelShadowEffect}"/>
     </Style>
@@ -54,7 +54,7 @@
            TargetType="Border"
            BasedOn="{StaticResource ModuleHeaderBorderStyle}">
         <Setter Property="Padding" Value="22,18"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushTestoTerziario}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
     </Style>
 

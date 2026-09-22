@@ -72,6 +72,7 @@ namespace CLab.ViewModels
             {
                 _filtroTesto = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(HaFiltriAttivi));
                 AggiornaCerca();
             }
         }
@@ -83,18 +84,62 @@ namespace CLab.ViewModels
             set { _contatoreTesto = value; OnPropertyChanged(); }
         }
 
+        // --- Filtro stato a chip: [Tutti] [Attivi] [Stand by] [Cessati].
+        // Filtraggio in memoria (stesso pattern delle Fatture): nessuna nuova
+        // query, nessun nuovo valore di stato — le etichette mappano sui
+        // membri esistenti dell'enum StatoCliente (Attivo/StandBy/Cessato).
+        private string _filtroStato = "Tutti";
+        public string FiltroStato
+        {
+            get => _filtroStato;
+            set
+            {
+                _filtroStato = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HaFiltriAttivi));
+                AggiornaCerca();
+            }
+        }
+
+        /// <summary>"Azzera filtri" visibile solo quando almeno un filtro è attivo.</summary>
+        public bool HaFiltriAttivi => FiltroStato != "Tutti" || !string.IsNullOrWhiteSpace(FiltroTesto);
+
+        public RelayCommand<string?> ImpostaStatoFiltroCommand { get; }
+        public RelayCommand AzzeraFiltriCommand { get; }
+        public RelayCommand<Cliente> ModificaDaGrigliaCommand { get; }
+        public RelayCommand VaiSchedaCommand { get; }
+
+        /// <summary>
+        /// Titolo del modal Cliente: ragione sociale nella scheda read-only,
+        /// "Modifica cliente" / "Nuovo cliente" nella modalità di editing.
+        /// </summary>
+        public string TitoloPannello => ModalitaModifica
+            ? (_formId == 0 ? "Nuovo cliente" : "Modifica cliente")
+            : Dettaglio.FormRagioneSociale;
+
+        /// <summary>"Visualizza scheda →" è disponibile solo quando si modifica un cliente già salvato.</summary>
+        public bool SchedaDisponibileInModifica => ModalitaModifica && _formId != 0;
+
         private void AggiornaCerca()
         {
-            var q = _filtroTesto.Trim().ToLower();
-            var lista = string.IsNullOrEmpty(q)
-                ? _tuttiClienti
-                : new ObservableCollection<Cliente>(
-                    _tuttiClienti.Where(c =>
-                        c.RagioneSociale.ToLower().Contains(q) ||
-                        (c.PartitaIva ?? "").ToLower().Contains(q) ||
-                        c.ReferenteNome.ToLower().Contains(q)));
+            IEnumerable<Cliente> seq = _tuttiClienti;
 
-            ClientiFiltrati = lista;
+            // Filtro stato a chip: mapping etichetta → membri esistenti dell'enum.
+            switch (FiltroStato)
+            {
+                case "Attivi": seq = seq.Where(c => c.Stato == StatoCliente.Attivo); break;
+                case "Stand by": seq = seq.Where(c => c.Stato == StatoCliente.StandBy); break;
+                case "Cessati": seq = seq.Where(c => c.Stato == StatoCliente.Cessato); break;
+            }
+
+            var q = _filtroTesto.Trim().ToLower();
+            if (!string.IsNullOrEmpty(q))
+                seq = seq.Where(c =>
+                    c.RagioneSociale.ToLower().Contains(q) ||
+                    (c.PartitaIva ?? "").ToLower().Contains(q) ||
+                    c.ReferenteNome.ToLower().Contains(q));
+
+            ClientiFiltrati = new ObservableCollection<Cliente>(seq);
             int n = ClientiFiltrati.Count;
             ContatoreTesto = $"{n} CLIENT{(n == 1 ? "E" : "I")}";
         }
@@ -110,7 +155,14 @@ namespace CLab.ViewModels
         public bool ModalitaModifica
         {
             get => _modalitaModifica;
-            set { _modalitaModifica = value; OnPropertyChanged(); }
+            set
+            {
+                _modalitaModifica = value;
+                OnPropertyChanged();
+                // Il titolo del modal dipende dalla modalità (scheda vs edit)
+                OnPropertyChanged(nameof(TitoloPannello));
+                OnPropertyChanged(nameof(SchedaDisponibileInModifica));
+            }
         }
 
         private string _pannelloSottoTitolo = string.Empty;
@@ -236,6 +288,13 @@ namespace CLab.ViewModels
             private set { _situazioneRitenuteAnomalie = value; OnPropertyChanged(); }
         }
 
+        private int _situazioneRitenuteNoRavv;
+        public int SituazioneRitenuteNoRavv
+        {
+            get => _situazioneRitenuteNoRavv;
+            private set { _situazioneRitenuteNoRavv = value; OnPropertyChanged(); }
+        }
+
         public bool SituazioneHaRitenute =>
             SituazioneRitenuteDaVersare + SituazioneRitenuteVersate + SituazioneRitenuteAnomalie > 0;
         public string SituazioneRitenuteTesto => SituazioneRitenuteDaVersare == 0
@@ -311,6 +370,10 @@ namespace CLab.ViewModels
 
             NuovoCommand = new RelayCommand(Nuovo);
             SalvaCommand = new RelayCommand(Salva);
+            ImpostaStatoFiltroCommand = new RelayCommand<string?>(s => FiltroStato = s ?? "Tutti");
+            AzzeraFiltriCommand = new RelayCommand(() => { FiltroStato = "Tutti"; FiltroTesto = string.Empty; });
+            ModificaDaGrigliaCommand = new RelayCommand<Cliente>(ModificaDaGriglia);
+            VaiSchedaCommand = new RelayCommand(VaiScheda);
             SalvaTelefonoCommand = new RelayCommand(SalvaTelefono,
                                                    () => !string.IsNullOrWhiteSpace(Dettaglio.NuovoTelefonoValore));
             SelezionaTelefonoCommand = new RelayCommand<Contatti>(SelezionaTelefono);
@@ -328,7 +391,7 @@ namespace CLab.ViewModels
             {
                 ModalitaModifica = true;
                 MostraSituazioneCliente = false;
-                PannelloSottoTitolo = "MODIFICA CLIENTE";
+                PannelloSottoTitolo = string.Empty; // titolo "Modifica cliente" via TitoloPannello
             });
         }
 
@@ -368,6 +431,7 @@ namespace CLab.ViewModels
                 _formId = 0;
                 Dettaglio.FormRagioneSociale = string.Empty;
                 Dettaglio.FormPartitaIva = null;
+                Dettaglio.FormCodiceFiscale = null;
                 Dettaglio.FormReferente = null;
                 Dettaglio.FormProgramma = null;
                 Dettaglio.FormIntermediario = null;
@@ -380,6 +444,7 @@ namespace CLab.ViewModels
                 _formId = cliente.Id;
                 Dettaglio.FormRagioneSociale = cliente.RagioneSociale;
                 Dettaglio.FormPartitaIva = cliente.PartitaIva;
+                Dettaglio.FormCodiceFiscale = cliente.CodiceFiscale;
                 Dettaglio.FormReferente = ReferentiAttivi.FirstOrDefault(r => r.Id == cliente.ReferenteId);
                 Dettaglio.FormProgramma = Programmi.FirstOrDefault(p => p.Id == cliente.ProgrammaId);
                 Dettaglio.FormIntermediario = cliente.Intermediario;
@@ -400,6 +465,9 @@ namespace CLab.ViewModels
 
             // FASE 3: il caricamento programmatico non è una modifica dell'utente.
             Dettaglio.HaModifiche = false;
+
+            // Il titolo del modal (scheda = ragione sociale) dipende dai dati caricati
+            OnPropertyChanged(nameof(TitoloPannello));
         }
 
         private void Nuovo()
@@ -407,8 +475,26 @@ namespace CLab.ViewModels
             CaricaNelForm(null);
             MostraSituazioneCliente = false;
             ModalitaModifica = true;
-            PannelloSottoTitolo = "NUOVO CLIENTE";
+            PannelloSottoTitolo = string.Empty; // titolo "Nuovo cliente" via TitoloPannello
             OverlayAperto = true;
+        }
+
+        /// <summary>
+        /// Sottotitolo della scheda read-only: "{contabilità} · {stato}" (es. "Ordinaria · Attivo").
+        /// Usa solo valori già presenti nel modello, nessuna nuova informazione.
+        /// </summary>
+        private string CompilaSottoTitoloScheda()
+        {
+            string stato = Dettaglio.FormStato switch
+            {
+                StatoCliente.Attivo => "Attivo",
+                StatoCliente.StandBy => "Stand by",
+                _ => "Cessato"
+            };
+            string contabilita = string.IsNullOrWhiteSpace(Dettaglio.FormTipoContabilita)
+                ? "Senza contabilità"
+                : Dettaglio.FormTipoContabilita!;
+            return $"{contabilita} · {stato}";
         }
 
         private void Salva()
@@ -442,6 +528,7 @@ namespace CLab.ViewModels
                 {
                     RagioneSociale = Dettaglio.FormRagioneSociale,
                     PartitaIva = Dettaglio.FormPartitaIva,
+                    CodiceFiscale = Dettaglio.FormCodiceFiscale,
                     ReferenteId = Dettaglio.FormReferente.Id,
                     ProgrammaId = Dettaglio.FormProgramma?.Id,
                     Intermediario = Dettaglio.FormIntermediario,
@@ -460,6 +547,7 @@ namespace CLab.ViewModels
 
                 esistente.RagioneSociale = Dettaglio.FormRagioneSociale;
                 esistente.PartitaIva = Dettaglio.FormPartitaIva;
+                esistente.CodiceFiscale = Dettaglio.FormCodiceFiscale;
                 esistente.ReferenteId = Dettaglio.FormReferente.Id;
                 esistente.ProgrammaId = Dettaglio.FormProgramma?.Id;
                 esistente.Intermediario = Dettaglio.FormIntermediario;
@@ -495,14 +583,42 @@ namespace CLab.ViewModels
             if (cliente == null) return;
             CaricaNelForm(cliente);
             ModalitaModifica = false;
-            PannelloSottoTitolo = $"{cliente.TipoContabilita ?? "Senza contabilità"} · {cliente.Stato}";
+            PannelloSottoTitolo = CompilaSottoTitoloScheda();
 
             // FASE 5: il dettaglio apre sulla scheda Situazione, per comunicare
             // immediatamente lo stato operativo del cliente.
-            MostraSituazioneCliente = true;
+            MostraSituazioneCliente = false;
             CaricaSituazione();
 
             OverlayAperto = true;
+        }
+
+        /// <summary>
+        /// CLab 2.0: la matita della griglia apre DIRETTAMENTE la modalità
+        /// "Modifica cliente" (senza passare dalla scheda read-only).
+        /// </summary>
+        private void ModificaDaGriglia(Cliente? cliente)
+        {
+            if (cliente == null) return;
+            CaricaNelForm(cliente);
+            ModalitaModifica = true;
+            MostraSituazioneCliente = false;
+            PannelloSottoTitolo = string.Empty; // titolo "Modifica cliente" via TitoloPannello
+            OverlayAperto = true;
+        }
+
+        /// <summary>
+        /// CLab 2.0: azione "Visualizza scheda →" dall'header del modal di
+        /// modifica: torna alla scheda read-only. I dati non ancora confermati
+        /// restano nel form (rientrando in "Modifica" si riparte da lì):
+        /// nessuna perdita, nessun salvataggio implicito.
+        /// </summary>
+        private void VaiScheda()
+        {
+            ModalitaModifica = false;
+            MostraSituazioneCliente = true;
+            CaricaSituazione();
+            PannelloSottoTitolo = CompilaSottoTitoloScheda();
         }
 
         private void EliminaCliente(Cliente? cliente)
@@ -568,6 +684,7 @@ namespace CLab.ViewModels
             SituazioneRitenuteDaVersare = 0;
             SituazioneRitenuteVersate = 0;
             SituazioneRitenuteAnomalie = 0;
+            SituazioneRitenuteNoRavv = 0;
 
             if (_formId == 0) return;
 
@@ -662,6 +779,7 @@ namespace CLab.ViewModels
             SituazioneRitenuteDaVersare = ritenute.Count(r => r.StatoVersamento == "DaVersare");
             SituazioneRitenuteVersate = ritenute.Count(r => r.StatoVersamento == "Versato");
             SituazioneRitenuteAnomalie = ritenute.Count(r => r.HaAnomalie);
+            SituazioneRitenuteNoRavv = ritenute.Count(r => !r.Ravvedimento);
 
             // FASE 7: Studio associato (il Referente). Le fatture NON vengono
             // mostrate qui: appartengono allo Studio attraverso Fattura.ReferenteId.

@@ -91,6 +91,17 @@ namespace CLab.Models
         [NotMapped]
         public bool IsScaduto => DataScadenza.HasValue && DataScadenza.Value.Date < DateTime.Today && !Completato;
 
+        /// <summary>
+        /// Revisione UI ToDo 2.0: scadenza entro 7 giorni e ToDo non completato
+        /// né scaduto → semantica "In scadenza" (ambra) del design system, usata
+        /// per la tinta della data in lista. Solo presentazione: [NotMapped],
+        /// nessun impatto su schema/database (come IsScaduto).
+        /// </summary>
+        [NotMapped]
+        public bool IsInScadenza => DataScadenza.HasValue && !Completato && !IsScaduto
+            && DataScadenza.Value.Date >= DateTime.Today
+            && DataScadenza.Value.Date <= DateTime.Today.AddDays(7);
+
         // Stato di espansione della riga (mostra/nasconde le sotto-attività
         // inline). È solo UI, non persistito: implementa INotifyPropertyChanged
         // così può cambiare a schermo senza dover ricaricare tutta la lista dal db.

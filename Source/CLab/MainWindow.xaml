@@ -5,8 +5,6 @@
         xmlns:views="clr-namespace:CLab.Views"
         Title="CustomerLab"
         Height="800"
-        Width="1200"
-        MinHeight="760"
         MinWidth="1120"
         WindowTitleBrush="{StaticResource BrushSidebarBackground}"
         NonActiveWindowTitleBrush="{StaticResource BrushSidebarBackground}"

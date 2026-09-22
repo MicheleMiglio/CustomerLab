@@ -32,6 +32,10 @@ namespace CLab.ViewModels
             set { _pannelloAperto = value; OnPropertyChanged(); }
         }
 
+        /// <summary>Titolo del modal: "Nuovo studio" o "Modifica studio" in base all'operazione.</summary>
+        private string _titoloPannello = "Nuova attività";
+        public string TitoloPannello { get => _titoloPannello; set { _titoloPannello = value; OnPropertyChanged(); } }
+
         // FASE 3: modifiche non salvate, per la conferma di chiusura del
         // SidePanelControl. Azzerato a ogni apertura del form (Nuovo/Modifica).
         private bool _haModifiche;
@@ -147,9 +151,24 @@ namespace CLab.ViewModels
                 ElencoFiltrato.Add(a);
         }
 
+        private void PreparaElencoAttivitaConfigurazione()
+        {
+            ElencoFiltrato.Clear();
+
+            ElencoFiltrato.Add(new Attivita
+            {
+                Id = 0,
+                Nome = ""
+            });
+
+            foreach (var a in Elenco)
+                ElencoFiltrato.Add(a);
+        }
+
         private void Nuovo()
         {
             _attivitaInModificaId = 0;
+            TitoloPannello = "Nuovo attività";
             FormNome = string.Empty;
             FormPeriodicita = Periodicita.Mensile;
             FormTipoCampo = TipoCampoAttivita.SiNo;
@@ -175,6 +194,7 @@ namespace CLab.ViewModels
                              .ToList();
 
             _attivitaInModificaId = a.Id;
+            TitoloPannello = "Modifica attività";
             FormNome = a.Nome;
             FormPeriodicita = a.Periodicita;
             FormTipoCampo = a.TipoCampo;
@@ -265,7 +285,10 @@ namespace CLab.ViewModels
             CaricaElenco();
 
             if (ConfigurazioneAttiva)
+            {
+                PreparaElencoAttivitaConfigurazione();
                 CaricaListeConfigurazione();
+            }
         }
 
         private void Annulla()
@@ -302,7 +325,10 @@ namespace CLab.ViewModels
                 AttivitaConfigurazione = null;
 
             if (ConfigurazioneAttiva)
+            {
+                PreparaElencoAttivitaConfigurazione();
                 CaricaListeConfigurazione();
+            }
         }
 
         // --- Configurazione: doppia lista, due modalità ---
@@ -331,6 +357,9 @@ namespace CLab.ViewModels
         private void MostraConfigurazione()
         {
             ConfigurazioneAttiva = true;
+
+            PreparaElencoAttivitaConfigurazione();
+
             CaricaListeConfigurazione();
         }
 
@@ -355,17 +384,37 @@ namespace CLab.ViewModels
         public Referente? ReferenteFiltroConfigurazione
         {
             get => _referenteFiltroConfigurazione;
-            set { _referenteFiltroConfigurazione = value; OnPropertyChanged(); ApplicaFiltroClientiConfigurazione(); }
+            set
+            {
+                if (value?.Id == 0)
+                    value = null;
+
+                if (_referenteFiltroConfigurazione == value)
+                    return;
+
+                _referenteFiltroConfigurazione = value;
+                OnPropertyChanged();
+
+                ApplicaFiltroClientiConfigurazione();
+            }
         }
 
         private Cliente? _clienteConfigurazione;
+
         public Cliente? ClienteConfigurazione
         {
             get => _clienteConfigurazione;
             set
             {
+                if (value?.Id == 0)
+                    value = null;
+
+                if (_clienteConfigurazione == value)
+                    return;
+
                 _clienteConfigurazione = value;
                 OnPropertyChanged();
+
                 CaricaListeConfigurazione();
             }
         }
@@ -376,6 +425,12 @@ namespace CLab.ViewModels
             get => _attivitaConfigurazione;
             set
             {
+                if (value?.Id == 0)
+                    value = null;
+
+                if (_attivitaConfigurazione == value)
+                    return;
+
                 _attivitaConfigurazione = value;
                 OnPropertyChanged();
                 CaricaListeConfigurazione();
@@ -411,11 +466,29 @@ namespace CLab.ViewModels
         private void CaricaClientiPerConfigurazione()
         {
             using var db = new ClabDbContext();
-            _clientiConfigurazioneCompleti = db.Clienti.AsNoTracking().OrderBy(x => x.RagioneSociale).ToList();
+
+            _clientiConfigurazioneCompleti = db.Clienti
+                .AsNoTracking()
+                .OrderBy(x => x.RagioneSociale)
+                .ToList();
 
             ReferentiFiltroConfigurazione.Clear();
-            foreach (var r in db.Referenti.AsNoTracking().Where(r => r.Attivo).OrderBy(r => r.Nome).ToList())
+
+            // Opzione vuota
+            ReferentiFiltroConfigurazione.Add(new Referente
+            {
+                Id = 0,
+                Nome = ""
+            });
+
+            foreach (var r in db.Referenti
+                .AsNoTracking()
+                .Where(r => r.Attivo)
+                .OrderBy(r => r.Nome)
+                .ToList())
+            {
                 ReferentiFiltroConfigurazione.Add(r);
+            }
 
             ApplicaFiltroClientiConfigurazione();
         }
@@ -424,14 +497,28 @@ namespace CLab.ViewModels
         {
             ClientiPerConfigurazione.Clear();
 
-            var filtrati = ReferenteFiltroConfigurazione == null
+            var filtrati = ReferenteFiltroConfigurazione == null ||
+                           ReferenteFiltroConfigurazione.Id == 0
                 ? _clientiConfigurazioneCompleti
-                : _clientiConfigurazioneCompleti.Where(c => c.ReferenteId == ReferenteFiltroConfigurazione.Id);
+                : _clientiConfigurazioneCompleti
+                    .Where(c => c.ReferenteId == ReferenteFiltroConfigurazione.Id);
 
-            foreach (var c in filtrati) ClientiPerConfigurazione.Add(c);
+            // Opzione vuota
+            ClientiPerConfigurazione.Add(new Cliente
+            {
+                Id = 0,
+                RagioneSociale = ""
+            });
 
-            if (ClienteConfigurazione != null && !ClientiPerConfigurazione.Contains(ClienteConfigurazione))
+            foreach (var c in filtrati)
+                ClientiPerConfigurazione.Add(c);
+
+            if (ClienteConfigurazione != null &&
+                ClienteConfigurazione.Id != 0 &&
+                !ClientiPerConfigurazione.Contains(ClienteConfigurazione))
+            {
                 ClienteConfigurazione = null;
+            }
         }
 
         private void CaricaListeConfigurazione()
@@ -488,7 +575,7 @@ namespace CLab.ViewModels
                     .Select(ca => ca.ClienteId)
                     .ToHashSet();
 
-                foreach (var c in ClientiPerConfigurazione)
+                foreach (var c in ClientiPerConfigurazione.Where(c => c.Id != 0))
                 {
                     var voce = new VoceClienteConfigurazione
                     {

@@ -89,7 +89,7 @@
     <!-- KPI: numero protagonista, label discreta -->
     <!-- ========================= -->
     <Style x:Key="KpiNumberStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="30"/>
+        <Setter Property="FontSize" Value="27"/>
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
         <Setter Property="FontFamily" Value="{StaticResource FontFamilyNumeric}"/>

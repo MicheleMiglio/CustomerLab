@@ -80,6 +80,10 @@ namespace CLab.Converters
             "Errore" => ("Errore", "BrushStatoCessato", "BrushStatoCessatoLight"),
             "Disabilitato" => ("Disabilitato", "BrushTestoSecondario", "BrushSfondoChiaro"),
             "Informativo" => ("Informativo", "BrushPrimary", "BrushInfoLight"),
+            // Studi 2.0: fatture attive non ancora pagate (senza scadenza superata).
+            // Blu informativo, stessa tinta di In corso/Emessa; caso additivo:
+            // nessuna mappatura esistente è toccata.
+            "InAttesa" => ("In attesa", "BrushPrimary", "BrushInfoLight"),
 
             _ => (testo ?? "—", "BrushTestoSecondario", "BrushSfondoChiaro")
         };

@@ -122,24 +122,16 @@
         <Style x:Key="PuntoPriorita" TargetType="Ellipse">
             <Setter Property="Width" Value="7"/>
             <Setter Property="Height" Value="7"/>
-            <Setter Property="Fill" Value="{StaticResource BrushTestoTerziario}"/>
+            <Setter Property="Fill" Value="{StaticResource BrushPrimaryLight}"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
             <Setter Property="Margin" Value="0,6,10,0"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsScaduto}" Value="True">
-                    <Setter Property="Fill" Value="{StaticResource BrushStatoCessato}"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding IsAltaPriorita}" Value="True">
-                    <Setter Property="Fill" Value="{StaticResource BrushStatoStandBy}"/>
-                </DataTrigger>
-            </Style.Triggers>
         </Style>
 
         <!-- Dot ambra per promemoria ad alta priorità -->
         <Style x:Key="PuntoPromemoria" TargetType="Ellipse">
             <Setter Property="Width" Value="7"/>
             <Setter Property="Height" Value="7"/>
-            <Setter Property="Fill" Value="{StaticResource BrushStatoStandBy}"/>
+            <Setter Property="Fill" Value="{StaticResource BrushPrimaryLight}"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
             <Setter Property="Margin" Value="0,6,10,0"/>
         </Style>
@@ -168,7 +160,7 @@
 
             <!-- ===== HEADER: saluto + data. Compatto, come contesto della
                  dashboard; le cifre vivono nei KPI e nelle sezioni ===== -->
-            <StackPanel Grid.Row="0" Margin="2,0,0,12">
+            <StackPanel Grid.Row="0" Margin="2,0,0,8">
                 <TextBlock Text="{Binding Saluto}" Style="{StaticResource HomeTitle}"/>
                 <TextBlock Text="{Binding DataOggiTesto}" Style="{StaticResource PageSubtitleText}"
                            Margin="0,2,0,0"/>
@@ -178,7 +170,7 @@
                  sottili. KPI = dimensione/stato (ad es. "ToDo aperti" è il
                  lavoro aperto), le sezioni sotto = cosa gestire adesso.
                  Rosso solo dove la situazione è realmente problematica. ===== -->
-            <Grid Grid.Row="1" Margin="0,0,0,24">
+            <Grid Grid.Row="1" Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="1"/>
@@ -195,9 +187,6 @@
                         <TextBlock Text="{Binding AdempimentiInRitardo}" Style="{StaticResource KpiNumberStyle}"/>
                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                             <TextBlock Text="Adempimenti in ritardo" Style="{StaticResource KpiLabelStyle}"/>
-                            <Ellipse Width="6" Height="6" Fill="{StaticResource BrushStatoCessato}"
-                                     Margin="5,0,0,0" VerticalAlignment="Center"
-                                     Visibility="{Binding HaAdempimentiRitardo, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
                     </StackPanel>
                 </Button>
@@ -210,9 +199,6 @@
                         <TextBlock Text="{Binding ToDoAperti}" Style="{StaticResource KpiNumberStyle}"/>
                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                             <TextBlock Text="ToDo aperti" Style="{StaticResource KpiLabelStyle}"/>
-                            <Ellipse Width="6" Height="6" Fill="{StaticResource BrushStatoCessato}"
-                                     Margin="5,0,0,0" VerticalAlignment="Center"
-                                     Visibility="{Binding HaToDoScaduti, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
                     </StackPanel>
                 </Button>
@@ -242,7 +228,7 @@
                 </Button>
             </Grid>
 
-            <!-- ===== RIGA A: Richiede attenzione | Prossime scadenze ===== -->
+            <!-- ===== RIGA A: Richiede attenzione | ToDo ===== -->
             <Grid Grid.Row="2" Margin="0,0,0,16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -308,33 +294,40 @@
                         <Button Grid.Row="2" Style="{StaticResource LinkHome}" HorizontalAlignment="Left" Margin="2,8,0,0"
                             Command="{Binding ApriTuttiRitardiCommand}"
                             Visibility="{Binding HaAdempimentiRitardo, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="Vedi tutti nello Scadenzario →"/>
+                            <TextBlock Text="Apri Scadenzario →"/>
                         </Button>
                     </Grid>
                 </Border>
 
-                <!-- 2. PROSSIME SCADENZE · 7 GIORNI: lista compatta -->
+                <!-- 2. TODO: box unico (era diviso in "ToDo urgenti" + "Prossime
+                     scadenze", stesso modulo raccontato due volte). Lista unica:
+                     scaduti prima, poi alta priorità/in scadenza entro 7 giorni.
+                     I ToDo senza scadenza NON hanno urgenza ma vanno comunque
+                     gestiti: non entrano nella lista (non sono "urgenti"), ma
+                     restano visibili con una nota in fondo alla card, così non
+                     spariscono dalla vista pur non allarmando nessuno. -->
                 <Border Grid.Column="2" Style="{StaticResource CardHome}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="Prossime scadenze" Style="{StaticResource SectionTitleTextStyle}"/>
-                            <TextBlock Text="{Binding TotaleProssimeScadenze, StringFormat='· {0} entro 7 giorni'}"
+                            <TextBlock Text="ToDo" Style="{StaticResource SectionTitleTextStyle}"/>
+                            <TextBlock Text="{Binding ToDoCaptionTesto}"
                                        Style="{StaticResource CaptionSezione}" Margin="10,1,0,0"
-                                       Visibility="{Binding HaProssimeScadenze, Converter={StaticResource BoolToVisibility}}"/>
+                                       Visibility="{Binding HaToDoCaption, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="1" Text="Nessuna scadenza nei prossimi 7 giorni."
+                        <TextBlock Grid.Row="1" Text="Nessun ToDo scaduto o in scadenza nei prossimi 7 giorni."
                                    Style="{StaticResource SecondaryTextStyle}" Margin="2,6,0,0"
-                                   Visibility="{Binding HaProssimeScadenze, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                                   Visibility="{Binding HaToDoInEvidenza, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
 
-                        <ItemsControl Grid.Row="1" ItemsSource="{Binding ProssimeScadenze}"
-                            Visibility="{Binding HaProssimeScadenze, Converter={StaticResource BoolToVisibility}}">
+                        <ItemsControl Grid.Row="1" ItemsSource="{Binding ToDoInEvidenza}"
+                            Visibility="{Binding HaToDoInEvidenza, Converter={StaticResource BoolToVisibility}}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Button Style="{StaticResource RigaCliccabileHome}" Margin="0,0,0,2"
@@ -360,7 +353,11 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <Button Grid.Row="2" Style="{StaticResource LinkHome}" HorizontalAlignment="Left" Margin="2,8,0,0"
+                        <TextBlock Grid.Row="2" Text="{Binding ToDoSenzaScadenzaTesto}"
+                                   Style="{StaticResource CaptionSezione}" Margin="2,8,0,0"
+                                   Visibility="{Binding HaToDoSenzaScadenza, Converter={StaticResource BoolToVisibility}}"/>
+
+                        <Button Grid.Row="3" Style="{StaticResource LinkHome}" HorizontalAlignment="Left" Margin="2,8,0,0"
                             Command="{Binding ApriToDoCommand}">
                             <TextBlock Text="Apri ToDo →"/>
                         </Button>
@@ -368,7 +365,7 @@
                 </Border>
             </Grid>
 
-            <!-- ===== RIGA B: Studi da incassare | ToDo urgenti ===== -->
+            <!-- ===== RIGA B: Situazione studi | Clienti ===== -->
             <Grid Grid.Row="3" Margin="0,0,0,16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -387,7 +384,7 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="Studi da incassare" Style="{StaticResource SectionTitleTextStyle}"/>
+                            <TextBlock Text="Situazione studi" Style="{StaticResource SectionTitleTextStyle}"/>
                             <TextBlock Text="{Binding TotaleStudiDaIncassare, StringFormat='· {0} studi'}"
                                        Style="{StaticResource CaptionSezione}" Margin="10,1,0,0"
                                        Visibility="{Binding HaStudiDaIncassare, Converter={StaticResource BoolToVisibility}}"/>
@@ -430,13 +427,16 @@
 
                         <Button Grid.Row="2" Style="{StaticResource LinkHome}" HorizontalAlignment="Left" Margin="2,8,0,0"
                             Command="{Binding ApriStudiCommand}">
-                            <TextBlock Text="Vedi tutti gli Studi →"/>
+                            <TextBlock Text="Apri Studi →"/>
                         </Button>
                     </Grid>
                 </Border>
 
-                <!-- 4. TODO URGENTI: scaduti prima, poi alta priorità -->
-                <Border Grid.Column="2" Style="{StaticResource CardHome}">
+
+
+                <!-- 7. PROMEMORIA: ruolo secondario, solo alta priorità (max 3).
+                     Ambra = semantica "attenzione", niente barre decorative. -->
+                <Border Grid.Column="4" Style="{StaticResource CardHome}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -445,46 +445,39 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="ToDo urgenti" Style="{StaticResource SectionTitleTextStyle}"/>
-                            <TextBlock Text="{Binding TotaleToDoUrgenti, StringFormat='· {0} urgenti'}"
-                                       Style="{StaticResource CaptionSezione}" Margin="10,1,0,0"
-                                       Visibility="{Binding HaToDoUrgenti, Converter={StaticResource BoolToVisibility}}"/>
+                            <TextBlock Text="Promemoria" Style="{StaticResource SectionTitleTextStyle}"/>
+                            <TextBlock Text="{Binding PromemoriaTotali, StringFormat='· {0} in totale'}"
+                                       Style="{StaticResource CaptionSezione}" Margin="10,1,0,0"/>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="1" Text="Nessun ToDo urgente."
-                                   Style="{StaticResource SecondaryTextStyle}" Margin="2,6,0,0"
-                                   Visibility="{Binding HaToDoUrgenti, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                        <TextBlock Grid.Row="1" Text="Nessun Promemoria presente."
+           Style="{StaticResource SecondaryTextStyle}" Margin="2,6,0,0"
+           Visibility="{Binding HaPromemoriaInEvidenza, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
 
-                        <ItemsControl Grid.Row="1" ItemsSource="{Binding ToDoUrgenti}"
-                            Visibility="{Binding HaToDoUrgenti, Converter={StaticResource BoolToVisibility}}">
+                        <ItemsControl Grid.Row="1" ItemsSource="{Binding PromemoriaInEvidenza}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Style="{StaticResource RigaCliccabileHome}" Margin="0,0,0,2"
-                                        Command="{Binding DataContext.ApriToDoFiltratoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Ellipse Style="{StaticResource PuntoPriorita}"/>
-                                            <StackPanel Grid.Column="1">
-                                                <TextBlock Text="{Binding Titolo}" FontSize="13" FontWeight="Medium"
-                                                    Foreground="{StaticResource BrushTestoPrimario}" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"
-                                                    Margin="0,2,0,0" TextTrimming="CharacterEllipsis">
-                                                    <Run Text="{Binding Cliente, Mode=OneWay}"/><Run Text="  ·  "/><Run Text="{Binding ScadenzaTesto, Mode=OneWay}"/>
-                                                </TextBlock>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Button>
+                                    <Grid Margin="2,5" Background="Transparent">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Ellipse Style="{StaticResource PuntoPromemoria}"/>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding Titolo}" FontSize="13" FontWeight="Medium"
+                                                Foreground="{StaticResource BrushTestoPrimario}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Descrizione}" FontSize="11" Margin="0,2,0,0"
+                                                Foreground="{StaticResource BrushTestoSecondario}" TextTrimming="CharacterEllipsis"
+                                                Visibility="{Binding HaDescrizione, Converter={StaticResource BoolToVisibility}}"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
                         <Button Grid.Row="2" Style="{StaticResource LinkHome}" HorizontalAlignment="Left" Margin="2,8,0,0"
-                            Command="{Binding ApriToDoCommand}">
-                            <TextBlock Text="Apri ToDo →"/>
+                            Command="{Binding ApriPromemoriaCommand}">
+                            <TextBlock Text="Apri promemoria →"/>
                         </Button>
                     </Grid>
                 </Border>
@@ -543,78 +536,117 @@
                         <TextBlock Text="Nessun adempimento configurato per l'anno corrente."
                                    Style="{StaticResource SecondaryTextStyle}" Margin="2,4,0,4" TextWrapping="Wrap"
                                    Visibility="{Binding HaAdempimentiAnno, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+
+                        <Button Style="{StaticResource LinkHome}" HorizontalAlignment="Left" Margin="2,12,0,0"
+                            Command="{Binding ApriTuttiRitardiCommand}"
+                            Visibility="{Binding HaAdempimentiRitardo, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="Apri scadenziario →"/>
+                        </Button>
                     </StackPanel>
                 </Border>
 
-                <!-- 6. FATTURE: situazione economica dell'anno, stessa REGOLA
-                     DELL'ANNO del modulo (centralizzata in FattureViewModel). -->
+                <!-- 6. FATTURE: composizione del fatturato dell'anno (stessa REGOLA
+                     DELL'ANNO del modulo, centralizzata in FattureViewModel).
+                     NON ripete il totale "da incassare" già nel KPI: qui la
+                     card racconta la composizione, non lo stesso numero.
+                     Stesso pattern visivo della card Adempimenti: barra
+                     segmentata + tre contatori, per coerenza col design system. -->
                 <Border Grid.Column="2" Style="{StaticResource CardHome}">
                     <StackPanel>
                         <TextBlock Text="{Binding AnnoCorrente, StringFormat='Fatture {0}'}"
-                                   Style="{StaticResource SectionTitleTextStyle}" Margin="0,0,0,10"/>
+                                   Style="{StaticResource SectionTitleTextStyle}" Margin="0,0,0,12"/>
 
-                        <TextBlock Text="{Binding FattureDaIncassareTesto}" Style="{StaticResource KpiNumberStyle}"/>
-                        <TextBlock Text="da incassare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                        <Grid Visibility="{Binding HaFattureAnno, Converter={StaticResource BoolToVisibility}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding PctFattureIncassato, Converter={StaticResource PercentoAGridLength}}"/>
+                                <ColumnDefinition Width="{Binding PctFattureNonScadute, Converter={StaticResource PercentoAGridLength}}"/>
+                                <ColumnDefinition Width="{Binding PctFattureScadute, Converter={StaticResource PercentoAGridLength}}"/>
+                            </Grid.ColumnDefinitions>
+                            <Rectangle Fill="{StaticResource BrushStatoAttivo}" Height="6" RadiusX="3" RadiusY="3"/>
+                            <Rectangle Grid.Column="1" Fill="{StaticResource BrushPrimaryLight}" Height="6" Margin="2,0" RadiusX="3" RadiusY="3"/>
+                            <Rectangle Grid.Column="2" Fill="{StaticResource BrushStatoCessato}" Height="6" RadiusX="3" RadiusY="3"/>
+                        </Grid>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <TextBlock Text="{Binding FattureDaIncassareNumero, StringFormat='{}{0} da incassare'}"
-                                       Style="{StaticResource SecondaryTextStyle}"/>
-                            <TextBlock Text="  ·  " Style="{StaticResource SecondaryTextStyle}"/>
-                            <TextBlock Text="{Binding FattureScaduteNumero}" FontWeight="SemiBold" FontSize="13"
-                                       Foreground="{StaticResource BrushStatoCessato}"/>
-                            <TextBlock Text=" scadute" Style="{StaticResource SecondaryTextStyle}"/>
-                        </StackPanel>
+                        <Grid Margin="0,12,0,0" Visibility="{Binding HaFattureAnno, Converter={StaticResource BoolToVisibility}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{Binding FattureIncassatoTesto}" Style="{StaticResource ContatoreSecondario}"
+                                           Foreground="{StaticResource BrushStatoAttivo}"/>
+                                <TextBlock Text="Incassato" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding FattureNonScaduteTesto}" Style="{StaticResource ContatoreSecondario}"/>
+                                <TextBlock Text="Da incassare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{Binding FattureScaduteImportoTesto}" Style="{StaticResource ContatoreSecondario}"
+                                           Foreground="{StaticResource BrushStatoCessato}"/>
+                                <TextBlock Text="Scadute" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Nessuna fattura emessa per l'anno corrente."
+                                   Style="{StaticResource SecondaryTextStyle}" Margin="2,4,0,4" TextWrapping="Wrap"
+                                   Visibility="{Binding HaFattureAnno, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
 
                         <Button Style="{StaticResource LinkHome}" HorizontalAlignment="Left" Margin="2,12,0,0"
                             Command="{Binding ApriFattureAnnoCommand}">
-                            <TextBlock Text="Vedi fatture →"/>
+                            <TextBlock Text="Apri fatture →"/>
                         </Button>
                     </StackPanel>
                 </Border>
 
-                <!-- 7. PROMEMORIA: ruolo secondario, solo alta priorità (max 3).
-                     Ambra = semantica "attenzione", niente barre decorative. -->
-                <Border Grid.Column="4" Style="{StaticResource CardHome}"
-                        Visibility="{Binding HaPromemoriaInEvidenza, Converter={StaticResource BoolToVisibility}}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                <!-- 4. CLIENTI: composizione per stato, stesso pattern visivo di
+                     Adempimenti/Fatture (barra segmentata + tre contatori).
+                     Riusa Cliente.Stato (già esistente): nessuna logica nuova.
+                     BrushStatoAttivo/BrushStatoStandBy/BrushStatoCessato sono
+                     già i tre colori semantici del design system. -->
+                <Border Grid.Column="4" Style="{StaticResource CardHome}">
+                    <StackPanel>
+                        <TextBlock Text="Clienti" Style="{StaticResource SectionTitleTextStyle}" Margin="0,0,0,12"/>
 
-                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="Promemoria" Style="{StaticResource SectionTitleTextStyle}"/>
-                            <TextBlock Text="{Binding PromemoriaTotali, StringFormat='· {0} in totale'}"
-                                       Style="{StaticResource CaptionSezione}" Margin="10,1,0,0"/>
-                        </StackPanel>
+                        <Grid Visibility="{Binding HaClienti, Converter={StaticResource BoolToVisibility}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding PctClientiAttivi, Converter={StaticResource PercentoAGridLength}}"/>
+                                <ColumnDefinition Width="{Binding PctClientiStandBy, Converter={StaticResource PercentoAGridLength}}"/>
+                                <ColumnDefinition Width="{Binding PctClientiCessati, Converter={StaticResource PercentoAGridLength}}"/>
+                            </Grid.ColumnDefinitions>
+                            <Rectangle Fill="{StaticResource BrushStatoAttivo}" Height="6" RadiusX="3" RadiusY="3"/>
+                            <Rectangle Grid.Column="1" Fill="{StaticResource BrushPrimaryLight}" Height="6" Margin="2,0" RadiusX="3" RadiusY="3"/>
+                            <Rectangle Grid.Column="2" Fill="{StaticResource BrushStatoCessato}" Height="6" RadiusX="3" RadiusY="3"/>
+                        </Grid>
 
-                        <ItemsControl Grid.Row="1" ItemsSource="{Binding PromemoriaInEvidenza}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="2,5" Background="Transparent">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Ellipse Style="{StaticResource PuntoPromemoria}"/>
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{Binding Titolo}" FontSize="13" FontWeight="Medium"
-                                                Foreground="{StaticResource BrushTestoPrimario}" TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Text="{Binding Descrizione}" FontSize="11" Margin="0,2,0,0"
-                                                Foreground="{StaticResource BrushTestoSecondario}" TextTrimming="CharacterEllipsis"
-                                                Visibility="{Binding HaDescrizione, Converter={StaticResource BoolToVisibility}}"/>
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <Grid Margin="0,12,0,0" Visibility="{Binding HaClienti, Converter={StaticResource BoolToVisibility}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{Binding ClientiAttivi}" Style="{StaticResource ContatoreSecondario}"
+                                           Foreground="{StaticResource BrushStatoAttivo}"/>
+                                <TextBlock Text="Attivi" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding ClientiStandBy}" Style="{StaticResource ContatoreSecondario}"/>
+                                <TextBlock Text="In stand-by" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{Binding ClientiCessati}" Style="{StaticResource ContatoreSecondario}"
+                                           Foreground="{StaticResource BrushStatoCessato}"/>
+                                <TextBlock Text="Cessati" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Grid>
 
-                        <Button Grid.Row="2" Style="{StaticResource LinkHome}" HorizontalAlignment="Left" Margin="2,8,0,0"
-                            Command="{Binding ApriPromemoriaCommand}">
-                            <TextBlock Text="Apri promemoria →"/>
+                        <Button Style="{StaticResource LinkHome}" HorizontalAlignment="Left" Margin="2,12,0,0"
+                            Command="{Binding ApriClientiCommand}">
+                            <TextBlock Text="Apri Clienti →"/>
                         </Button>
-                    </Grid>
+                    </StackPanel>
                 </Border>
             </Grid>
 
@@ -622,4 +654,3 @@
     </ScrollViewer>
 
 </UserControl>
-

@@ -6,41 +6,194 @@
              xmlns:models="clr-namespace:CLab.Models"
              xmlns:views="clr-namespace:CLab.Views">
 
-    <UserControl.Resources>
-        <!-- FASE 2: i converter per-modulo delle priorità sono ritirati a favore
-             del mapper semantico unificato (Converters.StatoSemantico). Le chiavi
-             locali restano le stesse per non toccare i binding dei post-it. -->
-        <conv:StatoSemanticoForeConverter x:Key="PrioritaAColore"/>
-        <conv:StatoSemanticoBackConverter x:Key="PrioritaASfondo"/>
+    <!-- ============================================================ -->
+    <!-- PROMEMORIA CLab 2.0: bacheca a griglia adattiva di card       -->
+    <!-- SaaS. Gerarchia: titolo → (ordinamento | nuovo) → griglia.    -->
+    <!-- Priorità: UN solo segnale visivo (dot + etichetta nell'header -->
+    <!-- della card), colori semantici invariati. Azioni solo in       -->
+    <!-- hover. Form nel ModalDialogControl condiviso.                 -->
+    <!-- Comandi e binding del ViewModel: invariati.                   -->
+    <!-- ============================================================ -->
 
-        <Style x:Key="BtnPrioritaBase" TargetType="Button" BasedOn="{StaticResource BtnOutline}">
-            <Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="Padding" Value="12,6"/>
+    <UserControl.Resources>
+        <conv:StatoSemanticoForeConverter x:Key="PrioritaAColore"/>
+
+        <!-- Card: superficie bianca, bordo sottile, radius del tema,
+             nessuna ombra. Larghezza fissa: il WrapPanel decide le colonne
+             in base alla larghezza della finestra (1 colonna stretta,
+             2-3 medie, 4-5 ampie). -->
+        <Style x:Key="CardPromemoria" TargetType="Border">
+            <Setter Property="Width" Value="300"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusMedium}"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,16,16"/>
         </Style>
 
-        <Style x:Key="BtnPrioritaBassa" TargetType="Button" BasedOn="{StaticResource BtnPrioritaBase}">
+        <!-- Header della card: dot semantico + etichetta priorità.
+             Micro-indicatore: riconoscibile, non dominante. -->
+        <Style x:Key="EtichettaPriorita" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{Binding Priorita, Converter={StaticResource PrioritaAColore}}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="DotPriorita" TargetType="Ellipse">
+            <Setter Property="Width" Value="7"/>
+            <Setter Property="Height" Value="7"/>
+            <Setter Property="Fill" Value="{Binding Priorita, Converter={StaticResource PrioritaAColore}}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+        </Style>
+
+        <!-- Titolo/descrizione/data della card -->
+        <Style x:Key="TitoloCard" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="DescrizioneCard" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight" Value="18"/>
+        </Style>
+
+        <Style x:Key="DataCard" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoTerziario}"/>
+        </Style>
+
+        <!-- Azioni della card: nascoste fuori hover, discrete dentro.
+             Trigger sull'antenato Border (IsMouseOver): nessuna animazione.
+             Icone "ghost": nessuno sfondo, nessun bordo, nessun rettangolo -
+             solo l'icona grigia con hover leggero (leggero scurimento). -->
+        <Style x:Key="AzioneCard" TargetType="Button">
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                    <Setter Property="Opacity" Value="1"/>
+                    <Setter Property="IsHitTestVisible" Value="True"/>
+                </DataTrigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Elimina: icona neutra come Modifica; il rosso compare solo come
+             feedback di hover, mai come colore permanente. -->
+        <Style x:Key="AzioneCardElimina" TargetType="Button" BasedOn="{StaticResource AzioneCard}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                    <Setter Property="Opacity" Value="1"/>
+                    <Setter Property="IsHitTestVisible" Value="True"/>
+                </DataTrigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource BrushStatoCessato}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Segmented control per l'ordinamento: container bianco bordato,
+             segment attivo su superficie neutra. Niente underline ambra. -->
+        <Style x:Key="SegmentContainer" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}"/>
+            <Setter Property="Padding" Value="2"/>
+        </Style>
+
+        <Style x:Key="SegmentButton" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SegmentData" TargetType="Button" BasedOn="{StaticResource SegmentButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding OrdinamentoPerPriorita}" Value="False">
+                    <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SegmentPriorita" TargetType="Button" BasedOn="{StaticResource SegmentButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding OrdinamentoPerPriorita}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Segment di priorità nel form: lo stato attivo indica la scelta
+             con lo stesso richiamo cromatico delle card (testo nel colore
+             semantico della priorità, via StatoSemantico), su wash neutro.
+             Segmenti non selezionati: neutri. -->
+        <Style x:Key="SegmentFormBase" TargetType="Button" BasedOn="{StaticResource SegmentButton}">
+            <Setter Property="Padding" Value="14,6"/>
+        </Style>
+
+        <Style x:Key="SegmentFormBassa" TargetType="Button" BasedOn="{StaticResource SegmentFormBase}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding FormPriorita}" Value="Bassa">
-                    <Setter Property="Foreground" Value="{StaticResource BrushPrimaryLight}"/>
-                    <Setter Property="BorderBrush" Value="{StaticResource BrushPrimaryLight}"/>
+                    <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                    <Setter Property="Foreground" Value="{Binding FormPriorita, Converter={StaticResource PrioritaAColore}}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="BtnPrioritaMedia" TargetType="Button" BasedOn="{StaticResource BtnPrioritaBase}">
+        <Style x:Key="SegmentFormMedia" TargetType="Button" BasedOn="{StaticResource SegmentFormBase}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding FormPriorita}" Value="Media">
-                    <Setter Property="Foreground" Value="{StaticResource BrushAccent}"/>
-                    <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                    <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                    <Setter Property="Foreground" Value="{Binding FormPriorita, Converter={StaticResource PrioritaAColore}}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="BtnPrioritaAlta" TargetType="Button" BasedOn="{StaticResource BtnPrioritaBase}">
+        <Style x:Key="SegmentFormAlta" TargetType="Button" BasedOn="{StaticResource SegmentFormBase}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding FormPriorita}" Value="Alta">
-                    <Setter Property="Foreground" Value="{StaticResource BrushDanger}"/>
-                    <Setter Property="BorderBrush" Value="{StaticResource BrushDanger}"/>
+                    <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                    <Setter Property="Foreground" Value="{Binding FormPriorita, Converter={StaticResource PrioritaAColore}}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -48,175 +201,188 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="64"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- HEADER -->
-        <Border Grid.Row="0" Grid.RowSpan="3" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0" Height="64"
-            VerticalAlignment="Top">
-            <StackPanel VerticalAlignment="Center">
-                <TextBlock Text="Promemoria" Style="{StaticResource ModuleTitleStyle}"/>
-                <TextBlock Text="APPUNTI RAPIDI E POST-IT" Style="{StaticResource ModuleSubtitleStyle}"/>
-            </StackPanel>
+        <!-- HEADER: titolo compatto a sinistra; a destra l'ordinamento
+             (segmented control) e l'azione primaria. Niente sottotitoli. -->
+        <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0">
+            <Grid VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Promemoria" Style="{StaticResource ModuleTitleStyle}" VerticalAlignment="Center"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+
+                    <!-- Ordina per: segmented control leggero -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
+                        <TextBlock Text="Ordina per" FontSize="12"
+                                   Foreground="{StaticResource BrushTestoSecondario}"
+                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <Border Style="{StaticResource SegmentContainer}">
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Data creazione" Style="{StaticResource SegmentData}"
+                                        Command="{Binding MostraPerDataCommand}" ToolTip="Ordina per data di creazione"/>
+                                <Button Content="Priorità" Style="{StaticResource SegmentPriorita}"
+                                        Command="{Binding MostraPerPrioritaCommand}" ToolTip="Ordina per priorità"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Azione primaria: nuovo promemoria -->
+                    <Button Command="{Binding NuovoCommand}" ToolTip="Nuovo promemoria">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource BtnPrimary}">
+                                <Setter Property="Padding" Value="14,7"/>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="12" Height="12"
+                                VerticalAlignment="Center" Margin="0,0,7,0"/>
+                            <TextBlock Text="Nuovo promemoria" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <!-- TOOLBAR: ordinamento + nuovo -->
-        <Grid Grid.Row="1" Margin="28,75,28,14">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+        <!-- BACHECA -->
+        <Grid Grid.Row="1" Margin="28,16,28,24">
 
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="Ordina per" FontSize="12" Foreground="{StaticResource BrushTestoSecondario}"
-                           VerticalAlignment="Center" Margin="0,0,12,0"/>
-
-                <Button Content="Data creazione" Command="{Binding MostraPerDataCommand}"
-                    Margin="0,0,16,0" Padding="4,6">
+            <!-- Empty state: leggero, centrato, con l'azione primaria -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Visibility="{Binding Promemoria.Count, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                <TextBlock Text="Nessun promemoria" HorizontalAlignment="Center"
+                           Style="{StaticResource SectionTitleTextStyle}"/>
+                <TextBlock Text="I tuoi promemoria appariranno qui." HorizontalAlignment="Center"
+                           Style="{StaticResource SecondaryTextStyle}" Margin="0,6,0,0"/>
+                <Button Command="{Binding NuovoCommand}" HorizontalAlignment="Center" Margin="0,16,0,0"
+                        ToolTip="Nuovo promemoria">
                     <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding OrdinamentoPerPriorita}" Value="False">
-                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                                    <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
-                                </DataTrigger>
-                            </Style.Triggers>
+                        <Style TargetType="Button" BasedOn="{StaticResource BtnPrimary}">
+                            <Setter Property="Padding" Value="14,7"/>
                         </Style>
                     </Button.Style>
-                </Button>
-
-                <Button Content="Priorità" Command="{Binding MostraPerPrioritaCommand}"
-                    Padding="4,6">
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource TabUnderlineButtonStyle}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding OrdinamentoPerPriorita}" Value="True">
-                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                                    <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="12" Height="12"
+                            VerticalAlignment="Center" Margin="0,0,7,0"/>
+                        <TextBlock Text="Nuovo promemoria" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </Button>
             </StackPanel>
 
-            <Button Grid.Column="2" Style="{StaticResource BtnOutlineGold}" Command="{Binding NuovoCommand}">
-                <StackPanel Orientation="Horizontal">
-                    <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="11" Height="11"
-                        Margin="0,0,6,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="Nuovo promemoria" VerticalAlignment="Center" Margin="0,4"/>
-                </StackPanel>
-            </Button>
+            <!-- Griglia adattiva: il WrapPanel va a capo in base alla larghezza
+                 disponibile, quindi il numero di colonne segue la finestra -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          Visibility="{Binding Promemoria.Count, Converter={StaticResource BoolToVisibility}}">
+                <ItemsControl ItemsSource="{Binding Promemoria}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource CardPromemoria}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Priorità (unico segnale) + azioni solo in hover -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                            <Ellipse Style="{StaticResource DotPriorita}"/>
+                                            <TextBlock Text="{Binding Priorita}" Style="{StaticResource EtichettaPriorita}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <Button Style="{StaticResource AzioneCard}"
+                                                Command="{Binding DataContext.ModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" ToolTip="Modifica">
+                                                <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="13" Height="13"/>
+                                            </Button>
+                                            <Button Style="{StaticResource AzioneCardElimina}" Margin="4,0,0,0"
+                                                Click="BtnElimina_Click" ToolTip="Elimina promemoria">
+                                                <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="13" Height="13"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Grid.Row="1" Text="{Binding Titolo}" Style="{StaticResource TitoloCard}"/>
+
+                                    <TextBlock Grid.Row="2" Text="{Binding Descrizione}" Margin="0,6,0,0" MaxHeight="72">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource DescrizioneCard}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Descrizione}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Descrizione}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <TextBlock Grid.Row="3" Text="{Binding DataCreazione, StringFormat='{}{0:d MMM yyyy}'}"
+                                               Style="{StaticResource DataCard}" Margin="0,10,0,0"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Grid>
 
-        <!-- BACHECA -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="28,0,28,24">
-            <ItemsControl ItemsSource="{Binding Promemoria}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Width="230" MinHeight="130" Margin="0,0,16,16" CornerRadius="10"
-                            Background="White" BorderBrush="{Binding Priorita, Converter={StaticResource PrioritaAColore}}"
-                            BorderThickness="1.3" Padding="14,12,10,10">
-                            <Border.Effect>
-                                <DropShadowEffect Color="Black" Opacity="0.10" BlurRadius="8" ShadowDepth="2" Direction="270"/>
-                            </Border.Effect>
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-
-                                <!-- Pill priorità -->
-                                <Border Grid.Row="0" HorizontalAlignment="Left" CornerRadius="8" Padding="7,2" Margin="0,0,0,8"
-                                    Background="{Binding Priorita, Converter={StaticResource PrioritaASfondo}}">
-                                    <TextBlock Text="{Binding Priorita}" FontSize="10" FontWeight="Medium"
-                                        Foreground="{Binding Priorita, Converter={StaticResource PrioritaAColore}}"/>
-                                </Border>
-
-                                <TextBlock Grid.Row="1" Text="{Binding Titolo}" FontSize="14" FontWeight="Medium"
-                                    Foreground="{StaticResource BrushTestoPrimario}" TextWrapping="Wrap" Margin="0,0,0,6"/>
-
-                                <TextBlock Grid.Row="2" Text="{Binding Descrizione}" FontSize="13"
-                                    Foreground="{StaticResource BrushTestoSecondario}" TextWrapping="Wrap"
-                                    VerticalAlignment="Top"/>
-
-                                <Grid Grid.Row="3" Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <TextBlock Grid.Column="0" Text="{Binding DataCreazione, StringFormat='d MMM'}"
-                                        FontSize="11" Foreground="{StaticResource BrushTestoSecondario}"
-                                        Opacity="0.7" VerticalAlignment="Center"/>
-
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                        <Button Style="{StaticResource BtnIcon}"
-                                            Command="{Binding DataContext.ModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}" ToolTip="Modifica">
-                                            <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="12" Height="12"
-                                                Foreground="{StaticResource BrushTestoSecondario}"/>
-                                        </Button>
-                                        <Button Style="{StaticResource BtnIconRed}" Margin="3,0,0,0"
-                                            Click="BtnElimina_Click" ToolTip="Butta via">
-                                            <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="13" Height="13"
-                                                Foreground="{StaticResource BrushTestoSecondario}"/>
-                                        </Button>
-                                    </StackPanel>
-                                </Grid>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-
-        <!-- FASE 3: pannello laterale condiviso (SidePanelControl): stesso form,
-             nuovo contenitore con Esc, overlay cliccabile, larghezza dinamica. -->
-        <views:SidePanelControl Grid.Row="0" Grid.RowSpan="3"
+        <!-- Form nuovo/modifica nel ModalDialogControl condiviso: stesso
+             contratto del SidePanelControl (PannelloAperto/TitoloPannello/
+             HaModifiche), comandi e logica del ViewModel invariati. -->
+        <views:ModalDialogControl Grid.Row="0" Grid.RowSpan="2"
             IsAperto="{Binding PannelloAperto}"
             Titolo="{Binding TitoloPannello}"
             ComandoChiudi="{Binding AnnullaCommand}"
             ComandoSalva="{Binding SalvaCommand}"
             HaModificheNonSalvate="{Binding HaModifiche}">
 
-            <views:SidePanelControl.Contenuto>
-                    <StackPanel>
+            <views:ModalDialogControl.Contenuto>
+                <StackPanel>
 
-                        <TextBlock Text="TITOLO" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Text="{Binding FormTitolo, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
+                    <TextBlock Text="Titolo" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding FormTitolo, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
 
-                        <TextBlock Text="DESCRIZIONE" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Text="{Binding FormDescrizione, UpdateSourceTrigger=PropertyChanged}"
-                            AcceptsReturn="True" TextWrapping="Wrap" Height="120"
-                            VerticalContentAlignment="Top" Margin="0,4,0,16"/>
+                    <TextBlock Text="Descrizione" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding FormDescrizione, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True" TextWrapping="Wrap" Height="110"
+                             VerticalContentAlignment="Top" Margin="0,4,0,16"/>
 
-                        <TextBlock Text="PRIORITÀ" Style="{StaticResource FieldLabel}"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <Button Content="Bassa" Style="{StaticResource BtnPrioritaBassa}"
-                                Command="{Binding ImpostaPrioritaCommand}"
-                                CommandParameter="{x:Static models:PrioritaPromemoria.Bassa}"/>
-                            <Button Content="Media" Style="{StaticResource BtnPrioritaMedia}"
-                                Command="{Binding ImpostaPrioritaCommand}"
-                                CommandParameter="{x:Static models:PrioritaPromemoria.Media}"/>
-                            <Button Content="Alta" Style="{StaticResource BtnPrioritaAlta}"
-                                Command="{Binding ImpostaPrioritaCommand}"
-                                CommandParameter="{x:Static models:PrioritaPromemoria.Alta}"/>
+                    <TextBlock Text="Priorità" Style="{StaticResource FieldLabel}"/>
+                    <Border Style="{StaticResource SegmentContainer}" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Bassa" Style="{StaticResource SegmentFormBassa}"
+                                    Command="{Binding ImpostaPrioritaCommand}"
+                                    CommandParameter="{x:Static models:PrioritaPromemoria.Bassa}"/>
+                            <Button Content="Media" Style="{StaticResource SegmentFormMedia}"
+                                    Command="{Binding ImpostaPrioritaCommand}"
+                                    CommandParameter="{x:Static models:PrioritaPromemoria.Media}"/>
+                            <Button Content="Alta" Style="{StaticResource SegmentFormAlta}"
+                                    Command="{Binding ImpostaPrioritaCommand}"
+                                    CommandParameter="{x:Static models:PrioritaPromemoria.Alta}"/>
                         </StackPanel>
+                    </Border>
 
-                    </StackPanel>
-            </views:SidePanelControl.Contenuto>
-        </views:SidePanelControl>
+                </StackPanel>
+            </views:ModalDialogControl.Contenuto>
+        </views:ModalDialogControl>
     </Grid>
 </UserControl>
+

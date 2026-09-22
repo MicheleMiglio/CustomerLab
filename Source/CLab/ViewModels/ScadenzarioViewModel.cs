@@ -34,25 +34,59 @@ namespace CLab.ViewModels
             set { _referenteFiltro = value; OnPropertyChanged(); ApplicaFiltroCliente(); }
         }
 
+        // Chip ciclo vita (stesse etichette del modulo Clienti). Default operativo: Attivi.
+        private string _filtroStatoCliente = "Attivi";
+        public string FiltroStatoCliente
+        {
+            get => _filtroStatoCliente;
+            set
+            {
+                if (_filtroStatoCliente == value) return;
+                _filtroStatoCliente = value;
+                OnPropertyChanged();
+                ApplicaFiltroCliente();
+            }
+        }
+
+        public ICommand ImpostaFiltroStatoClienteCommand { get; }
+
+        private bool _aggiornandoListaClienti;
+
         private Cliente? _clienteSelezionato;
         public Cliente? ClienteSelezionato
         {
             get => _clienteSelezionato;
             set
             {
+                if (ReferenceEquals(_clienteSelezionato, value)) return;
                 _clienteSelezionato = value;
                 OnPropertyChanged();
                 NessunClienteSelezionato = value == null;
-                CaricaTuttoPerCliente();
                 OnPropertyChanged(nameof(MostraAvvisoClienteNonAttivo));
                 OnPropertyChanged(nameof(TestoAvvisoClienteNonAttivo));
+                OnPropertyChanged(nameof(AvvisoClienteCessato));
+                if (!_aggiornandoListaClienti)
+                    CaricaTuttoPerCliente();
             }
         }
 
         public bool MostraAvvisoClienteNonAttivo => ClienteSelezionato != null && ClienteSelezionato.Stato != StatoCliente.Attivo;
 
-        public string TestoAvvisoClienteNonAttivo => ClienteSelezionato == null ? "" :
-            $"Questo cliente risulta \"{ClienteSelezionato.Stato}\". Vai su Clienti per riattivarlo, se necessario.";
+        public bool AvvisoClienteCessato => ClienteSelezionato?.Stato == StatoCliente.Cessato;
+
+        public string TestoAvvisoClienteNonAttivo
+        {
+            get
+            {
+                if (ClienteSelezionato == null) return "";
+                return ClienteSelezionato.Stato switch
+                {
+                    StatoCliente.StandBy => "Cliente in stand-by. Puoi comunque lavorare lo scadenzario.",
+                    StatoCliente.Cessato => "Cliente cessato. Stai consultando lo storico; i dati restano disponibili.",
+                    _ => $"Questo cliente risulta \"{ClienteSelezionato.Stato}\". Vai su Clienti per riattivarlo, se necessario."
+                };
+            }
+        }
 
         private bool _nessunClienteSelezionato = true;
         public bool NessunClienteSelezionato
@@ -364,8 +398,35 @@ namespace CLab.ViewModels
         public string FiltroRitenuteTesto
         {
             get => _filtroRitenuteTesto;
-            set { _filtroRitenuteTesto = value; OnPropertyChanged(); ApplicaFiltroRitenute(); }
+            set { _filtroRitenuteTesto = value; OnPropertyChanged(); OnPropertyChanged(nameof(HaFiltriRitenuteAttivi)); ApplicaFiltroRitenute(); }
         }
+
+        private string _filtroStatoRitenute = "Tutte";
+        public string FiltroStatoRitenute
+        {
+            get => _filtroStatoRitenute;
+            set
+            {
+                if (_filtroStatoRitenute == value) return;
+                _filtroStatoRitenute = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HaFiltriRitenuteAttivi));
+                OnPropertyChanged(nameof(EmptyRitenuteTesto));
+                ApplicaFiltroRitenute();
+            }
+        }
+
+        public bool HaFiltriRitenuteAttivi =>
+            FiltroStatoRitenute != "Tutte" || !string.IsNullOrWhiteSpace(FiltroRitenuteTesto);
+
+        public bool HaRitenuteFiltrate => RitenuteFiltrate.Count > 0;
+
+        public string EmptyRitenuteTesto => HaFiltriRitenuteAttivi
+            ? "Nessuna ritenuta corrisponde ai filtri."
+            : "Nessuna ritenuta in questo anno.";
+
+        public ICommand ImpostaFiltroStatoRitenuteCommand { get; }
+        public ICommand AzzeraFiltriRitenuteCommand { get; }
 
         private string _totaleRitenuteTesto = "€ 0";
         public string TotaleRitenuteTesto { get => _totaleRitenuteTesto; private set { _totaleRitenuteTesto = value; OnPropertyChanged(); } }
@@ -414,6 +475,11 @@ namespace CLab.ViewModels
         private decimal? _formImportoVersato;
         public decimal? FormImportoVersato { get => _formImportoVersato; set { _formImportoVersato = value; OnPropertyChanged(); } }
 
+        private bool _formRavvedimento;
+        public bool FormRavvedimento { get => _formRavvedimento; set { _formRavvedimento = value; OnPropertyChanged(); } }
+
+        public string TitoloPannelloRitenuta => _ritenutaInModificaId == 0 ? "Nuova ritenuta" : "Modifica ritenuta";
+
         public ICommand NuovaRitenutaCommand { get; }
         public ICommand ModificaRitenutaCommand { get; }
         public ICommand SalvaRitenutaCommand { get; }
@@ -432,6 +498,10 @@ namespace CLab.ViewModels
             ConfiguraAttivitaCommand = new RelayCommand(ConfiguraAttivita);
             AnnoPrecedenteCommand = new RelayCommand(() => AnnoSelezionato--);
             AnnoSuccessivoCommand = new RelayCommand(() => AnnoSelezionato++);
+            ImpostaFiltroStatoClienteCommand = new RelayCommand<string>(s =>
+            {
+                if (!string.IsNullOrWhiteSpace(s)) FiltroStatoCliente = s;
+            });
 
             MostraDashboardCommand = new RelayCommand(() => CambiaScheda(Scheda.Dashboard));
             MostraAdempimentiCommand = new RelayCommand(() => CambiaScheda(Scheda.Adempimenti));
@@ -453,6 +523,15 @@ namespace CLab.ViewModels
             AnnullaRitenutaCommand = new RelayCommand(() => PannelloRitenutaAperto = false);
             EliminaRitenutaCommand = new RelayCommand<RitenutaAcconto>(EliminaRitenuta);
             ToggleRavvedimentoRitenutaCommand = new RelayCommand<RitenutaAcconto>(ToggleRavvedimentoRitenuta);
+            ImpostaFiltroStatoRitenuteCommand = new RelayCommand<string>(s =>
+            {
+                if (!string.IsNullOrWhiteSpace(s)) FiltroStatoRitenute = s;
+            });
+            AzzeraFiltriRitenuteCommand = new RelayCommand(() =>
+            {
+                FiltroStatoRitenute = "Tutte";
+                FiltroRitenuteTesto = string.Empty;
+            });
             SegnaVersatoInteroCommand = new RelayCommand(SegnaVersatoIntero);
             PulisciDataPagamentoFatturaCommand = new RelayCommand(() => FormDataPagamentoFattura = null);
             PulisciDataPagamentoRitenutaCommand = new RelayCommand(() => FormScadenzaVersamento = null);
@@ -479,16 +558,44 @@ namespace CLab.ViewModels
 
         private void ApplicaFiltroCliente()
         {
+            IEnumerable<Cliente> filtrati = _clientiCompleti;
+
+            if (ReferenteFiltro != null)
+                filtrati = filtrati.Where(c => c.ReferenteId == ReferenteFiltro.Id);
+
+            filtrati = FiltroStatoCliente switch
+            {
+                "Attivi" => filtrati.Where(c => c.Stato == StatoCliente.Attivo),
+                "Stand by" => filtrati.Where(c => c.Stato == StatoCliente.StandBy),
+                "Cessati" => filtrati.Where(c => c.Stato == StatoCliente.Cessato),
+                _ => filtrati
+            };
+
+            var precedente = _clienteSelezionato;
+            var elenco = filtrati.ToList();
+
+            _aggiornandoListaClienti = true;
             ClientiDisponibili.Clear();
+            foreach (var c in elenco) ClientiDisponibili.Add(c);
+            _aggiornandoListaClienti = false;
 
-            var filtrati = ReferenteFiltro == null
-                ? _clientiCompleti
-                : _clientiCompleti.Where(c => c.ReferenteId == ReferenteFiltro.Id);
-
-            foreach (var c in filtrati) ClientiDisponibili.Add(c);
-
-            if (ClienteSelezionato != null && !ClientiDisponibili.Contains(ClienteSelezionato))
+            if (precedente != null && !ClientiDisponibili.Contains(precedente))
+            {
                 ClienteSelezionato = null;
+                return;
+            }
+
+            // Clear() della combo può azzerare SelectedItem: ripristina il riferimento
+            // senza ricaricare compilazioni/ritenute se il cliente è ancora visibile.
+            if (!ReferenceEquals(_clienteSelezionato, precedente))
+            {
+                _clienteSelezionato = precedente;
+                OnPropertyChanged(nameof(ClienteSelezionato));
+                NessunClienteSelezionato = precedente == null;
+                OnPropertyChanged(nameof(MostraAvvisoClienteNonAttivo));
+                OnPropertyChanged(nameof(TestoAvvisoClienteNonAttivo));
+                OnPropertyChanged(nameof(AvvisoClienteCessato));
+            }
         }
 
         private void ConfiguraAttivita()
@@ -963,10 +1070,28 @@ namespace CLab.ViewModels
         private void ApplicaFiltroRitenute()
         {
             RitenuteFiltrate.Clear();
-            var filtrate = string.IsNullOrWhiteSpace(FiltroRitenuteTesto)
-                ? _ritenuteComplete
-                : _ritenuteComplete.Where(r => r.NumeroFattura.Contains(FiltroRitenuteTesto, StringComparison.OrdinalIgnoreCase));
+
+            IEnumerable<RitenutaAcconto> filtrate = _ritenuteComplete;
+
+            if (!string.IsNullOrWhiteSpace(FiltroRitenuteTesto))
+            {
+                string q = FiltroRitenuteTesto.Trim();
+                filtrate = filtrate.Where(r =>
+                    r.NumeroFattura.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                    r.Intestazione.Contains(q, StringComparison.OrdinalIgnoreCase));
+            }
+
+            filtrate = FiltroStatoRitenute switch
+            {
+                "Da versare" => filtrate.Where(r => r.StatoVersamento == "DaVersare"),
+                "Versate" => filtrate.Where(r => r.StatoVersamento == "Versato"),
+                "Anomalie" => filtrate.Where(r => r.HaAnomalie),
+                _ => filtrate
+            };
+
             foreach (var r in filtrate) RitenuteFiltrate.Add(r);
+            OnPropertyChanged(nameof(HaRitenuteFiltrate));
+            OnPropertyChanged(nameof(EmptyRitenuteTesto));
         }
 
         private void AggiornaTotaliRitenute()
@@ -997,6 +1122,8 @@ namespace CLab.ViewModels
             FormImportoRitenuta = null;
             FormScadenzaVersamento = null;
             FormImportoVersato = null;
+            FormRavvedimento = false;
+            OnPropertyChanged(nameof(TitoloPannelloRitenuta));
 
             PannelloRitenutaAperto = true;
         }
@@ -1013,6 +1140,8 @@ namespace CLab.ViewModels
             FormImportoRitenuta = r.ImportoRitenuta;
             FormScadenzaVersamento = r.ScadenzaVersamento;
             FormImportoVersato = r.ImportoVersato;
+            FormRavvedimento = r.Ravvedimento;
+            OnPropertyChanged(nameof(TitoloPannelloRitenuta));
 
             PannelloRitenutaAperto = true;
         }
@@ -1049,6 +1178,7 @@ namespace CLab.ViewModels
             entita.ImportoRitenuta = FormImportoRitenuta.Value;
             entita.ScadenzaVersamento = FormScadenzaVersamento;
             entita.ImportoVersato = FormImportoVersato;
+            entita.Ravvedimento = FormRavvedimento;
 
             db.SaveChanges();
 
@@ -1078,8 +1208,9 @@ namespace CLab.ViewModels
 
             using var db = new ClabDbContext();
             var entita = db.RitenuteAcconto.First(x => x.Id == r.Id);
-            entita.Ravvedimento = r.Ravvedimento;
+            entita.Ravvedimento = !entita.Ravvedimento;
             db.SaveChanges();
+            CaricaRitenute();
         }
 
         private void SegnaVersatoIntero()
@@ -1097,12 +1228,22 @@ namespace CLab.ViewModels
         /// </summary>
         public void ApriPerCliente(int clienteId, string? scheda = null, bool soloRitardi = false)
         {
-            // Il filtro referente potrebbe nascondere il cliente richiesto.
-            if (ReferenteFiltro != null)
-                ReferenteFiltro = null;
-
             var cliente = _clientiCompleti.FirstOrDefault(c => c.Id == clienteId);
             if (cliente == null) return;
+
+            // Chip ciclo vita allineato allo stato reale, così un cessato/stand-by
+            // aperto dalla Home resta visibile nella combo (default del modulo: Attivi).
+            FiltroStatoCliente = cliente.Stato switch
+            {
+                StatoCliente.Attivo => "Attivi",
+                StatoCliente.StandBy => "Stand by",
+                StatoCliente.Cessato => "Cessati",
+                _ => "Tutti"
+            };
+
+            // Referente: si azzera solo se nasconderebbe il cliente richiesto.
+            if (ReferenteFiltro != null && cliente.ReferenteId != ReferenteFiltro.Id)
+                ReferenteFiltro = null;
 
             SoloRitardi = soloRitardi;
 

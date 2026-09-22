@@ -1,4 +1,4 @@
-﻿using CLab.Data;
+using CLab.Data;
 using CLab.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -47,15 +47,12 @@ namespace CLab.ViewModels
 
         public int Conteggio => Righe.Count;
         public bool MostraSezione => SempreVisibile || Righe.Count > 0;
-        public string Intestazione => string.IsNullOrEmpty(Nota)
-            ? $"{Titolo}  {Conteggio}"
-            : $"{Titolo}  {Conteggio}  ·  {Nota}";
 
         private string? _nota;
         public string? Nota
         {
             get => _nota;
-            set { if (_nota == value) return; _nota = value; OnPropertyChanged(); OnPropertyChanged(nameof(Intestazione)); }
+            set { if (_nota == value) return; _nota = value; OnPropertyChanged(); }
         }
         public bool MostraRighe => Espansa && Righe.Count > 0;
         public bool MostraVuoto => Espansa && Righe.Count == 0 && MostraPlaceholderVuoto;
@@ -64,7 +61,6 @@ namespace CLab.ViewModels
         {
             OnPropertyChanged(nameof(Conteggio));
             OnPropertyChanged(nameof(MostraSezione));
-            OnPropertyChanged(nameof(Intestazione));
             OnPropertyChanged(nameof(MostraRighe));
             OnPropertyChanged(nameof(MostraVuoto));
         }
@@ -93,13 +89,10 @@ namespace CLab.ViewModels
 
         public ObservableCollection<Referente> ReferentiTutti { get; } = new();
 
-        public List<KeyValuePair<string, string>> OpzioniPrioritaFiltro { get; } = new()
-        {
-            new("tutte", "Tutte"),
-            new("alta", "Alta"),
-            new("media", "Media"),
-            new("bassa", "Bassa")
-        };
+        // Revisione UI: i filtri principali (priorità, solo scaduti) sono chip
+        // segmentate nella barra filtri; i comandi operano sulla bozza esistente.
+        public ICommand ImpostaBozzaPrioritaCommand { get; }
+        public ICommand ToggleBozzaSoloScadutiCommand { get; }
 
         public List<KeyValuePair<string, string>> OpzioniCollegamentoFiltro { get; } = new()
         {
@@ -135,42 +128,7 @@ namespace CLab.ViewModels
                 if (_ordinamento == value) return;
                 _ordinamento = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(OrdinamentoEtichetta));
                 AggiornaLista();
-            }
-        }
-
-        public string OrdinamentoEtichetta => Ordinamento == OrdinamentoToDo.Creazione
-            ? "Più recenti"
-            : "Per scadenza";
-
-        // --- FASE 9: raggruppamento Nessuno (default) / Per Cliente.
-        //     Implementato con CollectionViewSource/GroupDescriptions standard
-        //     sulle Righe delle sezioni esistenti: nessuna nuova sezione e i
-        //     filtri restano applicati alle stesse collezioni. ---
-
-        private bool _raggruppaPerCliente;
-        public bool RaggruppaPerCliente
-        {
-            get => _raggruppaPerCliente;
-            set { _raggruppaPerCliente = value; OnPropertyChanged(); ApplicaRaggruppamento(); }
-        }
-
-        public ICommand ToggleRaggruppamentoCommand { get; }
-
-        /// <summary>FASE 9: applica/rimuove il GroupDescription "Per Cliente" sulle
-        /// viste standard delle Righe di ogni sezione. Il raggruppamento usa
-        /// CollegamentoDisplay (cliente, altrimenti referente, altrimenti "—").</summary>
-        private void ApplicaRaggruppamento()
-        {
-            foreach (var sezione in Sezioni)
-            {
-                var vista = System.Windows.Data.CollectionViewSource.GetDefaultView(sezione.Righe);
-                if (vista == null) continue;
-
-                vista.GroupDescriptions.Clear();
-                if (_raggruppaPerCliente)
-                    vista.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription(nameof(ToDo.CollegamentoDisplay)));
             }
         }
 
@@ -230,15 +188,28 @@ namespace CLab.ViewModels
 
         public int NumeroFiltriAttivi { get; private set; }
         public bool HaChipFiltri => ChipFiltri.Count > 0;
+        /// <summary>Revisione UI: i chip dei filtri applicati si nascondono mentre
+        /// la barra filtri è aperta (lì si vede lo stato della bozza in editing).</summary>
+        public bool MostraChipFiltri => HaChipFiltri && !FiltriAperti;
+        /// <summary>Empty state: CTA di azzeramento quando c'è almeno un filtro
+        /// applicato oppure una ricerca attiva (anche senza chip).</summary>
+        public bool HaFiltriORicerca => HaChipFiltri || !string.IsNullOrWhiteSpace(FiltroTesto);
         public bool ListaVuota { get; private set; }
 
-        /// <summary>FASE 8: messaggio empty state distinguente filtri attivi / tutto completato.</summary>
+        /// <summary>FASE 8: messaggio empty state distinguente filtri attivi / tutto completato.
+        /// Revisione UI: distingue anche la ricerca (sola o combinata con i filtri).</summary>
         public string EmptyStateTesto
         {
             get
             {
+                bool haRicerca = !string.IsNullOrWhiteSpace(FiltroTesto);
+
+                if (HaChipFiltri && haRicerca)
+                    return "Nessun ToDo corrisponde ai filtri e alla ricerca attivi.";
                 if (HaChipFiltri)
                     return "Nessun ToDo corrisponde ai filtri attivi.";
+                if (haRicerca)
+                    return $"Nessun ToDo corrisponde alla ricerca \"{FiltroTesto.Trim()}\".";
 
                 bool soloCompletati = SezioneScaduti.Conteggio == 0
                     && SezioneInProgramma.Conteggio == 0
@@ -246,6 +217,28 @@ namespace CLab.ViewModels
                     && SezioneCompletati.Conteggio > 0;
 
                 return soloCompletati ? "Tutto completato!" : "Nessun ToDo da mostrare.";
+            }
+        }
+
+        /// <summary>Revisione UI: seconda riga dell'empty state (pattern
+        /// Promemoria: titolo + sottotesto + azione). Distinzione: filtri e/o
+        /// ricerca attivi / tutto completato / nessun ToDo.</summary>
+        public string EmptyStateSottotesto
+        {
+            get
+            {
+                bool haRicerca = !string.IsNullOrWhiteSpace(FiltroTesto);
+                if (HaChipFiltri || haRicerca)
+                    return "Prova a modificare o azzerare filtri e ricerca.";
+
+                bool soloCompletati = SezioneScaduti.Conteggio == 0
+                    && SezioneInProgramma.Conteggio == 0
+                    && SezioneSenzaScadenza.Conteggio == 0
+                    && SezioneCompletati.Conteggio > 0;
+
+                return soloCompletati
+                    ? "Non ci sono ToDo aperti nel periodo considerato."
+                    : "Crea un nuovo ToDo per iniziare.";
             }
         }
 
@@ -283,6 +276,7 @@ namespace CLab.ViewModels
                 if (_filtriAperti == value) return;
                 _filtriAperti = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(MostraChipFiltri));
                 if (value)
                 {
                     OverlayAperto = false;
@@ -361,7 +355,6 @@ namespace CLab.ViewModels
         public ICommand ApriFiltriCommand { get; }
         public ICommand ApplicaFiltriCommand { get; }
         public ICommand AzzeraBozzaFiltriCommand { get; }
-        public ICommand ChiudiFiltriCommand { get; }
         public ICommand RimuoviChipCommand { get; }
 
         public ICommand OrdinaPerScadenzaCommand { get; }
@@ -374,6 +367,12 @@ namespace CLab.ViewModels
         public ICommand ToggleCompletatoCommand { get; }
         public ICommand ToggleEspansoCommand { get; }
         public ICommand ToggleSottoAttivitaInlineCommand { get; }
+
+        // Revisione UI ToDo 2.0: priorità nel form come segmented control
+        // (pattern Promemoria) e svuota-rapido sulla scadenza (pattern Fatture).
+        // Solo presentazione: riusano le proprietà FormPriorita/FormDataScadenza.
+        public ICommand ImpostaPrioritaCommand { get; }
+        public ICommand PulisciScadenzaCommand { get; }
 
         public ICommand SalvaCommand { get; }
         public ICommand EliminaCommand { get; }
@@ -427,18 +426,18 @@ namespace CLab.ViewModels
                 SezioneCompletati
             };
 
-            ApriFiltriCommand = new RelayCommand(() => FiltriAperti = true);
+            ApriFiltriCommand = new RelayCommand(() => FiltriAperti = !FiltriAperti); // toggle: apre e chiude la barra filtri
             ApplicaFiltriCommand = new RelayCommand(ApplicaFiltri);
             AzzeraBozzaFiltriCommand = new RelayCommand(() =>
             {
                 AzzeraBozzaFiltri();
                 ApplicaFiltri();
             });
-            ChiudiFiltriCommand = new RelayCommand(() => FiltriAperti = false);
             RimuoviChipCommand = new RelayCommand<string>(RimuoviChip);
+            ImpostaBozzaPrioritaCommand = new RelayCommand<object>(p => { if (p is string priorita) BozzaPriorita = priorita; });
+            ToggleBozzaSoloScadutiCommand = new RelayCommand(() => BozzaSoloScaduti = !BozzaSoloScaduti);
 
             OrdinaPerScadenzaCommand = new RelayCommand(() => Ordinamento = OrdinamentoToDo.Scadenza);
-            ToggleRaggruppamentoCommand = new RelayCommand(() => RaggruppaPerCliente = !RaggruppaPerCliente);
             OrdinaPerCreazioneCommand = new RelayCommand(() => Ordinamento = OrdinamentoToDo.Creazione);
 
             ToggleSezioneCommand = new RelayCommand<SezioneToDoLista>(s =>
@@ -451,6 +450,9 @@ namespace CLab.ViewModels
             ToggleCompletatoCommand = new RelayCommand<ToDo>(ToggleCompletato);
             ToggleEspansoCommand = new RelayCommand<ToDo>(ToggleEspanso);
             ToggleSottoAttivitaInlineCommand = new RelayCommand<ToDoSottoAttivita>(ToggleSottoAttivitaInline);
+
+            ImpostaPrioritaCommand = new RelayCommand<object>(p => { if (p is PrioritaToDo priorita) FormPriorita = priorita; });
+            PulisciScadenzaCommand = new RelayCommand(() => FormDataScadenza = null);
 
             SalvaCommand = new RelayCommand(Salva, () => !string.IsNullOrWhiteSpace(FormTitolo));
             EliminaCommand = new RelayCommand(Elimina);
@@ -556,6 +558,12 @@ namespace CLab.ViewModels
             BozzaDataA = null;
             BozzaMostraTuttiCompletati = false;
             BozzaSoloScaduti = false;
+
+            // Revisione UI: "Azzera" riporta il modulo allo stato neutro completo,
+            // quindi cancella anche la ricerca. È ciò che l'utente si aspetta dal
+            // pulsante e dall'empty state ("Azzera filtri" dopo una ricerca senza
+            // risultati deve riportare i dati, non lasciare la ricerca attiva).
+            FiltroTesto = string.Empty;
         }
 
         private void ApplicaFiltri()
@@ -650,16 +658,18 @@ namespace CLab.ViewModels
         {
             ChipFiltri.Clear();
 
+            // Revisione UI: il simbolo "×" è fornito dall'icona del template
+            // della chip (ChipRimuovi), non fa più parte del testo.
             if (_filtroClienteId.HasValue)
-                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "cliente", Testo = $"Cliente · {_filtroClienteNome} ×" });
+                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "cliente", Testo = $"Cliente · {_filtroClienteNome}" });
             if (_filtroReferenteId.HasValue)
-                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "referente", Testo = $"Referente · {_filtroReferenteNome} ×" });
+                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "referente", Testo = $"Referente · {_filtroReferenteNome}" });
             if (_filtroPriorita != "tutte")
-                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "priorita", Testo = $"Priorità · {EtichettaPriorita(_filtroPriorita)} ×" });
+                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "priorita", Testo = $"Priorità · {EtichettaPriorita(_filtroPriorita)}" });
             if (_filtroCollegamento != "tutti")
-                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "collegamento", Testo = $"Collegamento · {EtichettaCollegamento(_filtroCollegamento)} ×" });
+                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "collegamento", Testo = $"Collegamento · {EtichettaCollegamento(_filtroCollegamento)}" });
             if (_filtroPassi != "tutti")
-                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "passi", Testo = $"Passi · {EtichettaPassi(_filtroPassi)} ×" });
+                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "passi", Testo = $"Passi · {EtichettaPassi(_filtroPassi)}" });
             if (_filtroDataDa.HasValue || _filtroDataA.HasValue)
             {
                 string da = _filtroDataDa?.ToString("dd/MM/yyyy") ?? "…";
@@ -667,17 +677,18 @@ namespace CLab.ViewModels
                 ChipFiltri.Add(new ChipFiltroToDo
                 {
                     Chiave = "date",
-                    Testo = $"{EtichettaCampoData(_filtroCampoData)} · {da} – {a} ×"
+                    Testo = $"{EtichettaCampoData(_filtroCampoData)} · {da} – {a}"
                 });
             }
             if (_filtroMostraTuttiCompletati)
-                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "completati", Testo = "Completati · tutti ×" });
+                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "completati", Testo = "Completati · tutti" });
             if (_filtroSoloScaduti)
-                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "soloScaduti", Testo = "Solo scaduti ×" });
+                ChipFiltri.Add(new ChipFiltroToDo { Chiave = "soloScaduti", Testo = "Solo scaduti" });
 
             NumeroFiltriAttivi = ChipFiltri.Count;
             OnPropertyChanged(nameof(NumeroFiltriAttivi));
             OnPropertyChanged(nameof(HaChipFiltri));
+            OnPropertyChanged(nameof(MostraChipFiltri));
             OnPropertyChanged(nameof(TestoBottoneFiltri));
             OnPropertyChanged(nameof(NotaCompletati));
         }
@@ -816,6 +827,8 @@ namespace CLab.ViewModels
             ListaVuota = filtrati.Count == 0;
             OnPropertyChanged(nameof(ListaVuota));
             OnPropertyChanged(nameof(EmptyStateTesto));
+            OnPropertyChanged(nameof(EmptyStateSottotesto));
+            OnPropertyChanged(nameof(HaFiltriORicerca));
             SezioneCompletati.Nota = NotaCompletati;
             AggiornaChipFiltri();
         }
@@ -857,7 +870,7 @@ namespace CLab.ViewModels
             AggiornaClientiPerCombo();
 
             PannelloTitolo = "Nuovo ToDo";
-            PannelloSottoTitolo = "NUOVO TODO";
+            PannelloSottoTitolo = string.Empty; // Revisione UI: il titolo dice già "Nuovo ToDo"
             FormCompletatoInfo = string.Empty;
             MostraEliminaPanel = false;
             HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
@@ -891,7 +904,7 @@ namespace CLab.ViewModels
             AggiornaClientiPerCombo();
 
             PannelloTitolo = t.Titolo;
-            PannelloSottoTitolo = "MODIFICA TODO";
+            PannelloSottoTitolo = "Modifica ToDo";
             FormCompletatoInfo = t.Completato && t.DataCompletamento.HasValue
                 ? $"Completato il {t.DataCompletamento:dd/MM/yyyy}"
                 : string.Empty;
@@ -918,10 +931,18 @@ namespace CLab.ViewModels
             entita.Completato = !entita.Completato;
             entita.DataCompletamento = entita.Completato ? DateTime.Now : null;
 
+            // Invariante padre/figli (bidirezionale): con sotto-attività presenti,
+            // completare il padre le completa tutte; deselezionarlo le riporta
+            // tutte a da fare. Stessa regola del toggle inline e del salvataggio.
             if (entita.Completato)
             {
                 foreach (var s in entita.SottoAttivita)
                     s.Completato = true;
+            }
+            else
+            {
+                foreach (var s in entita.SottoAttivita)
+                    s.Completato = false;
             }
 
             db.SaveChanges();
@@ -1029,6 +1050,29 @@ namespace CLab.ViewModels
             }
 
             db.SaveChanges();
+
+            // Invariante padre/figli: se il ToDo ha sotto-attività, dopo il
+            // salvataggio lo stato del padre viene riallineato con la stessa
+            // regola usata dal completamento inline (tutte i passi completate
+            // ⟺ padre completato). Previene stati incoerenti tipo "padre
+            // completato con passi aperti" salvati dal form.
+            var passiSalvati = db.ToDoSottoAttivita.Where(x => x.ToDoId == entita.Id).ToList();
+            if (passiSalvati.Count > 0)
+            {
+                bool tuttiCompletati = passiSalvati.All(x => x.Completato);
+                if (tuttiCompletati && !entita.Completato)
+                {
+                    entita.Completato = true;
+                    entita.DataCompletamento ??= DateTime.Now;
+                    db.SaveChanges();
+                }
+                else if (!tuttiCompletati && entita.Completato)
+                {
+                    entita.Completato = false;
+                    entita.DataCompletamento = null;
+                    db.SaveChanges();
+                }
+            }
 
             ChiudiOverlay();
             Carica();

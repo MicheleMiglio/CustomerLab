@@ -1,99 +1,23 @@
 ﻿using CLab.ViewModels;
-using System;
-using System.ComponentModel;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
 
 namespace CLab.Views
 {
     public partial class ToDoView : UserControl
     {
-        private bool _filtriAperti;
-
         public ToDoView()
         {
             InitializeComponent();
-
-            Loaded += ToDoView_Loaded;
         }
 
-        private void ToDoView_Loaded(object sender, RoutedEventArgs e)
+        /// <summary>Cancella rapido della ricerca: solo presentazione,
+        /// il filtro resta una responsabilità del ViewModel (FiltroTesto).</summary>
+        private void CancellaRicerca_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is ToDoViewModel vm)
-                vm.PropertyChanged += Vm_PropertyChanged;
-        }
-
-        private void Vm_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (DataContext is not ToDoViewModel vm)
-                return;
-
-            // FASE 3: il pannello crea/modifica è un SidePanelControl condiviso
-            // (aperto/chiuso da OverlayAperto via binding). Qui resta solo la
-            // gestione del pannello filtri.
-            if (e.PropertyName == nameof(ToDoViewModel.FiltriAperti))
-            {
-                if (vm.FiltriAperti && !_filtriAperti)
-                    AprirePannello(PannelloFiltri, FiltriTranslate, 380, () => _filtriAperti = true);
-                else if (!vm.FiltriAperti && _filtriAperti)
-                    ChiuderePannello(PannelloFiltri, FiltriTranslate, 380, () => _filtriAperti = false);
-            }
-        }
-
-        private void AprirePannello(FrameworkElement pannello, TranslateTransform transform, double larghezza, Action segnoAperto)
-        {
-            segnoAperto();
-
-            pannello.IsHitTestVisible = true;
-            pannello.Visibility = Visibility.Visible;
-            OverlayScuro.Visibility = Visibility.Visible;
-
-            AnimaTranslate(transform, larghezza, 0, 280, true);
-        }
-
-        private async void ChiuderePannello(FrameworkElement pannello, TranslateTransform transform, double larghezza, Action segnoChiuso)
-        {
-            segnoChiuso();
-
-            pannello.IsHitTestVisible = false;
-            AnimaTranslate(transform, 0, larghezza, 220, false);
-
-            await Task.Delay(230);
-
-            pannello.Visibility = Visibility.Collapsed;
-
-            if (DataContext is ToDoViewModel vm && !vm.OverlayAperto && !vm.FiltriAperti)
-                OverlayScuro.Visibility = Visibility.Collapsed;
-        }
-
-        private static void AnimaTranslate(TranslateTransform transform, double from, double to, int durationMs, bool easeOut)
-        {
-            var anim = new DoubleAnimation
-            {
-                From = from,
-                To = to,
-                Duration = TimeSpan.FromMilliseconds(durationMs),
-                EasingFunction = new CubicEase
-                {
-                    EasingMode = easeOut ? EasingMode.EaseOut : EasingMode.EaseIn
-                }
-            };
-
-            transform.BeginAnimation(TranslateTransform.XProperty, anim);
-        }
-
-        private void Ordina_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button btn || btn.ContextMenu == null)
-                return;
-
-            btn.ContextMenu.DataContext = DataContext;
-            btn.ContextMenu.PlacementTarget = btn;
-            btn.ContextMenu.IsOpen = true;
+                vm.FiltroTesto = string.Empty;
         }
 
         private void NuovaSottoAttivita_KeyDown(object sender, KeyEventArgs e)

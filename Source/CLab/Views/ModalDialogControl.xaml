@@ -1,0 +1,116 @@
+<UserControl x:Class="CLab.Views.ModalDialogControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:conv="clr-namespace:CLab.Converters"
+             x:Name="radice"
+             Focusable="True"
+             PreviewKeyDown="SuTasto">
+
+    <!-- ============================================================ -->
+    <!-- MODAL DIALOG CLab 2.0: contenitore condiviso per i form dei   -->
+    <!-- moduli (Promemoria oggi, form complessi domani).              -->
+    <!--                                                               -->
+    <!-- Pattern: scrim neutro + dialog centrato con header sticky,    -->
+    <!-- body scrollabile, footer sticky (Annulla | Salva).            -->
+    <!-- Chiusura: X / Esc / click overlay, con conferma se ci sono    -->
+    <!-- modifiche non salvate. Solo presentazione: comandi e stato    -->
+    <!-- restano a VM/View (stesso contratto di SidePanelControl).     -->
+    <!--                                                               -->
+    <!-- Responsive: la larghezza è calcolata dalla larghezza della    -->
+    <!-- finestra (LarghezzaDialogConverter): dialog confortevole su   -->
+    <!-- schermi normali/grandi, ridotto su finestre strette, con      -->
+    <!-- margine minimo dai bordi e scroll interno per form lunghi.    -->
+    <!-- ============================================================ -->
+
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:LarghezzaDialogConverter x:Key="LarghezzaDialog"/>
+    </UserControl.Resources>
+
+    <Grid Visibility="{Binding IsAperto, ElementName=radice, Converter={StaticResource BoolToVis}}">
+
+        <!-- Overlay neutro: mette a fuoco il dialog (click = richiesta chiusura) -->
+        <Border x:Name="overlay"
+                Style="{StaticResource OverlayScuroStyle}"
+                MouseLeftButtonDown="SuClickOverlay"/>
+
+        <!-- Dialog: superficie bianca, bordo sottile, ombra leggera condivisa -->
+        <Border x:Name="dialog"
+                Background="White"
+                BorderBrush="{StaticResource BrushBordoLeggero}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource RadiusLarge}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource LarghezzaDialog}, ConverterParameter=Altezza}"
+                Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource LarghezzaDialog}}"
+                Effect="{StaticResource PanelShadowEffect}">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- HEADER STICKY: titolo + (sottotitolo) + chiusura -->
+                <Border Grid.Row="0" BorderBrush="{StaticResource BrushBordoLeggero}"
+                        BorderThickness="0,0,0,1" Padding="20,16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Titolo, ElementName=radice}"
+                                           Style="{StaticResource ModuleTitleStyle}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding Sottotitolo, ElementName=radice}"
+                                           Style="{StaticResource ModuleSubtitleStyle}" Margin="0,4,0,0"
+                                           Visibility="{Binding Sottotitolo, ElementName=radice, Converter={StaticResource BoolToVis}}"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}"
+                                    ToolTip="Chiudi (Esc)" VerticalAlignment="Top"
+                                    Click="SuClickChiudi">
+                                <iconPacks:PackIconBootstrapIcons Kind="XLg"
+                                    Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
+                            </Button>
+                        </Grid>
+
+                        <!-- Zona extra facoltativa sotto il titolo (es. schede) -->
+                        <ContentPresenter Grid.Row="1" Margin="0,12,0,0"
+                                          Content="{Binding HeaderExtra, ElementName=radice}"
+                                          Visibility="{Binding HeaderExtra, ElementName=radice, Converter={StaticResource BoolToVis}}"/>
+                    </Grid>
+                </Border>
+
+                <!-- BODY SCROLLABILE: il contenuto del form resta nella View -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20,18,20,8">
+                    <ContentPresenter Content="{Binding Contenuto, ElementName=radice}"/>
+                </ScrollViewer>
+
+                <!-- FOOTER STICKY: Annulla (secondaria) | Salva (primaria) -->
+                <Border Grid.Row="2" BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="0,1,0,0"
+                        Padding="20,14"
+                        Visibility="{Binding MostraFooter, ElementName=radice, Converter={StaticResource BoolToVis}}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Annulla"
+                                Command="{Binding ComandoChiudi, ElementName=radice}"
+                                Style="{StaticResource BtnOutline}" MinWidth="96"/>
+                        <Button Content="{Binding EtichettaSalva, ElementName=radice}"
+                                Command="{Binding ComandoSalva, ElementName=radice}"
+                                Style="{StaticResource BtnPrimary}" MinWidth="104" Margin="10,0,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
+

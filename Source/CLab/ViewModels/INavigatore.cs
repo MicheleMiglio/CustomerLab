@@ -9,7 +9,7 @@ namespace CLab.ViewModels
     /// </summary>
     public interface INavigatore
     {
-        void ApriClienti();
+        void ApriClienti(string? filtroTesto = null);
 
         /// <summary>Apri il modulo ToDo; se indicato, con filtri preapplicati o aprendo direttamente un ToDo specifico (FASE 7).</summary>
         void ApriToDo(int? clienteId = null, bool soloScaduti = false, bool prioritaAlta = false, int? todoId = null);
@@ -23,13 +23,13 @@ namespace CLab.ViewModels
         /// </summary>
         void ApriScadenzario(int? clienteId = null, string? scheda = null, bool soloRitardi = false);
 
-        /// <summary>Apri il modulo Fatture; se indicato, limitato all'anno.</summary>
-        void ApriFatture(int? anno = null);
+        /// <summary>Apri il modulo Fatture; se indicato, limitato all'anno e/o
+        /// con la ricerca testuale precompilata (es. da Studi → fatture dello studio).</summary>
+        void ApriFatture(int? anno = null, string? filtroTesto = null);
 
-        /// <summary>
-        /// FASE 5: Apri il modulo Studi (i Referenti come asse economico).
-        /// Con referenteId indicato, apre direttamente il dettaglio dello studio.
-        /// </summary>
+        /// <summary>Apri il modulo Studi (i Referenti come asse economico).
+        /// Con referenteId indicato, apre direttamente lo stesso modal di
+        /// modifica usato da doppio click e azione Modifica della tabella.</summary>
         void ApriStudi(int? referenteId = null);
 
         /// <summary>FASE 12: apri il dettaglio del cliente indicato (ricerca globale).</summary>

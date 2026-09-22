@@ -16,8 +16,9 @@ namespace CLab.Views
         }
 
         /// <summary>
-        /// Fa sparire il post-it con un fade-out breve, poi lo elimina
-        /// davvero (dati compresi). Nessuna conferma: è un post-it, si butta.
+        /// Fa sparire la card con un fade-out breve, poi elimina davvero il
+        /// promemoria (dati compresi). Nessuna conferma: è un promemoria
+        /// rapido, si butta. La logica resta nel ViewModel.
         /// </summary>
         private void BtnElimina_Click(object sender, RoutedEventArgs e)
         {

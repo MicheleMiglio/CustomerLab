@@ -21,69 +21,66 @@ namespace CLab.ViewModels
         public string FiltroTesto
         {
             get => _filtroTesto;
-            set { _filtroTesto = value; OnPropertyChanged(); ApplicaFiltro(); }
+            set { _filtroTesto = value; OnPropertyChanged(); OnPropertyChanged(nameof(HaFiltriAttivi)); OnPropertyChanged(nameof(EmptyStateTesto)); ApplicaFiltro(); }
         }
 
-        // --- Filtro anno (groundwork FASE 4, selettore reale FASE 7).
+        // --- Navigazione annuale CLab 2.0 ---
         //     REGOLA ANNO CLab 2.0: se DataPagamento è valorizzata vale l'anno di
         //     DataPagamento; se NULL la fattura appartiene all'anno corrente.
-        //     Centralizzata in AnnoFattura(): filtro lista, totali e KPI usano
-        //     sempre la stessa funzione. null = nessun filtro ("Tutti gli anni"). ---
+        //     Centralizzata in AnnoFattura(): lista, totali e KPI usano sempre la
+        //     stessa funzione (la Home la riusa via HomeViewModel.IncludeAnnoFattura).
+        //     L'anno si sceglie con il navigatore ‹ anno ›: apertura sull'anno
+        //     corrente, navigazione libera senza limiti, nessuna voce "tutti".
 
-        private int? _annoFiltrato;
-        public int? AnnoFiltrato
+        private int _annoSelezionato = DateTime.Now.Year;
+        public int AnnoSelezionato
         {
-            get => _annoFiltrato;
+            get => _annoSelezionato;
             private set
             {
-                _annoFiltrato = value;
+                _annoSelezionato = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(AnnoFiltratoTesto));
-                OnPropertyChanged(nameof(HaFiltroAnno));
                 OnPropertyChanged(nameof(EmptyStateTesto));
-                OnPropertyChanged(nameof(OpzioneAnnoSelezionata));
+                OnPropertyChanged(nameof(HaFiltriAttivi));
             }
         }
 
-        public bool HaFiltroAnno => _annoFiltrato.HasValue;
+        public ICommand AnnoPrecedenteCommand { get; }
+        public ICommand AnnoSuccessivoCommand { get; }
 
-        public string AnnoFiltratoTesto => _annoFiltrato.HasValue ? $"Anno {_annoFiltrato}" : string.Empty;
-
-        public string EmptyStateTesto => HaFiltroAnno
-            ? $"Nessuna fattura per l'{AnnoFiltratoTesto}."
-            : "Nessuna fattura registrata.";
+        public string EmptyStateTesto => HaFiltriAttivi
+            ? "Nessuna fattura corrisponde ai filtri applicati."
+            : $"Nessuna fattura nel {AnnoSelezionato}.";
 
         /// <summary>Regola anno definitiva CLab 2.0 (FASE 7, unificata in FASE 10):
         /// anno di DataPagamento se presente, altrimenti anno corrente. È l'unica
-        /// regola di dominio: filtro lista, totali, KPI, anni disponibili del
+        /// regola di dominio: filtro lista, totali, KPI, navigatore annuale del
         /// modulo e KPI fatture della Home la usano (HomeViewModel.IncludeAnnoFattura).</summary>
         public static int AnnoFattura(Fattura f) => f.DataPagamento?.Year ?? DateTime.Now.Year;
 
-        private List<OpzioneAnnoVoce> _opzioniAnnoFatture = new();
-        public List<OpzioneAnnoVoce> OpzioniAnnoFatture
+        // --- Filtri (stato / studio / ricerca) ---
+        //     Stato: "Tutte" | "Emesse" | "Pagate" | "Annullate" (chip segmentati).
+        //     Studio: Referente selezionato o null ("tutti gli studi").
+
+        private string _filtroStato = "Tutte";
+        public string FiltroStato
         {
-            get => _opzioniAnnoFatture;
-            private set { _opzioniAnnoFatture = value; OnPropertyChanged(); }
+            get => _filtroStato;
+            set { _filtroStato = value; OnPropertyChanged(); OnPropertyChanged(nameof(HaFiltriAttivi)); OnPropertyChanged(nameof(EmptyStateTesto)); ApplicaFiltro(); }
         }
 
-        /// <summary>Voce selezionata nel selettore anno: sincronizza il filtro (in entrambe le direzioni).</summary>
-        public OpzioneAnnoVoce? OpzioneAnnoSelezionata
+        private Referente? _filtroStudio;
+        public Referente? FiltroStudio
         {
-            get => _opzioniAnnoFatture.FirstOrDefault(o => o.Anno == _annoFiltrato);
-            set
-            {
-                if (value == null || _annoFiltrato == value.Anno) return;
-                _annoFiltrato = value.Anno;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(AnnoFiltrato));
-                OnPropertyChanged(nameof(AnnoFiltratoTesto));
-                OnPropertyChanged(nameof(HaFiltroAnno));
-                OnPropertyChanged(nameof(EmptyStateTesto));
-                CaricaFatture();
-            }
+            get => _filtroStudio;
+            set { _filtroStudio = value; OnPropertyChanged(); OnPropertyChanged(nameof(HaFiltriAttivi)); OnPropertyChanged(nameof(EmptyStateTesto)); ApplicaFiltro(); }
         }
 
-        public ICommand RimuoviFiltroAnnoCommand { get; }
+        public bool HaFiltriAttivi => FiltroStato != "Tutte" || FiltroStudio != null || !string.IsNullOrWhiteSpace(FiltroTesto);
+
+        public ICommand ImpostaStatoFiltroCommand { get; }
+        public ICommand AzzeraFiltriCommand { get; }
+        public ICommand RimuoviFiltroStudioCommand { get; }
 
         /// <summary>Quick action "Pagata oggi" sulla riga: imposta DataPagamento = oggi
         /// e persiste immediatamente con lo stesso percorso del modulo (EF + SaveChanges
@@ -99,6 +96,9 @@ namespace CLab.ViewModels
         private string _daIncassareTesto = "€ 0";
         public string DaIncassareTesto { get => _daIncassareTesto; private set { _daIncassareTesto = value; OnPropertyChanged(); } }
 
+        private string _anomalieTesto = "0";
+        public string AnomalieTesto { get => _anomalieTesto; private set { _anomalieTesto = value; OnPropertyChanged(); } }
+
         private int _fattureScadute;
         public int FattureScadute { get => _fattureScadute; private set { _fattureScadute = value; OnPropertyChanged(); } }
 
@@ -106,6 +106,10 @@ namespace CLab.ViewModels
 
         private bool _pannelloAperto;
         public bool PannelloAperto { get => _pannelloAperto; set { _pannelloAperto = value; OnPropertyChanged(); } }
+
+        /// <summary>Titolo del modal: "Nuova fattura" o "Modifica fattura" in base all'operazione.</summary>
+        private string _titoloPannello = "Nuova fattura";
+        public string TitoloPannello { get => _titoloPannello; set { _titoloPannello = value; OnPropertyChanged(); } }
 
         // FASE 3: modifiche non salvate, per la conferma di chiusura del
         // SidePanelControl. Viene azzerato a ogni apertura del form (Nuova/Modifica).
@@ -163,7 +167,11 @@ namespace CLab.ViewModels
             PulisciScadenzaCommand = new RelayCommand(() => FormDataScadenza = null);
             PulisciPagamentoCommand = new RelayCommand(() => FormDataPagamento = null);
             SegnaPagataOggiCommand = new RelayCommand(() => FormDataPagamento = DateTime.Now);
-            RimuoviFiltroAnnoCommand = new RelayCommand(() => { AnnoFiltrato = null; CaricaFatture(); });
+            AnnoPrecedenteCommand = new RelayCommand(() => { AnnoSelezionato--; CaricaFatture(); });
+            AnnoSuccessivoCommand = new RelayCommand(() => { AnnoSelezionato++; CaricaFatture(); });
+            ImpostaStatoFiltroCommand = new RelayCommand<string?>(s => FiltroStato = s ?? "Tutte");
+            AzzeraFiltriCommand = new RelayCommand(() => { FiltroStato = "Tutte"; FiltroStudio = null; FiltroTesto = string.Empty; });
+            RimuoviFiltroStudioCommand = new RelayCommand(() => FiltroStudio = null);
             PagataOggiRigaCommand = new RelayCommand<RigaFattura>(SegnaPagataOggiRiga);
             ApriStudioCommand = new RelayCommand<RigaFattura>(ApriStudio);
 
@@ -204,20 +212,6 @@ namespace CLab.ViewModels
                 })
                 .ToList();
 
-            // FASE 7: anni disponibili per il selettore (regola AnnoFattura), più "Tutti gli anni".
-            OpzioniAnnoFatture = new List<OpzioneAnnoVoce>
-            {
-                new OpzioneAnnoVoce { Anno = null, Etichetta = "Tutti gli anni" }
-            };
-            foreach (var a in _fattureComplete
-                         .Select(r => AnnoFattura(r.Fattura))
-                         .Distinct()
-                         .OrderByDescending(a => a))
-            {
-                OpzioniAnnoFatture.Add(new OpzioneAnnoVoce { Anno = a, Etichetta = $"Anno {a}" });
-            }
-            OnPropertyChanged(nameof(OpzioneAnnoSelezionata));
-
             ApplicaFiltro();
             AggiornaTotali();
         }
@@ -226,24 +220,38 @@ namespace CLab.ViewModels
         {
             FattureFiltrate.Clear();
 
-            var filtrate = string.IsNullOrWhiteSpace(FiltroTesto)
-                ? _fattureComplete
-                : _fattureComplete.Where(r =>
+            // Anno: sempre attivo (navigatore ‹ anno ›), con la regola AnnoFattura.
+            var filtrate = _fattureComplete
+                .Where(r => AnnoFattura(r.Fattura) == AnnoSelezionato)
+                .Where(r =>
                     r.Fattura.Numero.Contains(FiltroTesto, StringComparison.OrdinalIgnoreCase) ||
                     r.ReferenteRagioneSociale.Contains(FiltroTesto, StringComparison.OrdinalIgnoreCase));
 
-            if (_annoFiltrato.HasValue)
-                filtrate = filtrate.Where(r => AnnoFattura(r.Fattura) == _annoFiltrato.Value);
+            // Stato (Stato calcolato: Emessa/Scaduta/Pagata/Annullata).
+            // "Emesse" = tutte le non pagate non annullate (scadute incluse).
+            if (FiltroStato == "Pagate")
+                filtrate = filtrate.Where(r => r.Fattura.Pagata && !r.Fattura.Annullata);
+            else if (FiltroStato == "Annullate")
+                filtrate = filtrate.Where(r => r.Fattura.Annullata);
+            else if (FiltroStato == "Emesse")
+                filtrate = filtrate.Where(r => !r.Fattura.Pagata && !r.Fattura.Annullata);
+            else if (FiltroStato == "Anomalie")
+                filtrate = filtrate.Where(r => (r.Fattura.HaAnomalie || r.Fattura.Stato == "Scaduta") && !r.Fattura.Annullata);
+
+            // Studio (Referente).
+            if (FiltroStudio != null)
+                filtrate = filtrate.Where(r => r.Fattura.ReferenteId == FiltroStudio.Id);
 
             foreach (var r in filtrate) FattureFiltrate.Add(r);
         }
 
         private void AggiornaTotali()
         {
-            var valide = _fattureComplete.Where(r => !r.Fattura.Annullata).ToList();
-
-            if (_annoFiltrato.HasValue)
-                valide = valide.Where(r => AnnoFattura(r.Fattura) == _annoFiltrato.Value).ToList();
+            // I KPI seguono l'anno selezionato (navigatore) e restano stabili
+            // durante ricerca/filtri: raccontano l'anno, non la vista filtrata.
+            var valide = _fattureComplete
+                .Where(r => !r.Fattura.Annullata && AnnoFattura(r.Fattura) == AnnoSelezionato)
+                .ToList();
 
             decimal totale = valide.Sum(r => r.Fattura.Importo);
             decimal incassato = valide.Where(r => r.Fattura.Pagata).Sum(r => r.Fattura.Importo);
@@ -251,6 +259,14 @@ namespace CLab.ViewModels
             TotaleFatturatoTesto = $"€ {totale:N0}";
             IncassatoTesto = $"€ {incassato:N0}";
             DaIncassareTesto = $"€ {(totale - incassato):N0}";
+
+            int anomalie = valide.Count(r => r.Fattura.HaAnomalie);
+            int scadute = valide.Count(r => r.Fattura.Stato == "Scaduta");
+
+            anomalie += scadute; // KPI "Anomalie" = anomalie + scadute (FASE 10)
+
+            AnomalieTesto = anomalie.ToString();
+
             FattureScadute = valide.Count(r => r.Fattura.Stato == "Scaduta");
         }
 
@@ -282,13 +298,14 @@ namespace CLab.ViewModels
         /// </summary>
         public void ApriSuAnno(int anno)
         {
-            AnnoFiltrato = anno;
+            AnnoSelezionato = anno;
             CaricaFatture();
         }
 
         private void Nuova()
         {
             _fatturaInModificaId = 0;
+            TitoloPannello = "Nuova fattura";
             FormReferente = null;
             FormNumero = string.Empty;
             FormDataEmissione = DateTime.Now;
@@ -317,6 +334,7 @@ namespace CLab.ViewModels
             var f = r.Fattura;
 
             _fatturaInModificaId = f.Id;
+            TitoloPannello = "Modifica fattura";
             FormReferente = ReferentiDisponibili.FirstOrDefault(c => c.Id == f.ReferenteId);
             FormNumero = f.Numero;
             FormDataEmissione = f.DataEmissione;
@@ -395,12 +413,5 @@ namespace CLab.ViewModels
 
         /// <summary>FASE 10: lo Studio è cliccabile solo se la fattura è intestata a un Referente.</summary>
         public bool HaStudio => Fattura.ReferenteId.HasValue;
-    }
-
-    /// <summary>Voce del selettore anno (FASE 7): null = "Tutti gli anni".</summary>
-    public class OpzioneAnnoVoce
-    {
-        public int? Anno { get; set; }
-        public string Etichetta { get; set; } = string.Empty;
     }
 }

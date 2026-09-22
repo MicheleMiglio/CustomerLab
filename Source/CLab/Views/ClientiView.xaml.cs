@@ -67,6 +67,13 @@ namespace CLab.Views
                 vm.ApriDettaglioCommand.Execute(cliente);
         }
 
+        // CLab 2.0: cancellazione rapida della ricerca (X nel campo, pattern Fatture)
+        private void CancellaRicerca_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ClientiViewModel vm)
+                vm.FiltroTesto = string.Empty;
+        }
+
         private void Referente_LostFocus(object sender, RoutedEventArgs e)
         {
             if (sender is TextBox tb && tb.Tag is Referente r && DataContext is ClientiViewModel vm)
@@ -77,6 +84,29 @@ namespace CLab.Views
         {
             if (sender is TextBox tb && tb.Tag is Programma p && DataContext is ClientiViewModel vm)
                 vm.RinominaProgramma(p);
+        }
+
+        private void ScrollModifica_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            var sv = (ScrollViewer)sender;
+            sv.ScrollToVerticalOffset(sv.VerticalOffset - e.Delta);
+            e.Handled = true;
+        }
+
+        private void ScrollViewerModifica_Loaded(object sender, RoutedEventArgs e)
+        {
+            var sv = (ScrollViewer)sender;
+            // handledEventsToo: true → l'handler scatta SEMPRE, anche se qualcosa
+            // a monte ha già marcato l'evento come gestito
+            sv.AddHandler(UIElement.PreviewMouseWheelEvent,
+                new MouseWheelEventHandler(ScrollViewer_PreviewMouseWheel), true);
+        }
+
+        private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            var sv = (ScrollViewer)sender;
+            sv.ScrollToVerticalOffset(sv.VerticalOffset - e.Delta);
+            e.Handled = true;
         }
     }
 }

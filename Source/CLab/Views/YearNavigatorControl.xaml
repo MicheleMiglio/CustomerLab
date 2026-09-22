@@ -1,0 +1,62 @@
+<UserControl x:Class="CLab.Views.YearNavigatorControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             x:Name="radice">
+
+    <!-- ============================================================ -->
+    <!-- YEAR NAVIGATOR CLab 2.0: [‹] anno [›].                        -->
+    <!-- Controllo minimale di presentazione per la navigazione        -->
+    <!-- temporale nei moduli (Fatture oggi, altri domani).            -->
+    <!-- Nessuna logica di dominio: l'anno e i comandi arrivano dal    -->
+    <!-- ViewModel via dependency properties.                          -->
+    <!-- ============================================================ -->
+
+    <UserControl.Resources>
+        <!-- Freccia ghost: stessa identica azione BtnIconGhost del tema,
+             replica locale perché il controllo deve essere autosufficiente. -->
+        <Style x:Key="FrecciaAnno" TargetType="Button">
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" CornerRadius="13" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <Button Style="{StaticResource FrecciaAnno}"
+                Command="{Binding ComandoPrecedente, ElementName=radice}"
+                ToolTip="Anno precedente">
+            <iconPacks:PackIconBootstrapIcons Kind="ChevronLeft" Width="13" Height="13"
+                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+        </Button>
+
+        <TextBlock Text="{Binding Anno, ElementName=radice, FallbackValue=—}"
+                   FontSize="16" FontWeight="SemiBold"
+                   Foreground="{StaticResource BrushTestoPrimario}"
+                   Margin="8,0" VerticalAlignment="Center"/>
+
+        <Button Style="{StaticResource FrecciaAnno}"
+                Command="{Binding ComandoSuccessivo, ElementName=radice}"
+                ToolTip="Anno successivo">
+            <iconPacks:PackIconBootstrapIcons Kind="ChevronRight" Width="13" Height="13"
+                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+        </Button>
+    </StackPanel>
+</UserControl>

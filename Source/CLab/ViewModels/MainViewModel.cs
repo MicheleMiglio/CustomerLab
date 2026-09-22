@@ -203,13 +203,17 @@ namespace CLab.ViewModels
 
         private void ApriClienti(MenuItemModel? menu) => ApriClienti();
 
-        public void ApriClienti()
+        public void ApriClienti(string? filtroTesto = null)
         {
             SelezionaMenu(_clientiMenu);
 
             // FASE 5: il navigatore abilita i collegamenti operativi dalla
             // Situazione Cliente (Scadenzario/ToDo/Ritenute per Id).
-            VistaCorrente = new ClientiViewModel(this);
+            var vm = new ClientiViewModel(this);
+            if (!string.IsNullOrWhiteSpace(filtroTesto))
+                vm.FiltroTesto = filtroTesto;
+
+            VistaCorrente = vm;
         }
 
         private void ApriScadenzario(MenuItemModel? menu) => ApriScadenzario();
@@ -269,13 +273,15 @@ namespace CLab.ViewModels
 
         private void ApriFatture(MenuItemModel? menu) => ApriFatture();
 
-        public void ApriFatture(int? anno = null)
+        public void ApriFatture(int? anno = null, string? filtroTesto = null)
         {
             SelezionaMenu(_fattureMenu);
 
             var vm = new FattureViewModel(this);
             if (anno.HasValue)
                 vm.ApriSuAnno(anno.Value);
+            if (!string.IsNullOrWhiteSpace(filtroTesto))
+                vm.FiltroTesto = filtroTesto;
 
             VistaCorrente = vm;
         }

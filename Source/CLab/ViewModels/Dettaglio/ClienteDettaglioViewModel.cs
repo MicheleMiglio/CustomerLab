@@ -49,6 +49,21 @@ namespace CLab.ViewModels.Dettaglio
             set { _formReferente = value; OnPropertyChanged(); SegnaModificato(); }
         }
 
+        // CLab 2.0 (modulo Clienti): il campo esiste già sul Model (Cliente.CodiceFiscale)
+        // ma prima non era gestito dal form: qui lo si carica e si salva senza
+        // nessuna modifica al database.
+        private string? _formCodiceFiscale;
+        public string? FormCodiceFiscale
+        {
+            get => _formCodiceFiscale;
+            set
+            {
+                _formCodiceFiscale = value;
+                OnPropertyChanged();
+                SegnaModificato();
+            }
+        }
+
         private Programma? _formProgramma;
         public Programma? FormProgramma
         {

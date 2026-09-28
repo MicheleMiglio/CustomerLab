@@ -50,6 +50,9 @@ namespace CLab.ViewModels
 
         public ICommand ImpostaFiltroStatoClienteCommand { get; }
 
+        /// <summary>Torna alla vista generale (nessun cliente selezionato).</summary>
+        public ICommand EsciDalClienteCommand { get; }
+
         private bool _aggiornandoListaClienti;
 
         private Cliente? _clienteSelezionato;
@@ -65,8 +68,21 @@ namespace CLab.ViewModels
                 OnPropertyChanged(nameof(MostraAvvisoClienteNonAttivo));
                 OnPropertyChanged(nameof(TestoAvvisoClienteNonAttivo));
                 OnPropertyChanged(nameof(AvvisoClienteCessato));
+
+                // Ogni cambio di cliente reale (anche verso "nessuno") riparte da una
+                // vista pulita: niente ricerche, filtri o modalità ereditate dal cliente
+                // precedente. ApriPerCliente riapplica "solo ritardi"/scheda DOPO questa
+                // assegnazione, quindi l'eventuale deep-link resta intatto.
                 if (!_aggiornandoListaClienti)
+                {
+                    FiltroAttivitaTesto = string.Empty;
+                    SoloRitardi = false;
+                    FiltroRitenuteTesto = string.Empty;
+                    FiltroStatoRitenute = "Tutte";
+                    ModalitaVisualizzazione = ModalitaVisualizzazioneAdempimenti.Griglia;
+                    CambiaScheda(Scheda.Dashboard);
                     CaricaTuttoPerCliente();
+                }
             }
         }
 
@@ -82,7 +98,7 @@ namespace CLab.ViewModels
                 return ClienteSelezionato.Stato switch
                 {
                     StatoCliente.StandBy => "Cliente in stand-by. Puoi comunque lavorare lo scadenzario.",
-                    StatoCliente.Cessato => "Cliente cessato. Stai consultando lo storico; i dati restano disponibili.",
+                    StatoCliente.Cessato => "Cliente cessato. Stai consultando lo storico; i dati restano disponibili e puoi comunque lavorare lo scadenzario.",
                     _ => $"Questo cliente risulta \"{ClienteSelezionato.Stato}\". Vai su Clienti per riattivarlo, se necessario."
                 };
             }
@@ -92,7 +108,7 @@ namespace CLab.ViewModels
         public bool NessunClienteSelezionato
         {
             get => _nessunClienteSelezionato;
-            set { _nessunClienteSelezionato = value; OnPropertyChanged(); }
+            set { _nessunClienteSelezionato = value; OnPropertyChanged(); OnPropertyChanged(nameof(MostraDashboardCliente)); }
         }
 
         private int _annoSelezionato = DateTime.Now.Year;
@@ -101,6 +117,20 @@ namespace CLab.ViewModels
             get => _annoSelezionato;
             set { _annoSelezionato = value; OnPropertyChanged(); CaricaTuttoPerCliente(); }
         }
+
+        // --- Vista generale (nessun cliente selezionato): "cosa devo fare oggi",
+        //     su tutti i clienti visibili con i filtri correnti (stato/referente).
+        //     Sostituisce i vecchi placeholder "Seleziona un cliente" ripetuti
+        //     in ogni scheda: è la landing operativa dello Scadenzario. ---
+
+        public ObservableCollection<VoceScadenzaGenerale> VisteGenerali { get; } = new();
+        public bool HaVisteGenerali => VisteGenerali.Count > 0;
+
+        public int GeneraleInRitardo { get; private set; }
+        public int GeneraleInScadenzaOggi { get; private set; }
+        public int GeneraleRitenuteDaVersare { get; private set; }
+
+        public ICommand SelezionaVoceGeneraleCommand { get; }
 
         private bool _haAttivitaConfigurate;
         public bool HaAttivitaConfigurate
@@ -131,6 +161,11 @@ namespace CLab.ViewModels
         public bool MostraAdempimenti => _scheda == Scheda.Adempimenti;
         public bool MostraRitenute => _scheda == Scheda.Ritenute;
 
+        /// <summary>La scheda Dashboard, ma solo dentro la modalità cliente: quando
+        /// nessun cliente è selezionato la Dashboard tecnicamente resta "attiva" (è lo
+        /// stato di default), ma al suo posto va mostrata la vista generale.</summary>
+        public bool MostraDashboardCliente => MostraDashboard && !NessunClienteSelezionato;
+
         public ICommand MostraDashboardCommand { get; }
         public ICommand MostraAdempimentiCommand { get; }
         public ICommand MostraRitenuteCommand { get; }
@@ -141,6 +176,7 @@ namespace CLab.ViewModels
             OnPropertyChanged(nameof(MostraDashboard));
             OnPropertyChanged(nameof(MostraAdempimenti));
             OnPropertyChanged(nameof(MostraRitenute));
+            OnPropertyChanged(nameof(MostraDashboardCliente));
         }
 
         // --- Nota cliente ---
@@ -449,6 +485,9 @@ namespace CLab.ViewModels
         private int _ritenuteAnomalie;
         public int RitenuteAnomalie { get => _ritenuteAnomalie; private set { _ritenuteAnomalie = value; OnPropertyChanged(); } }
 
+        private int _ritenuteNoRavv;
+        public int RitenuteNoRavv { get => _ritenuteNoRavv; private set { _ritenuteNoRavv = value; OnPropertyChanged(); } }
+
         private bool _pannelloRitenutaAperto;
         public bool PannelloRitenutaAperto { get => _pannelloRitenutaAperto; set { _pannelloRitenutaAperto = value; OnPropertyChanged(); } }
 
@@ -486,6 +525,10 @@ namespace CLab.ViewModels
         public ICommand AnnullaRitenutaCommand { get; }
         public ICommand EliminaRitenutaCommand { get; }
         public ICommand ToggleRavvedimentoRitenutaCommand { get; }
+
+        /// <summary>Quick action di riga (pattern Fatture/PagataOggiRigaCommand): imposta
+        /// versamento pieno e oggi senza aprire il pannello. Disponibile solo se non ancora versata.</summary>
+        public ICommand VersataOggiRitenutaCommand { get; }
         public ICommand SegnaVersatoInteroCommand { get; }
         public ICommand PulisciDataPagamentoFatturaCommand { get; }
         public ICommand PulisciDataPagamentoRitenutaCommand { get; }
@@ -501,6 +544,12 @@ namespace CLab.ViewModels
             ImpostaFiltroStatoClienteCommand = new RelayCommand<string>(s =>
             {
                 if (!string.IsNullOrWhiteSpace(s)) FiltroStatoCliente = s;
+            });
+            EsciDalClienteCommand = new RelayCommand(() => ClienteSelezionato = null);
+            SelezionaVoceGeneraleCommand = new RelayCommand<VoceScadenzaGenerale>(v =>
+            {
+                if (v == null) return;
+                ApriPerCliente(v.ClienteId, v.Scheda, v.InRitardo && v.Tipo == "Adempimento");
             });
 
             MostraDashboardCommand = new RelayCommand(() => CambiaScheda(Scheda.Dashboard));
@@ -523,6 +572,7 @@ namespace CLab.ViewModels
             AnnullaRitenutaCommand = new RelayCommand(() => PannelloRitenutaAperto = false);
             EliminaRitenutaCommand = new RelayCommand<RitenutaAcconto>(EliminaRitenuta);
             ToggleRavvedimentoRitenutaCommand = new RelayCommand<RitenutaAcconto>(ToggleRavvedimentoRitenuta);
+            VersataOggiRitenutaCommand = new RelayCommand<RitenutaAcconto>(VersataOggiRitenuta);
             ImpostaFiltroStatoRitenuteCommand = new RelayCommand<string>(s =>
             {
                 if (!string.IsNullOrWhiteSpace(s)) FiltroStatoRitenute = s;
@@ -596,6 +646,10 @@ namespace CLab.ViewModels
                 OnPropertyChanged(nameof(TestoAvvisoClienteNonAttivo));
                 OnPropertyChanged(nameof(AvvisoClienteCessato));
             }
+
+            // Il filtro stato/referente cambia l'elenco clienti visibili anche quando
+            // il cliente resta "nessuno": la vista generale va riallineata di conseguenza.
+            if (ClienteSelezionato == null) CaricaVistaGenerale();
         }
 
         private void ConfiguraAttivita()
@@ -623,6 +677,7 @@ namespace CLab.ViewModels
                 ApplicaFiltroAttivita();
                 AzzeraDashboard();
                 CaricaRitenute();
+                CaricaVistaGenerale();
                 return;
             }
 
@@ -985,6 +1040,127 @@ namespace CLab.ViewModels
             StatoSezioneMensili = StatoSezioneTrimestrali = StatoSezioneAnnuali = "Futuro";
         }
 
+        /// <summary>Vista generale (nessun cliente selezionato): stesso calcolo di
+        /// HomeViewModel.CalcolaAdempimenti (catalogo Attivita + ClientiAttivita +
+        /// Compilazioni, stato tramite CalcoloStatoAdempimenti), ma qui produce righe
+        /// di dettaglio invece di soli conteggi, e vi aggiunge le ritenute da versare
+        /// — perché qui, a differenza della Home, si deve poter lavorare la lista, non
+        /// solo scoprirne l'esistenza. Scope: solo i clienti attualmente in
+        /// ClientiDisponibili, così la vista generale rispetta gli stessi filtri
+        /// (stato/referente) della barra contestuale.</summary>
+        private void CaricaVistaGenerale()
+        {
+            VisteGenerali.Clear();
+            GeneraleInRitardo = 0;
+            GeneraleInScadenzaOggi = 0;
+            GeneraleRitenuteDaVersare = 0;
+
+            if (ClientiDisponibili.Count == 0)
+            {
+                NotificaVistaGeneraleCambiata();
+                return;
+            }
+
+            using var db = new ClabDbContext();
+            var idClienti = ClientiDisponibili.Select(c => c.Id).ToHashSet();
+            var nomiClienti = ClientiDisponibili.ToDictionary(c => c.Id, c => c.RagioneSociale);
+
+            var attivitaCatalogo = db.Attivita.AsNoTracking().ToDictionary(a => a.Id, a => a);
+            var assegnazioni = db.ClientiAttivita.AsNoTracking().Where(ca => idClienti.Contains(ca.ClienteId)).ToList();
+            var compilazioni = db.Compilazioni.AsNoTracking()
+                .Where(c => c.Anno == AnnoSelezionato && idClienti.Contains(c.ClienteId)).ToList();
+
+            var righe = new List<VoceScadenzaGenerale>();
+
+            foreach (var assegnazione in assegnazioni)
+            {
+                if (!attivitaCatalogo.TryGetValue(assegnazione.AttivitaId, out var attivita)) continue;
+                if (attivita.TipoCampo == TipoCampoAttivita.TestoLibero) continue; // FASE: escluso anche in Home
+                if (!nomiClienti.TryGetValue(assegnazione.ClienteId, out var nomeCliente)) continue;
+
+                int numeroPeriodi = attivita.Periodicita switch
+                {
+                    Periodicita.Mensile => 12,
+                    Periodicita.Trimestrale => 4,
+                    _ => 1
+                };
+
+                for (int periodo = 1; periodo <= numeroPeriodi; periodo++)
+                {
+                    var singola = compilazioni.FirstOrDefault(c =>
+                        c.ClienteId == assegnazione.ClienteId && c.AttivitaId == assegnazione.AttivitaId && c.Periodo == periodo);
+
+                    bool compilato = singola != null && attivita.TipoCampo switch
+                    {
+                        TipoCampoAttivita.SiNo => singola.ValoreBooleano == true,
+                        TipoCampoAttivita.Numero => singola.ValoreNumero.HasValue,
+                        TipoCampoAttivita.Tendina => !string.IsNullOrWhiteSpace(singola.ValoreTesto),
+                        _ => false
+                    };
+
+                    string stato = CalcoloStatoAdempimenti.Calcola(attivita.Periodicita, AnnoSelezionato, periodo, compilato);
+                    if (stato != CalcoloStatoAdempimenti.Ritardo && stato != CalcoloStatoAdempimenti.InCorso) continue;
+
+                    righe.Add(new VoceScadenzaGenerale
+                    {
+                        ClienteId = assegnazione.ClienteId,
+                        ClienteNome = nomeCliente,
+                        Tipo = "Adempimento",
+                        Descrizione = attivita.Nome,
+                        Dettaglio = numeroPeriodi > 1
+                            ? $"{EtichettaPeriodo(attivita.Periodicita, periodo)} {AnnoSelezionato}"
+                            : $"Anno {AnnoSelezionato}",
+                        InRitardo = stato == CalcoloStatoAdempimenti.Ritardo,
+                        Scheda = "adempimenti"
+                    });
+
+                    if (stato == CalcoloStatoAdempimenti.Ritardo) GeneraleInRitardo++;
+                    else GeneraleInScadenzaOggi++;
+                }
+            }
+
+            var ritenuteDaVersare = db.RitenuteAcconto.AsNoTracking()
+                .Where(r => idClienti.Contains(r.ClienteId))
+                .AsEnumerable()
+                .Where(r => AnnoRitenuta(r) == AnnoSelezionato && r.StatoVersamento == "DaVersare")
+                .ToList();
+
+            foreach (var r in ritenuteDaVersare)
+            {
+                if (!nomiClienti.TryGetValue(r.ClienteId, out var nomeCliente)) continue;
+
+                bool inRitardo = r.ScadenzaVersamento.HasValue && r.ScadenzaVersamento.Value.Date < DateTime.Now.Date;
+
+                righe.Add(new VoceScadenzaGenerale
+                {
+                    ClienteId = r.ClienteId,
+                    ClienteNome = nomeCliente,
+                    Tipo = "Ritenuta",
+                    Descrizione = $"Ritenuta — {r.Intestazione}",
+                    Dettaglio = r.ScadenzaVersamento.HasValue
+                        ? $"Da versare entro {r.ScadenzaVersamento.Value:dd/MM/yyyy}"
+                        : "Da versare (nessuna scadenza indicata)",
+                    InRitardo = inRitardo,
+                    Scheda = "ritenute"
+                });
+
+                GeneraleRitenuteDaVersare++;
+            }
+
+            foreach (var v in righe.OrderByDescending(v => v.InRitardo).ThenBy(v => v.ClienteNome).ThenBy(v => v.Descrizione))
+                VisteGenerali.Add(v);
+
+            NotificaVistaGeneraleCambiata();
+        }
+
+        private void NotificaVistaGeneraleCambiata()
+        {
+            OnPropertyChanged(nameof(HaVisteGenerali));
+            OnPropertyChanged(nameof(GeneraleInRitardo));
+            OnPropertyChanged(nameof(GeneraleInScadenzaOggi));
+            OnPropertyChanged(nameof(GeneraleRitenuteDaVersare));
+        }
+
         // --- Duplica da un altro cliente ---
 
         private void ApriPannelloDuplica()
@@ -995,7 +1171,7 @@ namespace CLab.ViewModels
             var idClientiConAttivita = db.ClientiAttivita.AsNoTracking().Select(ca => ca.ClienteId).Distinct().ToList();
 
             ClientiDuplicabili.Clear();
-            foreach (var c in ClientiDisponibili.Where(c => c.Id != ClienteSelezionato.Id && idClientiConAttivita.Contains(c.Id)))
+            foreach (var c in _clientiCompleti.Where(c => c.Id != ClienteSelezionato.Id && idClientiConAttivita.Contains(c.Id)))
                 ClientiDuplicabili.Add(c);
 
             ClienteSorgenteSelezionato = null;
@@ -1050,6 +1226,12 @@ namespace CLab.ViewModels
 
         // --- Ritenute d'acconto ---
 
+        /// <summary>REGOLA ANNO (stessa di FattureViewModel.AnnoFattura, qui applicata al
+        /// pagamento della fattura del cliente): se DataPagamentoFattura è valorizzata vale
+        /// l'anno del pagamento; se NULL la ritenuta appartiene all'anno corrente. Prima
+        /// veniva usato erroneamente l'anno di emissione (DataFattura.Year).</summary>
+        public static int AnnoRitenuta(RitenutaAcconto r) => r.DataPagamentoFattura?.Year ?? DateTime.Now.Year;
+
         private void CaricaRitenute()
         {
             _ritenuteComplete = new List<RitenutaAcconto>();
@@ -1058,13 +1240,30 @@ namespace CLab.ViewModels
             {
                 using var db = new ClabDbContext();
                 _ritenuteComplete = db.RitenuteAcconto.AsNoTracking()
-                    .Where(r => r.ClienteId == ClienteSelezionato.Id && r.DataFattura.Year == AnnoSelezionato)
+                    .Where(r => r.ClienteId == ClienteSelezionato.Id)
+                    .AsEnumerable()
+                    .Where(r => AnnoRitenuta(r) == AnnoSelezionato)
                     .OrderByDescending(r => r.DataFattura)
                     .ToList();
             }
 
             ApplicaFiltroRitenute();
             AggiornaTotaliRitenute();
+        }
+
+        /// <summary>Quick action di riga: versamento pieno, oggi. Stesso pattern di
+        /// FattureViewModel.SegnaPagataOggiRiga — nessuna apertura del pannello.</summary>
+        private void VersataOggiRitenuta(RitenutaAcconto? r)
+        {
+            if (r == null || r.Versato) return;
+
+            using var db = new ClabDbContext();
+            var entita = db.RitenuteAcconto.First(x => x.Id == r.Id);
+            entita.ImportoVersato = entita.ImportoRitenuta;
+            entita.ScadenzaVersamento = DateTime.Now;
+            db.SaveChanges();
+
+            CaricaRitenute();
         }
 
         private void ApplicaFiltroRitenute()
@@ -1106,6 +1305,7 @@ namespace CLab.ViewModels
             RitenuteVersate = _ritenuteComplete.Count(r => r.StatoVersamento == "Versato");
             RitenuteDaVersare = _ritenuteComplete.Count(r => r.StatoVersamento == "DaVersare");
             RitenuteAnomalie = _ritenuteComplete.Count(r => r.HaAnomalie);
+            RitenuteNoRavv = _ritenuteComplete.Count(r => !r.Ravvedimento);
 
             TortaRitenute = CostruisciTorta(RitenuteVersate, RitenuteDaVersare, RitenuteAnomalie);
         }
@@ -1245,6 +1445,10 @@ namespace CLab.ViewModels
             if (ReferenteFiltro != null && cliente.ReferenteId != ReferenteFiltro.Id)
                 ReferenteFiltro = null;
 
+            // L'assegnazione di ClienteSelezionato resetta la vista (nuovo comportamento):
+            // "solo ritardi"/modalità vanno quindi riapplicati DOPO, non prima.
+            ClienteSelezionato = cliente;
+
             SoloRitardi = soloRitardi;
 
             // FASE 8: navigazione "solo ritardi" dalla Home → modalità Elenco automatica
@@ -1257,8 +1461,6 @@ namespace CLab.ViewModels
                 SezioneTrimestraliEspansa = true;
                 SezioneAnnualiEspansa = true;
             }
-
-            ClienteSelezionato = cliente;
 
             switch ((scheda ?? string.Empty).Trim().ToLowerInvariant())
             {
@@ -1414,6 +1616,21 @@ namespace CLab.ViewModels
         private void Salva() => OnCambiata?.Invoke(this);
     }
 
+    /// <summary>Riga della vista generale (nessun cliente selezionato): un adempimento
+    /// in ritardo/da fare oggi, oppure una ritenuta da versare, di un cliente qualsiasi
+    /// tra quelli visibili con i filtri correnti. Il click riusa ApriPerCliente — stessa
+    /// navigazione già usata da Home, nessun percorso nuovo.</summary>
+    public class VoceScadenzaGenerale
+    {
+        public int ClienteId { get; set; }
+        public string ClienteNome { get; set; } = string.Empty;
+        public string Tipo { get; set; } = string.Empty; // "Adempimento" / "Ritenuta"
+        public string Descrizione { get; set; } = string.Empty;
+        public string Dettaglio { get; set; } = string.Empty;
+        public bool InRitardo { get; set; }
+        public string Scheda { get; set; } = string.Empty; // "adempimenti" / "ritenute"
+    }
+
     public class GraficoTorta
     {
         public Geometry FettaCompletate { get; set; } = Geometry.Empty;
@@ -1423,6 +1640,14 @@ namespace CLab.ViewModels
         public int Completate { get; set; }
         public int InCorso { get; set; }
         public int InRitardo { get; set; }
+
+        // Per la barra segmentata stile Home (PercentoAGridLength si aspetta
+        // una frazione 0..1, non i conteggi grezzi): stesso identico calcolo
+        // che HomeViewModel fa per Pct* Adempimenti/Fatture/Clienti.
+        private int Totale => Completate + InCorso + InRitardo;
+        public double PctCompletate => Totale == 0 ? 0 : (double)Completate / Totale;
+        public double PctInCorso => Totale == 0 ? 0 : (double)InCorso / Totale;
+        public double PctInRitardo => Totale == 0 ? 0 : (double)InRitardo / Totale;
     }
 
     /// <summary>

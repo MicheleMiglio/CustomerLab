@@ -10,12 +10,6 @@ using System.Windows.Input;
 
 namespace CLab.ViewModels
 {
-    public enum OrdinamentoToDo
-    {
-        Scadenza,
-        Creazione
-    }
-
     public class ChipFiltroToDo
     {
         public string Chiave { get; init; } = string.Empty;
@@ -89,10 +83,11 @@ namespace CLab.ViewModels
 
         public ObservableCollection<Referente> ReferentiTutti { get; } = new();
 
-        // Revisione UI: i filtri principali (priorità, solo scaduti) sono chip
-        // segmentate nella barra filtri; i comandi operano sulla bozza esistente.
+        // Revisione UI: i filtri principali (priorità) sono chip segmentate nella
+        // barra filtri; il comando opera sulla bozza esistente.
         public ICommand ImpostaBozzaPrioritaCommand { get; }
-        public ICommand ToggleBozzaSoloScadutiCommand { get; }
+        // Eliminazione dalla riga (pattern Fatture/Attività): rimossa dal modal.
+        public ICommand EliminaRigaCommand { get; }
 
         public List<KeyValuePair<string, string>> OpzioniCollegamentoFiltro { get; } = new()
         {
@@ -117,20 +112,7 @@ namespace CLab.ViewModels
             new("creazione", "Creazione")
         };
 
-        // --- Ordinamento e ricerca (istantanei) ---
-
-        private OrdinamentoToDo _ordinamento = OrdinamentoToDo.Scadenza;
-        public OrdinamentoToDo Ordinamento
-        {
-            get => _ordinamento;
-            set
-            {
-                if (_ordinamento == value) return;
-                _ordinamento = value;
-                OnPropertyChanged();
-                AggiornaLista();
-            }
-        }
+        // --- Ricerca (istantanea) ---
 
         private string _filtroTesto = string.Empty;
         public string FiltroTesto
@@ -157,34 +139,34 @@ namespace CLab.ViewModels
         // --- Bozza pannello filtri ---
 
         private Cliente? _bozzaCliente;
-        public Cliente? BozzaCliente { get => _bozzaCliente; set { _bozzaCliente = value; OnPropertyChanged(); } }
+        public Cliente? BozzaCliente { get => _bozzaCliente; set { _bozzaCliente = value; OnPropertyChanged(); NotificaStatoBozzaFiltri(); } }
 
         private Referente? _bozzaReferente;
-        public Referente? BozzaReferente { get => _bozzaReferente; set { _bozzaReferente = value; OnPropertyChanged(); } }
+        public Referente? BozzaReferente { get => _bozzaReferente; set { _bozzaReferente = value; OnPropertyChanged(); NotificaStatoBozzaFiltri(); } }
 
         private string _bozzaPriorita = "tutte";
-        public string BozzaPriorita { get => _bozzaPriorita; set { _bozzaPriorita = value; OnPropertyChanged(); } }
+        public string BozzaPriorita { get => _bozzaPriorita; set { _bozzaPriorita = value; OnPropertyChanged(); NotificaStatoBozzaFiltri(); } }
 
         private string _bozzaCollegamento = "tutti";
-        public string BozzaCollegamento { get => _bozzaCollegamento; set { _bozzaCollegamento = value; OnPropertyChanged(); } }
+        public string BozzaCollegamento { get => _bozzaCollegamento; set { _bozzaCollegamento = value; OnPropertyChanged(); NotificaStatoBozzaFiltri(); } }
 
         private string _bozzaPassi = "tutti";
-        public string BozzaPassi { get => _bozzaPassi; set { _bozzaPassi = value; OnPropertyChanged(); } }
+        public string BozzaPassi { get => _bozzaPassi; set { _bozzaPassi = value; OnPropertyChanged(); NotificaStatoBozzaFiltri(); } }
 
         private string _bozzaCampoData = "scadenza";
-        public string BozzaCampoData { get => _bozzaCampoData; set { _bozzaCampoData = value; OnPropertyChanged(); } }
+        public string BozzaCampoData { get => _bozzaCampoData; set { _bozzaCampoData = value; OnPropertyChanged(); NotificaStatoBozzaFiltri(); } }
 
         private DateTime? _bozzaDataDa;
-        public DateTime? BozzaDataDa { get => _bozzaDataDa; set { _bozzaDataDa = value; OnPropertyChanged(); } }
+        public DateTime? BozzaDataDa { get => _bozzaDataDa; set { _bozzaDataDa = value; OnPropertyChanged(); NotificaStatoBozzaFiltri(); } }
 
         private DateTime? _bozzaDataA;
-        public DateTime? BozzaDataA { get => _bozzaDataA; set { _bozzaDataA = value; OnPropertyChanged(); } }
+        public DateTime? BozzaDataA { get => _bozzaDataA; set { _bozzaDataA = value; OnPropertyChanged(); NotificaStatoBozzaFiltri(); } }
 
         private bool _bozzaMostraTuttiCompletati;
-        public bool BozzaMostraTuttiCompletati { get => _bozzaMostraTuttiCompletati; set { _bozzaMostraTuttiCompletati = value; OnPropertyChanged(); } }
+        public bool BozzaMostraTuttiCompletati { get => _bozzaMostraTuttiCompletati; set { _bozzaMostraTuttiCompletati = value; OnPropertyChanged(); NotificaStatoBozzaFiltri(); } }
 
         private bool _bozzaSoloScaduti;
-        public bool BozzaSoloScaduti { get => _bozzaSoloScaduti; set { _bozzaSoloScaduti = value; OnPropertyChanged(); } }
+        public bool BozzaSoloScaduti { get => _bozzaSoloScaduti; set { _bozzaSoloScaduti = value; OnPropertyChanged(); NotificaStatoBozzaFiltri(); } }
 
         public int NumeroFiltriAttivi { get; private set; }
         public bool HaChipFiltri => ChipFiltri.Count > 0;
@@ -194,6 +176,29 @@ namespace CLab.ViewModels
         /// <summary>Empty state: CTA di azzeramento quando c'è almeno un filtro
         /// applicato oppure una ricerca attiva (anche senza chip).</summary>
         public bool HaFiltriORicerca => HaChipFiltri || !string.IsNullOrWhiteSpace(FiltroTesto);
+        /// <summary>Revisione UI: "Applica" è abilitato solo quando la bozza nella
+        /// barra filtri differisce dai filtri già applicati: rende evidente quando
+        /// non c'è nulla da applicare. "Solo scaduti" non è incluso perché non è
+        /// più modificabile dalla barra (resta un filtro di navigazione da Home).</summary>
+        public bool HaModificheBozzaFiltri =>
+            BozzaCliente?.Id != _filtroClienteId ||
+            BozzaReferente?.Id != _filtroReferenteId ||
+            (BozzaPriorita ?? "tutte") != _filtroPriorita ||
+            (BozzaCollegamento ?? "tutti") != _filtroCollegamento ||
+            (BozzaPassi ?? "tutti") != _filtroPassi ||
+            (BozzaCampoData ?? "scadenza") != _filtroCampoData ||
+            BozzaDataDa != _filtroDataDa ||
+            BozzaDataA != _filtroDataA ||
+            BozzaMostraTuttiCompletati != _filtroMostraTuttiCompletati;
+
+        /// <summary>Notifica lo stato della bozza e forza il re-query dei comandi
+        /// (i CanExecute di RelayCommand passano da CommandManager.RequerySuggested).</summary>
+        private void NotificaStatoBozzaFiltri()
+        {
+            OnPropertyChanged(nameof(HaModificheBozzaFiltri));
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        }
+
         public bool ListaVuota { get; private set; }
 
         /// <summary>FASE 8: messaggio empty state distinguente filtri attivi / tutto completato.
@@ -285,9 +290,6 @@ namespace CLab.ViewModels
             }
         }
 
-        private bool _mostraEliminaPanel;
-        public bool MostraEliminaPanel { get => _mostraEliminaPanel; set { _mostraEliminaPanel = value; OnPropertyChanged(); } }
-
         private string _pannelloTitolo = string.Empty;
         public string PannelloTitolo { get => _pannelloTitolo; set { _pannelloTitolo = value; OnPropertyChanged(); } }
 
@@ -357,9 +359,6 @@ namespace CLab.ViewModels
         public ICommand AzzeraBozzaFiltriCommand { get; }
         public ICommand RimuoviChipCommand { get; }
 
-        public ICommand OrdinaPerScadenzaCommand { get; }
-        public ICommand OrdinaPerCreazioneCommand { get; }
-
         public ICommand ToggleSezioneCommand { get; }
 
         public ICommand NuovoCommand { get; }
@@ -375,7 +374,6 @@ namespace CLab.ViewModels
         public ICommand PulisciScadenzaCommand { get; }
 
         public ICommand SalvaCommand { get; }
-        public ICommand EliminaCommand { get; }
         public ICommand ChiudiOverlayCommand { get; }
         public ICommand PulisciClienteCommand { get; }
         public ICommand PulisciReferenteCommand { get; }
@@ -383,7 +381,6 @@ namespace CLab.ViewModels
         public ICommand PulisciBozzaReferenteCommand { get; }
 
         public ICommand AggiungiSottoAttivitaCommand { get; }
-        public ICommand ToggleSottoAttivitaCommand { get; }
         public ICommand RimuoviSottoAttivitaCommand { get; }
 
         public ToDoViewModel()
@@ -427,7 +424,7 @@ namespace CLab.ViewModels
             };
 
             ApriFiltriCommand = new RelayCommand(() => FiltriAperti = !FiltriAperti); // toggle: apre e chiude la barra filtri
-            ApplicaFiltriCommand = new RelayCommand(ApplicaFiltri);
+            ApplicaFiltriCommand = new RelayCommand(ApplicaFiltri, () => HaModificheBozzaFiltri);
             AzzeraBozzaFiltriCommand = new RelayCommand(() =>
             {
                 AzzeraBozzaFiltri();
@@ -435,10 +432,6 @@ namespace CLab.ViewModels
             });
             RimuoviChipCommand = new RelayCommand<string>(RimuoviChip);
             ImpostaBozzaPrioritaCommand = new RelayCommand<object>(p => { if (p is string priorita) BozzaPriorita = priorita; });
-            ToggleBozzaSoloScadutiCommand = new RelayCommand(() => BozzaSoloScaduti = !BozzaSoloScaduti);
-
-            OrdinaPerScadenzaCommand = new RelayCommand(() => Ordinamento = OrdinamentoToDo.Scadenza);
-            OrdinaPerCreazioneCommand = new RelayCommand(() => Ordinamento = OrdinamentoToDo.Creazione);
 
             ToggleSezioneCommand = new RelayCommand<SezioneToDoLista>(s =>
             {
@@ -455,7 +448,7 @@ namespace CLab.ViewModels
             PulisciScadenzaCommand = new RelayCommand(() => FormDataScadenza = null);
 
             SalvaCommand = new RelayCommand(Salva, () => !string.IsNullOrWhiteSpace(FormTitolo));
-            EliminaCommand = new RelayCommand(Elimina);
+            EliminaRigaCommand = new RelayCommand<ToDo>(EliminaRiga);
             ChiudiOverlayCommand = new RelayCommand(ChiudiOverlay);
             PulisciClienteCommand = new RelayCommand(() => FormCliente = null);
             PulisciReferenteCommand = new RelayCommand(() => FormReferente = null);
@@ -463,7 +456,6 @@ namespace CLab.ViewModels
             PulisciBozzaReferenteCommand = new RelayCommand(() => BozzaReferente = null);
 
             AggiungiSottoAttivitaCommand = new RelayCommand(AggiungiSottoAttivita, () => !string.IsNullOrWhiteSpace(NuovaSottoAttivitaTesto));
-            ToggleSottoAttivitaCommand = new RelayCommand<ToDoSottoAttivita>(s => { if (s != null) s.Completato = !s.Completato; });
             RimuoviSottoAttivitaCommand = new RelayCommand<ToDoSottoAttivita>(s => { if (s != null) FormSottoAttivita.Remove(s); });
 
             CaricaClientiEReferenti();
@@ -544,6 +536,7 @@ namespace CLab.ViewModels
             BozzaDataA = _filtroDataA;
             BozzaMostraTuttiCompletati = _filtroMostraTuttiCompletati;
             BozzaSoloScaduti = _filtroSoloScaduti;
+            NotificaStatoBozzaFiltri();
         }
 
         private void AzzeraBozzaFiltri()
@@ -583,6 +576,7 @@ namespace CLab.ViewModels
 
             FiltriAperti = false;
             AggiornaLista();
+            NotificaStatoBozzaFiltri();
         }
 
         /// <summary>
@@ -835,9 +829,9 @@ namespace CLab.ViewModels
 
         private IEnumerable<ToDo> OrdinaSezione(IEnumerable<ToDo> elenco, bool perScadenza, bool completati = false)
         {
-            if (Ordinamento == OrdinamentoToDo.Creazione)
-                return elenco.OrderByDescending(t => t.DataCreazione).ThenByDescending(t => t.Priorita);
-
+            // Ordinamento naturale e fisso, coerente con ogni sezione:
+            //  - dated/completati: per data (scadenza crescente, completamento decrescente);
+            //  - senza scadenza: prima la priorità più alta, poi i più recenti.
             if (completati)
                 return elenco.OrderByDescending(t => t.DataCompletamento ?? t.DataCreazione).ThenByDescending(t => t.Priorita);
 
@@ -872,7 +866,6 @@ namespace CLab.ViewModels
             PannelloTitolo = "Nuovo ToDo";
             PannelloSottoTitolo = string.Empty; // Revisione UI: il titolo dice già "Nuovo ToDo"
             FormCompletatoInfo = string.Empty;
-            MostraEliminaPanel = false;
             HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
             OverlayAperto = true;
         }
@@ -903,12 +896,13 @@ namespace CLab.ViewModels
             NuovaSottoAttivitaTesto = string.Empty;
             AggiornaClientiPerCombo();
 
-            PannelloTitolo = t.Titolo;
-            PannelloSottoTitolo = "Modifica ToDo";
+            // Pattern Fatture/Promemoria: il titolo dichiara l'azione, il
+            // sottotitolo dà il contesto (quale ToDo sto modificando).
+            PannelloTitolo = "Modifica ToDo";
+            PannelloSottoTitolo = t.Titolo;
             FormCompletatoInfo = t.Completato && t.DataCompletamento.HasValue
                 ? $"Completato il {t.DataCompletamento:dd/MM/yyyy}"
                 : string.Empty;
-            MostraEliminaPanel = true;
             HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
             OverlayAperto = true;
         }
@@ -1078,26 +1072,27 @@ namespace CLab.ViewModels
             Carica();
         }
 
-        private void Elimina()
+        /// <summary>Eliminazione dalla riga (pattern Fatture/Attività/Promemoria):
+        /// conferma esplicita prima di procedere, poi rimozione dal database.</summary>
+        private void EliminaRiga(ToDo? t)
         {
-            if (_todoInModificaId == 0) return;
+            if (t == null) return;
 
             var ris = MessageBox.Show(
-                $"Eliminare il ToDo \"{FormTitolo}\"?",
+                $"Eliminare il ToDo \"{t.Titolo}\"?",
                 "Conferma eliminazione",
                 MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (ris != MessageBoxResult.Yes) return;
 
             using var db = new ClabDbContext();
-            var entita = db.ToDo.FirstOrDefault(x => x.Id == _todoInModificaId);
+            var entita = db.ToDo.FirstOrDefault(x => x.Id == t.Id);
             if (entita != null)
             {
                 db.ToDo.Remove(entita);
                 db.SaveChanges();
             }
 
-            ChiudiOverlay();
             Carica();
         }
 

@@ -67,6 +67,12 @@ namespace CLab.Models
         [NotMapped]
         public bool MostraChipReferente => string.IsNullOrEmpty(ClienteNome) && !string.IsNullOrEmpty(ReferenteNome);
 
+        /// <summary>Revisione UI: il collegamento (cliente, altrimenti referente)
+        /// vive nella seconda riga del ToDo, quindi esiste solo se c'è un nome
+        /// da mostrare. Sostituisce la colonna dedicata in lista.</summary>
+        [NotMapped]
+        public bool HasCollegamento => !string.IsNullOrEmpty(ClienteNome) || !string.IsNullOrEmpty(ReferenteNome);
+
         [NotMapped]
         public string CollegamentoDisplay =>
             !string.IsNullOrEmpty(ClienteNome)

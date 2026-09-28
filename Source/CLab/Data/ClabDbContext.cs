@@ -20,6 +20,8 @@ namespace CLab.Data
         public DbSet<Promemoria> Promemoria { get; set; }
         public DbSet<ToDo> ToDo { get; set; }
         public DbSet<ToDoSottoAttivita> ToDoSottoAttivita { get; set; }
+        public DbSet<Password> Passwords { get; set; }
+        public DbSet<PasswordConfig> PasswordConfig { get; set; }
 
         public static string PercorsoDatabase
         {
@@ -101,6 +103,10 @@ namespace CLab.Data
                 .WithMany(t => t.SottoAttivita)
                 .HasForeignKey(s => s.ToDoId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PasswordConfig>()
+                .HasIndex(c => c.Id)
+                .IsUnique();
 
             // Eliminare un'Attivita dal catalogo elimina a cascata le sue
             // opzioni, le assegnazioni ai clienti e tutte le compilazioni:

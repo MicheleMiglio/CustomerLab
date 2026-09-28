@@ -773,9 +773,13 @@ namespace CLab.ViewModels
                     IsScaduto = t.IsScaduto
                 });
 
-            var ritenute = db.RitenuteAcconto.AsNoTracking()
-                .Where(r => r.ClienteId == _formId && r.DataFattura.Year == anno)
-                .ToList();
+            var ritenute = db.RitenuteAcconto
+    .AsNoTracking()
+    .Where(r => r.ClienteId == _formId)
+    .ToList() // EF genera SQL fino a qui
+    .Where(r => AnnoRitenuta(r) == anno) // filtro lato C#
+    .ToList();
+
             SituazioneRitenuteDaVersare = ritenute.Count(r => r.StatoVersamento == "DaVersare");
             SituazioneRitenuteVersate = ritenute.Count(r => r.StatoVersamento == "Versato");
             SituazioneRitenuteAnomalie = ritenute.Count(r => r.HaAnomalie);
@@ -840,6 +844,8 @@ namespace CLab.ViewModels
             OnPropertyChanged(nameof(SituazioneHaNote));
             OnPropertyChanged(nameof(SituazioneHaTimeline));
         }
+
+        public static int AnnoRitenuta(RitenutaAcconto r) => r.DataPagamentoFattura?.Year ?? DateTime.Now.Year;
 
         private void SalvaTelefono()
         {

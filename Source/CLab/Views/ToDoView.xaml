@@ -8,24 +8,24 @@
              xmlns:views="clr-namespace:CLab.Views">
 
     <!-- ============================================================ -->
-    <!-- TODO CLab 2.0 - revisione UX completa.                       -->
-    <!-- Struttura: header -> toolbar (Filtri | ordinamento | ricerca) -->
-    <!-- -> barra filtri INLINE (toggle, chip per i criteri principali  -->
-    <!-- e riga criteri avanzati) -> chip dei filtri applicati -> lista -->
-    <!-- a sezioni con righe a gerarchia cosa/quando/per chi/urgenza/   -->
-    <!-- completamento -> form nel ModalDialogControl condiviso.        -->
-    <!-- Pattern riusati da Clienti/Studi/Fatture/Promemoria: chip      -->
-    <!-- ghost con selezione wash blu, AzioneGriglia, StatusBadge       -->
-    <!-- unificato, ricerca compatta con cancella rapido, segmented     -->
-    <!-- ordinamento e priorità. Il raggruppamento per cliente è      -->
-    <!-- stato RIMOSSO (ridondante rispetto a ricerca e filtri).        -->
+    <!-- TODO CLab 2.0 - revisione conclusiva.                        -->
+    <!-- Header -> toolbar compatta (Filtri | ricerca) -> barra filtri -->
+    <!-- inline compatta (sfondo del pannelli laterali, un unico blocco -->
+    <!-- di criteri, Applica disabilitato finche' non cambia nulla) ->  -->
+    <!-- chip dei filtri applicati -> lista a sezioni SENZA intestazioni -->
+    <!-- di colonna: righe naturali con titolo dominante, pill priorita' -->
+    <!-- accanto al titolo, collegamento in seconda riga, scadenza con  -->
+    <!-- semantica cromatica, progresso passi n/m + barretta, azioni     -->
+    <!-- Modifica/Elimina in riga (pattern Fatture/Attivita).           -->
+    <!-- Rimossi: ordinamento manuale, Raggruppa, Solo scaduti, pill    -->
+    <!-- Scaduto (ridondante con la sezione), Elimina dal modal.        -->
     <!-- ============================================================ -->
 
     <UserControl.Resources>
         <ResourceDictionary>
 
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
-            <!-- Priorità -> colore semantico (StatoSemantico): usata dal
+            <!-- Priorita' -> colore semantico (StatoSemantico): usata dal
                  segmented del form (pattern Promemoria). -->
             <converters:StatoSemanticoForeConverter x:Key="PrioritaAColore"/>
 
@@ -93,7 +93,6 @@
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
-                                    <Setter TargetName="segno" Property="Foreground" Value="{StaticResource BrushDanger}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -101,7 +100,7 @@
                 </Setter>
             </Style>
 
-            <!-- Chip PRIORITA' (barra filtri): segmentata su BozzaPriorita. -->
+            <!-- Chip PRIORITÀ (barra filtri): segmentata su BozzaPriorita. -->
             <Style x:Key="ChipPrioTutte" TargetType="Button" BasedOn="{StaticResource ChipFiltro}">
                 <Setter Property="Margin" Value="0"/>
                 <Style.Triggers>
@@ -136,40 +135,6 @@
                 <Setter Property="Margin" Value="0"/>
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding BozzaPriorita}" Value="bassa">
-                        <Setter Property="Tag" Value="Sel"/>
-                        <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
-                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-
-            <!-- Chip STATO (barra filtri): toggle Solo scaduti. -->
-            <Style x:Key="ChipSoloScaduti" TargetType="Button" BasedOn="{StaticResource ChipFiltro}">
-                <Setter Property="Margin" Value="0"/>
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding BozzaSoloScaduti}" Value="True">
-                        <Setter Property="Tag" Value="Sel"/>
-                        <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
-                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-
-            <!-- Segmented ordinamento (pattern Promemoria). -->
-            <Style x:Key="ChipOrdinaScadenza" TargetType="Button" BasedOn="{StaticResource ChipFiltro}">
-                <Setter Property="Margin" Value="0"/>
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding Ordinamento}" Value="Scadenza">
-                        <Setter Property="Tag" Value="Sel"/>
-                        <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
-                        <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-            <Style x:Key="ChipOrdinaCreazione" TargetType="Button" BasedOn="{StaticResource ChipFiltro}">
-                <Setter Property="Margin" Value="0"/>
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding Ordinamento}" Value="Creazione">
                         <Setter Property="Tag" Value="Sel"/>
                         <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
                         <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
@@ -213,6 +178,34 @@
                         <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
                     </Trigger>
                 </Style.Triggers>
+            </Style>
+
+            <!-- Elimina: neutra a riposo, rosso solo come feedback di hover. -->
+            <Style x:Key="AzioneGrigliaElimina" TargetType="Button" BasedOn="{StaticResource AzioneGriglia}">
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource BrushStatoCessato}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Barretta di progresso dei passi: riempimento verde (semantica
+                 Completato), zero decorazione, 4px di altezza. -->
+            <Style x:Key="PassiBar" TargetType="ProgressBar">
+                <Setter Property="Height" Value="4"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushSuccess}"/>
+                <Setter Property="Background" Value="{StaticResource BrushBordoLeggero}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ProgressBar">
+                            <Grid>
+                                <Border x:Name="PART_Track" Background="{TemplateBinding Background}" CornerRadius="2"/>
+                                <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" CornerRadius="2" HorizontalAlignment="Left"/>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <!-- Segmented priorità del form (pattern Promemoria): attivo =
@@ -303,16 +296,15 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- TOOLBAR: [Filtri] | [ordinamento][ricerca]. Pulita: i filtri
-                 attivi si vedono nei chip, la barra di editing si apre al click. -->
+            <!-- TOOLBAR: solo Filtri e ricerca. Ordinamento e raggruppamento
+                 rimossi: la lista ha un ordinamento naturale per sezione. -->
             <Grid Grid.Row="0" Margin="28,10,28,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
@@ -326,19 +318,8 @@
                     </StackPanel>
                 </Button>
 
-                <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BrushBordoLeggero}"
-                    BorderThickness="1" CornerRadius="{StaticResource RadiusSmall}" Padding="2"
-                    VerticalAlignment="Center" Margin="0,0,12,0">
-                    <StackPanel Orientation="Horizontal">
-                        <Button Content="Per scadenza" Style="{StaticResource ChipOrdinaScadenza}"
-                            Command="{Binding OrdinaPerScadenzaCommand}" ToolTip="Ordina per scadenza"/>
-                        <Button Content="Più recenti" Style="{StaticResource ChipOrdinaCreazione}"
-                            Command="{Binding OrdinaPerCreazioneCommand}" ToolTip="Ordina per data di creazione"/>
-                    </StackPanel>
-                </Border>
-
                 <!-- Ricerca compatta con cancella rapido (pattern Clienti/Studi/Fatture) -->
-                <Border Grid.Column="3" Width="250" Height="32" Background="White"
+                <Border Grid.Column="2" Width="250" Height="32" Background="White"
                     BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6"
                     VerticalAlignment="Center">
                     <Grid>
@@ -365,146 +346,7 @@
                 </Border>
             </Grid>
 
-            <!-- BARRA FILTRI INLINE: si apre sotto la toolbar con lo stesso
-                 toggle "Filtri". Superficie morbida distinta dalla lista bianca.
-                 Riusa la logica Bozza -> Applica del ViewModel, senza sidebar. -->
-            <Border Grid.Row="1" Margin="28,10,28,0"
-                Background="{StaticResource BrushSfondoFine}"
-                BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="1"
-                CornerRadius="{StaticResource RadiusMedium}" Padding="16,14,16,10"
-                Visibility="{Binding FiltriAperti, Converter={StaticResource BoolToVisibility}}">
-                <StackPanel>
-
-                    <!-- FILTRI PRINCIPALI: le scelte più frequenti, un click ciascuna -->
-                    <WrapPanel>
-                        <StackPanel Margin="0,0,24,12">
-                            <TextBlock Text="PRIORITÀ" Style="{StaticResource FieldLabel}"/>
-                            <Border Background="White" BorderBrush="{StaticResource BrushBordoLeggero}"
-                                BorderThickness="1" CornerRadius="{StaticResource RadiusSmall}"
-                                Padding="2" Margin="0,4,0,0" VerticalAlignment="Top">
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Content="Tutte" Style="{StaticResource ChipPrioTutte}"
-                                        Command="{Binding ImpostaBozzaPrioritaCommand}" CommandParameter="tutte"/>
-                                    <Button Content="Alta" Style="{StaticResource ChipPrioAlta}"
-                                        Command="{Binding ImpostaBozzaPrioritaCommand}" CommandParameter="alta"/>
-                                    <Button Content="Media" Style="{StaticResource ChipPrioMedia}"
-                                        Command="{Binding ImpostaBozzaPrioritaCommand}" CommandParameter="media"/>
-                                    <Button Content="Bassa" Style="{StaticResource ChipPrioBassa}"
-                                        Command="{Binding ImpostaBozzaPrioritaCommand}" CommandParameter="bassa"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,0,24,12">
-                            <TextBlock Text="CLIENTE" Style="{StaticResource FieldLabel}"/>
-                            <Grid Margin="0,4,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="230"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <ComboBox Grid.Column="0" ItemsSource="{Binding ClientiPerFiltro}"
-                                    DisplayMemberPath="RagioneSociale" SelectedItem="{Binding BozzaCliente}"/>
-                                <Button Grid.Column="1" Style="{StaticResource AzioneGriglia}" Padding="5" Margin="4,0,0,0"
-                                    Command="{Binding PulisciBozzaClienteCommand}" ToolTip="Rimuovi selezione"
-                                    Visibility="{Binding BozzaCliente, Converter={StaticResource BoolToVisibility}}">
-                                    <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10"
-                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                                </Button>
-                            </Grid>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,0,24,12">
-                            <TextBlock Text="REFERENTE" Style="{StaticResource FieldLabel}"/>
-                            <Grid Margin="0,4,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="200"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <ComboBox Grid.Column="0" ItemsSource="{Binding ReferentiTutti}"
-                                    DisplayMemberPath="Nome" SelectedItem="{Binding BozzaReferente}"/>
-                                <Button Grid.Column="1" Style="{StaticResource AzioneGriglia}" Padding="5" Margin="4,0,0,0"
-                                    Command="{Binding PulisciBozzaReferenteCommand}" ToolTip="Rimuovi selezione"
-                                    Visibility="{Binding BozzaReferente, Converter={StaticResource BoolToVisibility}}">
-                                    <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10"
-                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                                </Button>
-                            </Grid>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,0,0,12">
-                            <TextBlock Text="STATO" Style="{StaticResource FieldLabel}"/>
-                            <Button Margin="0,4,0,0" HorizontalAlignment="Left"
-                                Style="{StaticResource ChipSoloScaduti}"
-                                Command="{Binding ToggleBozzaSoloScadutiCommand}"
-                                ToolTip="Mostra solo i ToDo con scadenza superata">
-                                <StackPanel Orientation="Horizontal">
-                                    <iconPacks:PackIconBootstrapIcons Kind="ExclamationTriangle" Width="11" Height="11"
-                                        Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Solo scaduti" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </WrapPanel>
-
-                    <!-- CRITERI AVANZATI: meno frequenti, secondo livello -->
-                    <TextBlock Text="ALTRI CRITERI" Style="{StaticResource SectionTitle}" Margin="0,2,0,8"/>
-                    <WrapPanel>
-                        <StackPanel Margin="0,0,24,12">
-                            <TextBlock Text="COLLEGAMENTO" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox Width="180" Margin="0,4,0,0" HorizontalAlignment="Left"
-                                ItemsSource="{Binding OpzioniCollegamentoFiltro}"
-                                DisplayMemberPath="Value" SelectedValuePath="Key"
-                                SelectedValue="{Binding BozzaCollegamento}"/>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,0,24,12">
-                            <TextBlock Text="SOTTO-ATTIVITÀ" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox Width="200" Margin="0,4,0,0" HorizontalAlignment="Left"
-                                ItemsSource="{Binding OpzioniPassiFiltro}"
-                                DisplayMemberPath="Value" SelectedValuePath="Key"
-                                SelectedValue="{Binding BozzaPassi}"/>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,0,24,12">
-                            <TextBlock Text="PERIODO" Style="{StaticResource FieldLabel}"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                <ComboBox Width="140"
-                                    ItemsSource="{Binding OpzioniCampoDataFiltro}"
-                                    DisplayMemberPath="Value" SelectedValuePath="Key"
-                                    SelectedValue="{Binding BozzaCampoData}"/>
-                                <DatePicker Width="125" Margin="10,0,0,0"
-                                    SelectedDate="{Binding BozzaDataDa}" mah:TextBoxHelper.Watermark="Dal"/>
-                                <DatePicker Width="125" Margin="8,0,0,0"
-                                    SelectedDate="{Binding BozzaDataA}" mah:TextBoxHelper.Watermark="Al"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,0,0,12" MaxWidth="330">
-                            <TextBlock Text="COMPLETATI" Style="{StaticResource FieldLabel}"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                <CheckBox IsChecked="{Binding BozzaMostraTuttiCompletati}"
-                                    Style="{StaticResource ModuleCheckBoxStyle}" VerticalAlignment="Center"/>
-                                <TextBlock Text="Mostra tutti i completati (oltre 90 giorni)"
-                                    FontSize="12" Foreground="{StaticResource BrushTestoPrimario}"
-                                    VerticalAlignment="Center" Margin="8,0,0,0" TextWrapping="Wrap"/>
-                            </StackPanel>
-                            <TextBlock Text="Di default i completati restano negli ultimi 90 giorni. Spunta qui, oppure filtra per data di completamento, per rivedere lo storico."
-                                FontSize="11" Foreground="{StaticResource BrushTestoTerziario}" TextWrapping="Wrap"
-                                Margin="26,4,0,0"/>
-                        </StackPanel>
-                    </WrapPanel>
-
-                    <!-- AZIONI BARRA: applica chiude la barra e aggiorna i chip -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
-                        <Button Content="Azzera" Style="{StaticResource BtnOutline}" MinWidth="96"
-                            Command="{Binding AzzeraBozzaFiltriCommand}" ToolTip="Azzera filtri e ricerca"/>
-                        <Button Content="Applica" Style="{StaticResource BtnPrimary}" MinWidth="104" Margin="10,0,0,0"
-                            Command="{Binding ApplicaFiltriCommand}" ToolTip="Applica i filtri alla lista"/>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-
-            <!-- CHIP FILTRI APPLICATI + azzeramento (nascosti mentre la barra è aperta) -->
+            <!-- CHIP FILTRI APPLICATI + azzeramento (nascosti mentre la barra e' aperta) -->
             <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="28,8,28,0"
                 Visibility="{Binding MostraChipFiltri, Converter={StaticResource BoolToVisibility}}">
                 <ItemsControl ItemsSource="{Binding ChipFiltri}" VerticalAlignment="Top">
@@ -534,144 +376,298 @@
                 </Button>
             </StackPanel>
 
-            <!-- CONTENUTO -->
+            <!-- BARRA FILTRI INLINE: stessa superficie dei pannelli laterali
+                 (BrushSidebarHover). Un unico blocco compatto di criteri;
+                 Applica resta disabilitato finche' la bozza non differisce dai
+                 filtri applicati. Azzera riporta tutto allo stato neutro. -->
+            <Border Grid.Row="1" Margin="28,10,28,0"
+                Background="{StaticResource BrushSidebarHover}"
+                BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="1"
+                CornerRadius="{StaticResource RadiusMedium}" Padding="14,12,14,10"
+                Visibility="{Binding FiltriAperti, Converter={StaticResource BoolToVisibility}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <WrapPanel Grid.Column="0" VerticalAlignment="Top">
+
+                        <StackPanel Margin="0,0,20,10">
+                            <TextBlock Text="REFERENTE" Style="{StaticResource FieldLabel}"/>
+                            <Grid Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0" ItemsSource="{Binding ReferentiTutti}"
+                                    SelectedItem="{Binding BozzaReferente}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Nome}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Grid.Column="1" Style="{StaticResource AzioneGriglia}" Padding="5" Margin="4,0,0,0"
+                                    Command="{Binding PulisciBozzaReferenteCommand}" ToolTip="Rimuovi selezione"
+                                    Visibility="{Binding BozzaReferente, Converter={StaticResource BoolToVisibility}}">
+                                    <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10"
+                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,20,10">
+                            <TextBlock Text="CLIENTE" Style="{StaticResource FieldLabel}"/>
+                            <Grid Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0" ItemsSource="{Binding ClientiPerFiltro}"
+                                    SelectedItem="{Binding BozzaCliente}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding RagioneSociale}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Grid.Column="1" Style="{StaticResource AzioneGriglia}" Padding="5" Margin="4,0,0,0"
+                                    Command="{Binding PulisciBozzaClienteCommand}" ToolTip="Rimuovi selezione"
+                                    Visibility="{Binding BozzaCliente, Converter={StaticResource BoolToVisibility}}">
+                                    <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10"
+                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,20,10">
+                            <TextBlock Text="COLLEGAMENTO" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox Width="150" Margin="0,4,0,0" HorizontalAlignment="Left"
+                                ItemsSource="{Binding OpzioniCollegamentoFiltro}"
+                                SelectedValuePath="Key" SelectedValue="{Binding BozzaCollegamento}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Value}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+
+                        <StackPanel Margin="0,0,20,10">
+                            <TextBlock Text="PRIORITÀ" Style="{StaticResource FieldLabel}"/>
+                            <Border Background="White" BorderBrush="{StaticResource BrushBordoLeggero}"
+                                BorderThickness="1" CornerRadius="{StaticResource RadiusSmall}"
+                                Padding="2" Margin="0,4,0,0" VerticalAlignment="Top">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Tutte" Style="{StaticResource ChipPrioTutte}"
+                                        Command="{Binding ImpostaBozzaPrioritaCommand}" CommandParameter="tutte"/>
+                                    <Button Content="Alta" Style="{StaticResource ChipPrioAlta}"
+                                        Command="{Binding ImpostaBozzaPrioritaCommand}" CommandParameter="alta"/>
+                                    <Button Content="Media" Style="{StaticResource ChipPrioMedia}"
+                                        Command="{Binding ImpostaBozzaPrioritaCommand}" CommandParameter="media"/>
+                                    <Button Content="Bassa" Style="{StaticResource ChipPrioBassa}"
+                                        Command="{Binding ImpostaBozzaPrioritaCommand}" CommandParameter="bassa"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,20,10">
+                            <TextBlock Text="SOTTO-ATTIVITÀ" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox Width="180" Margin="0,4,0,0" HorizontalAlignment="Left"
+                                ItemsSource="{Binding OpzioniPassiFiltro}"
+                                SelectedValuePath="Key" SelectedValue="{Binding BozzaPassi}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Value}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,20,10">
+                            <TextBlock Text="PERIODO" Style="{StaticResource FieldLabel}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <ComboBox Width="145" VerticalAlignment="Center"
+                                    ItemsSource="{Binding OpzioniCampoDataFiltro}"
+                                    SelectedValuePath="Key" SelectedValue="{Binding BozzaCampoData}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Value}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <DatePicker Width="160" Margin="8,0,0,0" VerticalAlignment="Center"
+                                    SelectedDate="{Binding BozzaDataDa}" mah:TextBoxHelper.Watermark="Dal"/>
+                                <DatePicker Width="160" Margin="8,0,0,0" VerticalAlignment="Center"
+                                    SelectedDate="{Binding BozzaDataA}" mah:TextBoxHelper.Watermark="Al"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,10">
+                            <TextBlock Text="COMPLETATI" Style="{StaticResource FieldLabel}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <CheckBox IsChecked="{Binding BozzaMostraTuttiCompletati}"
+                                    Style="{StaticResource ModuleCheckBoxStyle}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Mostra tutti (oltre 90 giorni)"
+                                    FontSize="12" Foreground="{StaticResource BrushTestoPrimario}"
+                                    VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </WrapPanel>
+
+                    <!-- AZIONI BARRA: a destra, allineate all'ultima riga dei criteri.
+                         Azzera e' un'azione secondaria ghost (non compete con Applica). -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="12,0,0,10">
+                        <Button Style="{StaticResource ChipFiltro}" VerticalAlignment="Center"
+                            Command="{Binding AzzeraBozzaFiltriCommand}" ToolTip="Azzera filtri e ricerca">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconBootstrapIcons Kind="Eraser" Width="11" Height="11"
+                                    Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Azzera" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Content="Applica" Style="{StaticResource BtnPrimary}" Height="34" MinWidth="100" Padding="16,0"
+                            Margin="8,0,0,0" VerticalAlignment="Center"
+                            Command="{Binding ApplicaFiltriCommand}" ToolTip="Applica i filtri alla lista"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- CONTENUTO: lista a sezioni, senza intestazioni di colonna -->
             <Grid Grid.Row="3">
 
-                <!-- CARD LISTA a sezioni (nascosta quando la lista è vuota) -->
+                <!-- CARD LISTA (nascosta quando la lista e' vuota) -->
                 <Border Margin="28,12,28,24" Background="White"
                     BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="1"
                     CornerRadius="{StaticResource RadiusMedium}"
                     Visibility="{Binding ListaVuota, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Sezioni}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Visibility="{Binding MostraSezione, Converter={StaticResource BoolToVisibility}}">
 
-                        <!-- INTESTAZIONI DI COLONNA: gerarchia cosa/quando/per chi/
-                             urgenza/completamento. Stessa griglia delle righe. -->
-                        <Border Grid.Row="0" BorderBrush="{StaticResource BrushBordoLeggero}"
-                            BorderThickness="0,0,0,1" Padding="14,0">
-                            <Grid Height="34">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="36"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="105"/>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="90"/>
-                                    <ColumnDefinition Width="64"/>
-                                    <ColumnDefinition Width="40"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="1" Text="TITOLO" Style="{StaticResource TableHeaderTextStyle}"
-                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBlock Grid.Column="2" Text="SCADENZA" Style="{StaticResource TableHeaderTextStyle}"
-                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBlock Grid.Column="3" Text="COLLEGAMENTO" Style="{StaticResource TableHeaderTextStyle}"
-                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBlock Grid.Column="4" Text="PRIORITÀ" Style="{StaticResource TableHeaderTextStyle}"
-                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBlock Grid.Column="5" Text="PASSI" Style="{StaticResource TableHeaderTextStyle}"
-                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            </Grid>
-                        </Border>
+                                        <!-- TESTATA SEZIONE: tipografia piu' forte delle righe
+                                             (13 SemiBold), dot semantico 8px, conteggio e nota
+                                             in caption. E' un'intestazione di gruppo, non una riga. -->
+                                        <Button Command="{Binding DataContext.ToggleSezioneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" Cursor="Hand"
+                                            HorizontalContentAlignment="Stretch" Padding="0" FocusVisualStyle="{x:Null}">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bd" Background="{StaticResource BrushSfondoFine}" Padding="14,11,14,8">
+                                                        <ContentPresenter/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <iconPacks:PackIconBootstrapIcons Grid.Column="0" Width="11" Height="11"
+                                                    Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center">
+                                                    <iconPacks:PackIconBootstrapIcons.Style>
+                                                        <Style TargetType="iconPacks:PackIconBootstrapIcons">
+                                                            <Setter Property="Kind" Value="ChevronRight"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Espansa}" Value="True">
+                                                                    <Setter Property="Kind" Value="ChevronDown"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </iconPacks:PackIconBootstrapIcons.Style>
+                                                </iconPacks:PackIconBootstrapIcons>
+                                                <Ellipse Grid.Column="1" Width="8" Height="8" Margin="10,0,8,0" VerticalAlignment="Center">
+                                                    <Ellipse.Style>
+                                                        <Style TargetType="Ellipse">
+                                                            <Setter Property="Fill" Value="{StaticResource BrushTestoTerziario}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Chiave}" Value="scaduti">
+                                                                    <Setter Property="Fill" Value="{StaticResource BrushDanger}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Chiave}" Value="programma">
+                                                                    <Setter Property="Fill" Value="{StaticResource BrushPrimary}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Chiave}" Value="completati">
+                                                                    <Setter Property="Fill" Value="{StaticResource BrushSuccess}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Ellipse.Style>
+                                                </Ellipse>
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Titolo}" FontSize="13" FontWeight="SemiBold"
+                                                        Foreground="{StaticResource BrushTestoPrimario}"/>
+                                                    <TextBlock Text="{Binding Conteggio, StringFormat=' ({0})'}" FontSize="11"
+                                                        Foreground="{StaticResource BrushTestoTerziario}" Margin="6,1,0,0" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="3" Text="{Binding Nota}" FontSize="11"
+                                                    Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center"
+                                                    Visibility="{Binding Nota, Converter={StaticResource BoolToVisibility}}"/>
+                                            </Grid>
+                                        </Button>
 
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                            <ItemsControl ItemsSource="{Binding Sezioni}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Visibility="{Binding MostraSezione, Converter={StaticResource BoolToVisibility}}">
+                                        <!-- placeholder della sezione vuota (es. Scaduti) -->
+                                        <TextBlock Text="Nessun elemento in questa sezione" FontSize="12"
+                                            Foreground="{StaticResource BrushTestoTerziario}" Padding="50,6,14,12"
+                                            Visibility="{Binding MostraVuoto, Converter={StaticResource BoolToVisibility}}"/>
 
-                                            <!-- TESTATA SEZIONE: chevron + dot semantico + titolo
-                                                 + conteggio, nota a destra. Leggera, niente barra piena. -->
-                                            <Button Command="{Binding DataContext.ToggleSezioneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}" Cursor="Hand"
-                                                HorizontalContentAlignment="Stretch" Padding="0" FocusVisualStyle="{x:Null}">
-                                                <Button.Template>
-                                                    <ControlTemplate TargetType="Button">
-                                                        <Border x:Name="bd" Background="Transparent" Padding="14,8">
-                                                            <ContentPresenter/>
-                                                        </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Button.Template>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <iconPacks:PackIconBootstrapIcons Grid.Column="0" Width="11" Height="11"
-                                                        Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center">
-                                                        <iconPacks:PackIconBootstrapIcons.Style>
-                                                            <Style TargetType="iconPacks:PackIconBootstrapIcons">
-                                                                <Setter Property="Kind" Value="ChevronRight"/>
+                                        <!-- RIGHE -->
+                                        <ItemsControl ItemsSource="{Binding Righe}"
+              Visibility="{Binding MostraRighe, Converter={StaticResource BoolToVisibility}}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+
+                                                    <!-- ========================================================= -->
+                                                    <!-- CONTENITORE ATTIVITÀ: riga + sotto-attività = UN blocco   -->
+                                                    <!-- La linea di separazione sta qui, non sulla riga, così le  -->
+                                                    <!-- sotto-attività restano "dentro" l'attività padre.         -->
+                                                    <!-- ========================================================= -->
+                                                    <Border BorderBrush="{StaticResource BrushBordoLeggero}"
+                    BorderThickness="0,0,0,1">
+
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Background" Value="Transparent"/>
                                                                 <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding Espansa}" Value="True">
-                                                                        <Setter Property="Kind" Value="ChevronDown"/>
+                                                                    <!-- Espansa: tutto il blocco prende lo stesso sfondo -->
+                                                                    <DataTrigger Binding="{Binding MostraSottoAttivitaEspanse}" Value="True">
+                                                                        <Setter Property="Background" Value="{StaticResource BrushSfondoFine}"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
-                                                        </iconPacks:PackIconBootstrapIcons.Style>
-                                                    </iconPacks:PackIconBootstrapIcons>
-                                                    <Ellipse Grid.Column="1" Width="7" Height="7" Margin="10,0,8,0" VerticalAlignment="Center">
-                                                        <Ellipse.Style>
-                                                            <Style TargetType="Ellipse">
-                                                                <Setter Property="Fill" Value="{StaticResource BrushTestoTerziario}"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding Chiave}" Value="scaduti">
-                                                                        <Setter Property="Fill" Value="{StaticResource BrushDanger}"/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding Chiave}" Value="programma">
-                                                                        <Setter Property="Fill" Value="{StaticResource BrushPrimary}"/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding Chiave}" Value="completati">
-                                                                        <Setter Property="Fill" Value="{StaticResource BrushSuccess}"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Ellipse.Style>
-                                                    </Ellipse>
-                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding Titolo}" FontSize="12" FontWeight="Medium"
-                                                            Foreground="{StaticResource BrushTestoPrimario}"/>
-                                                        <TextBlock Text="{Binding Conteggio, StringFormat=' ({0})'}" FontSize="11"
-                                                            Foreground="{StaticResource BrushTestoTerziario}" Margin="5,0,0,0"/>
-                                                    </StackPanel>
-                                                    <TextBlock Grid.Column="3" Text="{Binding Nota}" FontSize="11"
-                                                        Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center"
-                                                        Visibility="{Binding Nota, Converter={StaticResource BoolToVisibility}}"/>
-                                                </Grid>
-                                            </Button>
+                                                        </Border.Style>
 
-                                            <!-- placeholder della sezione vuota (es. Scaduti) -->
-                                            <TextBlock Text="Nessun elemento in questa sezione" FontSize="12"
-                                                Foreground="{StaticResource BrushTestoTerziario}" Padding="50,6,14,12"
-                                                Visibility="{Binding MostraVuoto, Converter={StaticResource BoolToVisibility}}"/>
-
-                                            <!-- RIGHE -->
-                                            <ItemsControl ItemsSource="{Binding Righe}"
-                                                Visibility="{Binding MostraRighe, Converter={StaticResource BoolToVisibility}}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
                                                         <StackPanel>
 
-                                                            <!-- RIGA PRINCIPALE: hover neutro, doppio click = apri -->
-                                                            <Border BorderBrush="{StaticResource BrushBordoLeggero}"
-                                                                BorderThickness="0,0,0,1" MinHeight="44">
+                                                            <!-- ===================================================== -->
+                                                            <!-- RIGA PRINCIPALE                                       -->
+                                                            <!-- Padding destro = aria tra icone azioni e bordo lista  -->
+                                                            <!-- ===================================================== -->
+                                                            <Border MinHeight="44"
+                            Padding="0,8,16,8">
+
                                                                 <Border.InputBindings>
-                                                                    <MouseBinding MouseAction="LeftDoubleClick"
-                                                                        Command="{Binding DataContext.ApriModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                        CommandParameter="{Binding}"/>
+                                                                    <MouseBinding
+                                MouseAction="LeftDoubleClick"
+                                Command="{Binding DataContext.ApriModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"/>
                                                                 </Border.InputBindings>
+
                                                                 <Border.Style>
                                                                     <Style TargetType="Border">
                                                                         <!-- Transparent (non null): l'area vuota della riga
-                                                                             resta cliccabile per hover e doppio click. -->
+                                     resta cliccabile per hover e doppio click. -->
                                                                         <Setter Property="Background" Value="Transparent"/>
                                                                         <Setter Property="Cursor" Value="Hand"/>
                                                                         <Style.Triggers>
@@ -681,113 +677,205 @@
                                                                         </Style.Triggers>
                                                                     </Style>
                                                                 </Border.Style>
+
                                                                 <Grid>
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="36"/>
+                                                                        <!-- 0: Checkbox -->
+                                                                        <ColumnDefinition Width="52"/>
+                                                                        <!-- 1: Pill priorità (larghezza fissa: i titoli partono sempre dallo stesso x) -->
+                                                                        <ColumnDefinition Width="84"/>
+                                                                        <!-- 2: Titolo + sottotitolo -->
                                                                         <ColumnDefinition Width="*"/>
-                                                                        <ColumnDefinition Width="105"/>
-                                                                        <ColumnDefinition Width="150"/>
-                                                                        <ColumnDefinition Width="90"/>
+                                                                        <!-- 3: Scadenza -->
+                                                                        <ColumnDefinition Width="120"/>
+                                                                        <!-- 4: Sotto-attività (n/m + barra + chevron) -->
+                                                                        <ColumnDefinition Width="110"/>
+                                                                        <!-- 5: Azioni -->
                                                                         <ColumnDefinition Width="64"/>
-                                                                        <ColumnDefinition Width="40"/>
                                                                     </Grid.ColumnDefinitions>
 
-                                                                    <!-- completamento inline -->
-                                                                    <CheckBox Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                        IsChecked="{Binding Completato, Mode=OneWay}"
-                                                                        Style="{StaticResource ModuleCheckBoxStyle}"
-                                                                        ToolTip="Segna come completato / da fare">
+                                                                    <Grid.RowDefinitions>
+                                                                        <!-- Riga 0: tutto ciò che è "principale", centrato sulla stessa linea -->
+                                                                        <RowDefinition Height="Auto" MinHeight="28"/>
+                                                                        <!-- Riga 1: sottotitolo (cliente / completato il) -->
+                                                                        <RowDefinition Height="Auto"/>
+                                                                    </Grid.RowDefinitions>
+
+                                                                    <!-- ============ COMPLETAMENTO INLINE ============ -->
+                                                                    <CheckBox
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                IsChecked="{Binding Completato, Mode=OneWay}"
+                                Style="{StaticResource ModuleCheckBoxStyle}"
+                                ToolTip="Segna come completato / da fare">
+
                                                                         <CheckBox.InputBindings>
-                                                                            <MouseBinding MouseAction="LeftClick"
-                                                                                Command="{Binding DataContext.ToggleCompletatoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                                CommandParameter="{Binding}"/>
+                                                                            <MouseBinding
+                                        MouseAction="LeftClick"
+                                        Command="{Binding DataContext.ToggleCompletatoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"/>
                                                                         </CheckBox.InputBindings>
                                                                     </CheckBox>
 
-                                                                    <!-- COSA: titolo dominante; badge Scaduto solo se serve;
-                                                                         data di completamento (verde) solo sui completati -->
-                                                                    <DockPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0" LastChildFill="True">
-                                                                        <views:StatusBadgeControl DockPanel.Dock="Right" Stato="Scaduto" VerticalAlignment="Center" Margin="10,0,0,0"
-                                                                            Visibility="{Binding IsScaduto, Converter={StaticResource BoolToVisibility}}"/>
-                                                                        <TextBlock DockPanel.Dock="Right" FontSize="11" Foreground="{StaticResource BrushSuccess}"
-                                                                            VerticalAlignment="Center" Margin="10,0,0,0"
-                                                                            Text="{Binding CompletamentoDisplay, StringFormat='Completato il {0}'}"
-                                                                            Visibility="{Binding Completato, Converter={StaticResource BoolToVisibility}}"/>
-                                                                        <TextBlock Text="{Binding Titolo}" FontSize="13" VerticalAlignment="Center"
-                                                                            TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Titolo}">
-                                                                            <TextBlock.Style>
-                                                                                <Style TargetType="TextBlock">
-                                                                                    <Setter Property="FontWeight" Value="Medium"/>
-                                                                                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                                                                                    <Style.Triggers>
-                                                                                        <DataTrigger Binding="{Binding Completato}" Value="True">
-                                                                                            <Setter Property="FontWeight" Value="Normal"/>
-                                                                                            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-                                                                                        </DataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </TextBlock.Style>
-                                                                        </TextBlock>
+                                                                    <!-- ============ PRIORITÀ ============ -->
+                                                                    <!-- Nelle completate resta Collapsed, ma la colonna
+                                 fissa mantiene i titoli allineati. -->
+                                                                    <views:StatusBadgeControl
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Stato="{Binding Priorita}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Visibility="{Binding Completato,
+                                    Converter={StaticResource BoolToVisibility},
+                                    ConverterParameter=Inverti}"/>
+
+                                                                    <!-- ============ TITOLO ============ -->
+                                                                    <TextBlock
+                                Grid.Row="0"
+                                Grid.Column="2"
+                                Text="{Binding Titolo}"
+                                FontSize="13"
+                                VerticalAlignment="Center"
+                                Margin="0,0,16,0"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap"
+                                ToolTip="{Binding Titolo}">
+
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="FontWeight" Value="Medium"/>
+                                                                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding Completato}" Value="True">
+                                                                                        <Setter Property="FontWeight" Value="Normal"/>
+                                                                                        <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+
+                                                                    <!-- ============ SOTTOTITOLO ============ -->
+                                                                    <!-- "Completato il" (se completata) + cliente/referente.
+                                 Parte sempre dallo stesso x, sotto il titolo.
+                                 I margini sono sui TextBlock (non sul DockPanel) così,
+                                 se entrambi sono Collapsed, la riga non occupa altezza. -->
+                                                                    <DockPanel
+                                Grid.Row="1"
+                                Grid.Column="2"
+                                Margin="0,0,16,0">
+
+                                                                        <TextBlock
+                                    DockPanel.Dock="Left"
+                                    Text="{Binding CompletamentoDisplay, StringFormat='Completato il {0}'}"
+                                    FontSize="11"
+                                    Foreground="{StaticResource BrushSuccess}"
+                                    Margin="0,3,14,0"
+                                    TextWrapping="NoWrap"
+                                    Visibility="{Binding Completato,
+                                        Converter={StaticResource BoolToVisibility}}"/>
+
+                                                                        <!-- Ultimo figlio del DockPanel = riempie lo spazio rimasto
+                                     (così l'ellipsis funziona) -->
+                                                                        <TextBlock
+                                    Text="{Binding CollegamentoDisplay}"
+                                    FontSize="11"
+                                    Foreground="{StaticResource BrushTestoSecondario}"
+                                    Margin="0,3,0,0"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap"
+                                    ToolTip="{Binding CollegamentoDisplay}"
+                                    Visibility="{Binding HasCollegamento,
+                                        Converter={StaticResource BoolToVisibility}}"/>
                                                                     </DockPanel>
 
-                                                                    <!-- QUANDO: rosso = scaduto, ambra = in scadenza (entro 7gg) -->
-                                                                    <TextBlock Grid.Column="2" Text="{Binding ScadenzaDisplay}" FontSize="12"
-                                                                        VerticalAlignment="Center" Margin="0,0,10,0">
+                                                                    <!-- ============ SCADENZA ============ -->
+                                                                    <TextBlock
+                                Grid.Row="0"
+                                Grid.Column="3"
+                                Text="{Binding ScadenzaDisplay}"
+                                FontSize="12"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Margin="0,0,12,0">
+
                                                                         <TextBlock.Style>
                                                                             <Style TargetType="TextBlock">
                                                                                 <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
                                                                                 <Style.Triggers>
+
+                                                                                    <!-- Scaduto -->
                                                                                     <DataTrigger Binding="{Binding IsScaduto}" Value="True">
                                                                                         <Setter Property="Foreground" Value="{StaticResource BrushDanger}"/>
                                                                                         <Setter Property="FontWeight" Value="Medium"/>
                                                                                         <Setter Property="ToolTip" Value="Scaduto"/>
                                                                                     </DataTrigger>
+
+                                                                                    <!-- In scadenza -->
                                                                                     <DataTrigger Binding="{Binding IsInScadenza}" Value="True">
                                                                                         <Setter Property="Foreground" Value="{StaticResource BrushStatoStandBy}"/>
                                                                                         <Setter Property="FontWeight" Value="Medium"/>
                                                                                         <Setter Property="ToolTip" Value="In scadenza (entro 7 giorni)"/>
                                                                                     </DataTrigger>
+
+                                                                                    <!-- Completato: ultimo, così vince sugli altri -->
                                                                                     <DataTrigger Binding="{Binding Completato}" Value="True">
                                                                                         <Setter Property="Foreground" Value="{StaticResource BrushTestoTerziario}"/>
                                                                                         <Setter Property="FontWeight" Value="Normal"/>
+                                                                                        <Setter Property="ToolTip" Value="Scadenza originale"/>
                                                                                     </DataTrigger>
+
                                                                                 </Style.Triggers>
                                                                             </Style>
                                                                         </TextBlock.Style>
                                                                     </TextBlock>
 
-                                                                    <!-- PER CHI: cliente, altrimenti referente -->
-                                                                    <TextBlock Grid.Column="3" Text="{Binding CollegamentoDisplay}" FontSize="12"
-                                                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
-                                                                        ToolTip="{Binding CollegamentoDisplay}" Margin="0,0,10,0">
-                                                                        <TextBlock.Style>
-                                                                            <Style TargetType="TextBlock">
-                                                                                <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-                                                                                <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding CollegamentoDisplay}" Value="—">
-                                                                                        <Setter Property="Foreground" Value="{StaticResource BrushTestoTerziario}"/>
-                                                                                    </DataTrigger>
-                                                                                </Style.Triggers>
-                                                                            </Style>
-                                                                        </TextBlock.Style>
-                                                                    </TextBlock>
+                                                                    <!-- ============ AVANZAMENTO SOTTO-ATTIVITÀ ============ -->
+                                                                    <StackPanel
+                                Grid.Row="0"
+                                Grid.Column="4"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Visibility="{Binding HaSottoAttivita,
+                                    Converter={StaticResource BoolToVisibility}}">
 
-                                                                    <!-- QUANTO E' URGENTE: badge unificato, nascosto sui completati -->
-                                                                    <views:StatusBadgeControl Grid.Column="4" Stato="{Binding Priorita}"
-                                                                        HorizontalAlignment="Left" VerticalAlignment="Center"
-                                                                        Visibility="{Binding Completato, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                                                                        <StackPanel VerticalAlignment="Center" Margin="0,0,6,0">
+                                                                            <TextBlock
+                                        Text="{Binding PassiDisplay}"
+                                        FontSize="11"
+                                        FontWeight="Medium"
+                                        Foreground="{StaticResource BrushTestoSecondario}"
+                                        HorizontalAlignment="Center"
+                                        ToolTip="Sotto-attività completate sul totale"/>
 
-                                                                    <!-- QUANTO E' COMPLETATO: n/m + espansione (solo con passi) -->
-                                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center"
-                                                                        Visibility="{Binding HaSottoAttivita, Converter={StaticResource BoolToVisibility}}">
-                                                                        <TextBlock Text="{Binding PassiDisplay}" FontSize="11" FontWeight="Medium"
-                                                                            Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"
-                                                                            ToolTip="Sotto-attività completate sul totale"/>
-                                                                        <Button Style="{StaticResource AzioneGriglia}" Width="22" Height="22" Margin="2,0,0,0"
-                                                                            Command="{Binding DataContext.ToggleEspansoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                            CommandParameter="{Binding}" ToolTip="Mostra/nascondi sotto-attività">
-                                                                            <iconPacks:PackIconBootstrapIcons Width="11" Height="11"
-                                                                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
+                                                                            <ProgressBar
+                                        Style="{StaticResource PassiBar}"
+                                        Width="46"
+                                        Margin="0,3,0,0"
+                                        Maximum="{Binding SottoAttivitaTotali, Mode=OneWay}"
+                                        Value="{Binding SottoAttivitaCompletate, Mode=OneWay}"
+                                        ToolTip="Sotto-attività completate sul totale"/>
+                                                                        </StackPanel>
+
+                                                                        <!-- Espandi / Comprimi -->
+                                                                        <Button
+                                    Style="{StaticResource AzioneGriglia}"
+                                    Width="22"
+                                    Height="22"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding DataContext.ToggleEspansoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    ToolTip="Mostra/nascondi sotto-attività">
+
+                                                                            <iconPacks:PackIconBootstrapIcons
+                                        Width="11"
+                                        Height="11"
+                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
+
                                                                                 <iconPacks:PackIconBootstrapIcons.Style>
                                                                                     <Style TargetType="iconPacks:PackIconBootstrapIcons">
                                                                                         <Setter Property="Kind" Value="ChevronDown"/>
@@ -802,38 +890,89 @@
                                                                         </Button>
                                                                     </StackPanel>
 
-                                                                    <!-- AZIONI (modifica; eliminazione nel modal, con conferma) -->
-                                                                    <StackPanel Grid.Column="6" HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                                                        <Button Style="{StaticResource AzioneGriglia}" Margin="0,0,2,0"
-                                                                            Command="{Binding DataContext.ApriModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                            CommandParameter="{Binding}" ToolTip="Modifica">
-                                                                            <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="13" Height="13"
-                                                                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                                                    <!-- ============ AZIONI: MODIFICA + ELIMINA ============ -->
+                                                                    <StackPanel
+                                Grid.Row="0"
+                                Grid.Column="5"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center">
+
+                                                                        <Button
+                                    Style="{StaticResource AzioneGriglia}"
+                                    Command="{Binding DataContext.ApriModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    ToolTip="Modifica">
+
+                                                                            <iconPacks:PackIconBootstrapIcons
+                                        Kind="Pencil"
+                                        Width="13"
+                                        Height="13"
+                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                                                        </Button>
+
+                                                                        <Button
+                                    Style="{StaticResource AzioneGrigliaElimina}"
+                                    Margin="4,0,0,0"
+                                    Command="{Binding DataContext.EliminaRigaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    ToolTip="Elimina">
+
+                                                                            <iconPacks:PackIconBootstrapIcons
+                                        Kind="Trash"
+                                        Width="13"
+                                        Height="13"
+                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                                                                         </Button>
                                                                     </StackPanel>
+
                                                                 </Grid>
                                                             </Border>
 
-                                                            <!-- SOTTO-ATTIVITÀ (solo se la riga è espansa): pannello
-                                                                 rientrato e discreto, subordinato al ToDo padre -->
-                                                            <Border Background="{StaticResource BrushSfondoFine}"
-                                                                CornerRadius="{StaticResource RadiusSmall}"
-                                                                Margin="50,0,14,10" Padding="10,8"
-                                                                Visibility="{Binding MostraSottoAttivitaEspanse, Converter={StaticResource BoolToVisibility}}">
+                                                            <!-- ===================================================== -->
+                                                            <!-- SOTTO-ATTIVITÀ                                        -->
+                                                            <!-- Margin sinistro 126 + bordo 2 + padding 8 = 136:      -->
+                                                            <!-- le checkbox partono esattamente sotto il titolo       -->
+                                                            <!-- (52 + 84 = 136). La linea verticale a sinistra è la   -->
+                                                            <!-- "guida" che le lega al padre.                         -->
+                                                            <!-- ===================================================== -->
+                                                            <Border
+                        BorderBrush="{StaticResource BrushBordoLeggero}"
+                        BorderThickness="2,0,0,0"
+                        Margin="126,0,16,12"
+                        Padding="8,0,0,0"
+                        Visibility="{Binding MostraSottoAttivitaEspanse,
+                            Converter={StaticResource BoolToVisibility}}">
+
                                                                 <ItemsControl ItemsSource="{Binding SottoAttivita}">
                                                                     <ItemsControl.ItemTemplate>
                                                                         <DataTemplate>
+
                                                                             <StackPanel Orientation="Horizontal" Margin="0,3">
-                                                                                <CheckBox VerticalAlignment="Center" IsChecked="{Binding Completato, Mode=OneWay}"
-                                                                                    Style="{StaticResource ModuleCheckBoxStyle}" ToolTip="Segna il passo come completato">
+
+                                                                                <!-- Checkbox sotto-attività -->
+                                                                                <CheckBox
+                                            VerticalAlignment="Center"
+                                            IsChecked="{Binding Completato, Mode=OneWay}"
+                                            Style="{StaticResource ModuleCheckBoxStyle}"
+                                            ToolTip="Segna il passo come completato">
+
                                                                                     <CheckBox.InputBindings>
-                                                                                        <MouseBinding MouseAction="LeftClick"
-                                                                                            Command="{Binding DataContext.ToggleSottoAttivitaInlineCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                                            CommandParameter="{Binding}"/>
+                                                                                        <MouseBinding
+                                                    MouseAction="LeftClick"
+                                                    Command="{Binding DataContext.ToggleSottoAttivitaInlineCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"/>
                                                                                     </CheckBox.InputBindings>
                                                                                 </CheckBox>
-                                                                                <TextBlock Text="{Binding Testo}" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"
-                                                                                    TextTrimming="CharacterEllipsis">
+
+                                                                                <!-- Testo sotto-attività -->
+                                                                                <TextBlock
+                                            Text="{Binding Testo}"
+                                            FontSize="12"
+                                            VerticalAlignment="Center"
+                                            Margin="8,0,0,0"
+                                            TextTrimming="CharacterEllipsis">
+
                                                                                     <TextBlock.Style>
                                                                                         <Style TargetType="TextBlock">
                                                                                             <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
@@ -845,21 +984,27 @@
                                                                                         </Style>
                                                                                     </TextBlock.Style>
                                                                                 </TextBlock>
+
                                                                             </StackPanel>
+
                                                                         </DataTemplate>
                                                                     </ItemsControl.ItemTemplate>
                                                                 </ItemsControl>
+
                                                             </Border>
+
                                                         </StackPanel>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </Grid>
+                                                    </Border>
+
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                 </Border>
 
                 <!-- EMPTY STATE: titolo + sottotesto + CTA contestuale (pattern Promemoria) -->
@@ -891,8 +1036,9 @@
             </Grid>
         </Grid>
 
-        <!-- Form crea/modifica nel ModalDialogControl condiviso (stesso contratto
-             degli altri moduli). -->
+        <!-- Form crea/modifica nel ModalDialogControl condiviso: il titolo dichiara
+             l'azione (pattern Fatture/Promemoria), il sottotitolo da' il contesto.
+             L'eliminazione e' un'azione di riga: nessun pulsante nel modal. -->
         <views:ModalDialogControl Grid.Row="0" Grid.RowSpan="2"
             IsAperto="{Binding OverlayAperto}"
             Titolo="{Binding PannelloTitolo}"
@@ -900,17 +1046,6 @@
             ComandoChiudi="{Binding ChiudiOverlayCommand}"
             ComandoSalva="{Binding SalvaCommand}"
             HaModificheNonSalvate="{Binding HaModifiche}">
-
-            <views:ModalDialogControl.HeaderExtra>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Style="{StaticResource BtnIconRed}"
-                        Command="{Binding EliminaCommand}" ToolTip="Elimina ToDo"
-                        Visibility="{Binding MostraEliminaPanel, Converter={StaticResource BoolToVisibility}}">
-                        <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="13" Height="13"
-                            Foreground="{StaticResource BrushDanger}"/>
-                    </Button>
-                </StackPanel>
-            </views:ModalDialogControl.HeaderExtra>
 
             <views:ModalDialogControl.Contenuto>
                 <StackPanel>
@@ -932,7 +1067,7 @@
                         AcceptsReturn="True" TextWrapping="Wrap" Height="90"
                         VerticalContentAlignment="Top" Margin="0,4,0,16"/>
 
-                    <!-- Scadenza + priorità (segmented, pattern Promemoria) -->
+                    <!-- Scadenza + priorita' (segmented, pattern Promemoria) -->
                     <Grid Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -991,7 +1126,13 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <ComboBox Grid.Column="0" ItemsSource="{Binding ClientiPerCombo}"
-                                    DisplayMemberPath="RagioneSociale" SelectedItem="{Binding FormCliente}"/>
+                                    SelectedItem="{Binding FormCliente}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding RagioneSociale}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                                 <Button Grid.Column="1" Style="{StaticResource AzioneGriglia}" Width="24" Height="24"
                                     Padding="4" Margin="6,0,0,0" VerticalAlignment="Center"
                                     Command="{Binding PulisciClienteCommand}" ToolTip="Rimuovi selezione"
@@ -1009,7 +1150,13 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <ComboBox Grid.Column="0" ItemsSource="{Binding ReferentiTutti}"
-                                    DisplayMemberPath="Nome" SelectedItem="{Binding FormReferente}"/>
+                                    SelectedItem="{Binding FormReferente}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Nome}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                                 <Button Grid.Column="1" Style="{StaticResource AzioneGriglia}" Width="24" Height="24"
                                     Padding="4" Margin="6,0,0,0" VerticalAlignment="Center"
                                     Command="{Binding PulisciReferenteCommand}" ToolTip="Rimuovi selezione"

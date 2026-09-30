@@ -867,7 +867,25 @@ namespace CLab.ViewModels
         {
             if (!Sessione.SessioneValida()) { SvuotaDatiSensibili(); return; }
 
-            ProvaSalvaVoce(FormNome, FormSito, FormUsername, LeggiPasswordForm(), FormNote);
+            var password = LeggiPasswordForm();
+
+            // La password può restare volutamente vuota, ma solo dopo una
+            // conferma esplicita. "No" (default) annulla: il form resta
+            // aperto con tutti i dati inseriti, nessun salvataggio.
+            if (string.IsNullOrEmpty(password))
+            {
+                var esito = MessageBox.Show(
+                    "Non hai impostato una password per questa credenziale. Vuoi salvare comunque?",
+                    "Password non impostata",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning,
+                    MessageBoxResult.No);
+
+                if (esito != MessageBoxResult.Yes)
+                    return;
+            }
+
+            ProvaSalvaVoce(FormNome, FormSito, FormUsername, password, FormNote);
         }
 
         private string LeggiPasswordForm()

@@ -77,6 +77,9 @@
                 <!-- Applicazione + Manutenzione -->
                 <RowDefinition Height="Auto"/>
 
+                <!-- Sicurezza: modulo Password -->
+                <RowDefinition Height="Auto"/>
+
                 <!-- Zona pericolosa -->
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -249,7 +252,148 @@ VerticalAlignment="Center" Margin="0,0,7,0"/>
 
             </Grid>
 
+            <!-- ============================================================ -->
+            <!-- SICUREZZA: MODULO PASSWORD                                    -->
+            <!-- ============================================================ -->
+
             <Border Grid.Row="2"
+                    Style="{StaticResource CardImpostazioni}"
+                    Margin="0,0,0,16">
+
+                <StackPanel>
+
+                    <TextBlock Text="Modulo Password"
+                               Style="{StaticResource TitoloSezioneImpostazioni}"/>
+
+                    <TextBlock Style="{StaticResource DescrizioneImpostazioni}"
+                               Margin="0,0,0,14">
+                        L'archivio delle credenziali è protetto da una password principale:
+                        il database contiene solo dati cifrati (AES-256-GCM) e la chiave resta
+                        in memoria unicamente a sessione aperta, per 15 minuti dall'ultima attività.
+                    </TextBlock>
+
+                    <TextBlock Text="STATO"
+                               Style="{StaticResource FieldLabel}"/>
+
+                    <TextBlock Text="{Binding PasswordStato}"
+                               Style="{StaticResource FieldValue}"
+                               Margin="0,0,0,14"/>
+
+                    <Button Command="{Binding BloccaPasswordCommand}"
+                            HorizontalAlignment="Left"
+                            Visibility="{Binding PasswordSbloccato, Converter={StaticResource BoolToVisibility}}">
+
+                        <Button.Style>
+                            <Style TargetType="Button"
+                                   BasedOn="{StaticResource BtnOutline}">
+                                <Setter Property="Padding" Value="14,7"/>
+                            </Style>
+                        </Button.Style>
+
+                        <StackPanel Orientation="Horizontal">
+
+                            <iconPacks:PackIconBootstrapIcons
+                                Kind="Lock"
+                                Width="12"
+                                Height="12"
+                                VerticalAlignment="Center"
+                                Margin="0,0,7,0"/>
+
+                            <TextBlock Text="Blocca ora"
+                                       VerticalAlignment="Center"/>
+
+                        </StackPanel>
+
+                    </Button>
+
+                    <!-- Recupero: solo se il modulo è già configurato -->
+                    <StackPanel Visibility="{Binding PasswordConfigurato, Converter={StaticResource BoolToVisibility}}"
+                                Margin="0,18,0,0">
+
+                        <TextBlock Text="Reimposta la password principale"
+                                   FontWeight="Medium"
+                                   Foreground="{StaticResource BrushTestoPrimario}"/>
+
+                        <TextBlock Style="{StaticResource DescrizioneImpostazioni}"
+                                   Margin="0,4,0,12">
+                            Con il codice di recupero mostrato alla prima configurazione puoi
+                            impostare una nuova password principale: le credenziali salvate
+                            restano invariate e il codice resta valido.
+                        </TextBlock>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="CODICE DI RECUPERO"
+                                           Style="{StaticResource FieldLabel}"/>
+                                <TextBox AutomationProperties.AutomationId="RecoveryCodeImpostazioni"
+                                         Margin="0,4,0,0"
+                                         ToolTip="Formato XXXX-XXXX-XXXX-XXXX"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="NUOVA PASSWORD PRINCIPALE"
+                                           Style="{StaticResource FieldLabel}"/>
+                                <PasswordBox AutomationProperties.AutomationId="NuovaMasterImpostazioni"
+                                             Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="CONFERMA NUOVA PASSWORD PRINCIPALE"
+                                   Style="{StaticResource FieldLabel}"
+                                   Margin="0,12,0,0"/>
+
+                        <PasswordBox AutomationProperties.AutomationId="NuovaMasterConfermaImpostazioni"
+                                     Margin="0,4,0,12"
+                                     MaxWidth="360"
+                                     HorizontalAlignment="Left"/>
+
+                        <Button Command="{Binding ReimpostaPasswordCommand}"
+                                HorizontalAlignment="Left"
+                                ToolTip="Reimposta la password principale del modulo Password">
+
+                            <Button.Style>
+                                <Style TargetType="Button"
+                                       BasedOn="{StaticResource BtnOutline}">
+                                    <Setter Property="Padding" Value="14,7"/>
+                                </Style>
+                            </Button.Style>
+
+                            <StackPanel Orientation="Horizontal">
+
+                                <iconPacks:PackIconBootstrapIcons
+                                    Kind="ArrowCounterclockwise"
+                                    Width="12"
+                                    Height="12"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,7,0"/>
+
+                                <TextBlock Text="Reimposta password principale"
+                                           VerticalAlignment="Center"/>
+
+                            </StackPanel>
+
+                        </Button>
+
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding PasswordMessaggio}"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Foreground="{StaticResource BrushDanger}"
+                               Margin="0,14,0,0"
+                               Visibility="{Binding PasswordMessaggio, Converter={StaticResource BoolToVisibility}}"/>
+
+                </StackPanel>
+
+            </Border>
+
+            <Border Grid.Row="3"
         Style="{StaticResource CardImpostazioni}">
 
                 <StackPanel>

@@ -184,8 +184,8 @@
                 <Button Grid.Column="0" Style="{StaticResource KpiButton}"
                         Command="{Binding ApriTuttiRitardiCommand}" ToolTip="Apri lo Scadenzario">
                     <StackPanel>
-                        <TextBlock Text="{Binding AdempimentiInRitardo}" Style="{StaticResource KpiNumberStyle}"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                        <TextBlock Text="{Binding AdempimentiInRitardo}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0" HorizontalAlignment="Center">
                             <TextBlock Text="Adempimenti in ritardo" Style="{StaticResource KpiLabelStyle}"/>
                         </StackPanel>
                     </StackPanel>
@@ -196,8 +196,8 @@
                 <Button Grid.Column="2" Style="{StaticResource KpiButton}"
                         Command="{Binding ApriToDoCommand}" ToolTip="Apri i ToDo">
                     <StackPanel>
-                        <TextBlock Text="{Binding ToDoAperti}" Style="{StaticResource KpiNumberStyle}"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                        <TextBlock Text="{Binding ToDoAperti}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0" HorizontalAlignment="Center">
                             <TextBlock Text="ToDo aperti" Style="{StaticResource KpiLabelStyle}"/>
                         </StackPanel>
                     </StackPanel>
@@ -208,8 +208,8 @@
                 <Button Grid.Column="4" Style="{StaticResource KpiButton}"
                         Command="{Binding ApriFattureAnnoCommand}" ToolTip="Apri le fatture dell'anno">
                     <StackPanel>
-                        <TextBlock Text="{Binding FattureDaIncassareTesto}" Style="{StaticResource KpiNumberStyle}"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                        <TextBlock Text="{Binding FattureDaIncassareTesto}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0" HorizontalAlignment="Center">
                             <TextBlock Text="Da incassare" Style="{StaticResource KpiLabelStyle}"/>
                             <TextBlock Text="{Binding FattureDaIncassareNumero, StringFormat='  ·  {0} fatture'}"
                                        Style="{StaticResource KpiLabelStyle}"/>
@@ -222,8 +222,8 @@
                 <Button Grid.Column="6" Style="{StaticResource KpiButton}"
                         Command="{Binding ApriClientiCommand}" ToolTip="Apri i Clienti">
                     <StackPanel>
-                        <TextBlock Text="{Binding ClientiAttivi}" Style="{StaticResource KpiNumberStyle}"/>
-                        <TextBlock Text="Clienti attivi" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                        <TextBlock Text="{Binding ClientiAttivi}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Clienti attivi" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </Grid>
@@ -249,7 +249,7 @@
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
                             <TextBlock Text="Richiede attenzione" Style="{StaticResource SectionTitleTextStyle}"/>
                             <!-- "N di M": il totale dice quanto esiste oltre i 5 mostrati -->
-                            <TextBlock Text="{Binding TotaleClientiInRitardo, StringFormat='· {0} clienti con ritardi'}"
+                            <TextBlock Text="{Binding TotaleClientiInRitardo, StringFormat='· {0} clienti attivi con ritardi'}"
                                        Style="{StaticResource CaptionSezione}" Margin="10,1,0,0"
                                        Visibility="{Binding HaAdempimentiRitardo, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
@@ -385,7 +385,7 @@
 
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
                             <TextBlock Text="Situazione studi" Style="{StaticResource SectionTitleTextStyle}"/>
-                            <TextBlock Text="{Binding TotaleStudiDaIncassare, StringFormat='· {0} studi'}"
+                            <TextBlock Text="{Binding TotaleStudi, StringFormat='· {0} studi attivi'}"
                                        Style="{StaticResource CaptionSezione}" Margin="10,1,0,0"
                                        Visibility="{Binding HaStudiDaIncassare, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
@@ -518,18 +518,18 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="{Binding AdempimentiCompletati}" Style="{StaticResource ContatoreSecondario}"
+                                <TextBlock Text="{Binding AdempimentiCompletati}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                            Foreground="{StaticResource BrushStatoAttivo}"/>
-                                <TextBlock Text="Completati" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Completati" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
-                                <TextBlock Text="{Binding AdempimentiInCorso}" Style="{StaticResource ContatoreSecondario}"/>
-                                <TextBlock Text="In corso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding AdempimentiInCorso}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="In corso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="{Binding AdempimentiInRitardo}" Style="{StaticResource ContatoreSecondario}"
+                                <TextBlock Text="{Binding AdempimentiInRitardo}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                            Foreground="{StaticResource BrushStatoCessato}"/>
-                                <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Grid>
 
@@ -574,18 +574,18 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="{Binding FattureIncassatoTesto}" Style="{StaticResource ContatoreSecondario}"
+                                <TextBlock Text="{Binding FattureIncassatoTesto}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                            Foreground="{StaticResource BrushStatoAttivo}"/>
-                                <TextBlock Text="Incassato" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Incassato" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
-                                <TextBlock Text="{Binding FattureNonScaduteTesto}" Style="{StaticResource ContatoreSecondario}"/>
-                                <TextBlock Text="Da incassare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding FattureNonScaduteTesto}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Da incassare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="{Binding FattureScaduteImportoTesto}" Style="{StaticResource ContatoreSecondario}"
+                                <TextBlock Text="{Binding FattureScaduteImportoTesto}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                            Foreground="{StaticResource BrushStatoCessato}"/>
-                                <TextBlock Text="Scadute" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Scadute" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Grid>
 
@@ -627,18 +627,18 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="{Binding ClientiAttivi}" Style="{StaticResource ContatoreSecondario}"
+                                <TextBlock Text="{Binding ClientiAttivi}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                            Foreground="{StaticResource BrushStatoAttivo}"/>
-                                <TextBlock Text="Attivi" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Attivi" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
-                                <TextBlock Text="{Binding ClientiStandBy}" Style="{StaticResource ContatoreSecondario}"/>
-                                <TextBlock Text="In stand-by" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding ClientiStandBy}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="In stand-by" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="{Binding ClientiCessati}" Style="{StaticResource ContatoreSecondario}"
+                                <TextBlock Text="{Binding ClientiCessati}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                            Foreground="{StaticResource BrushStatoCessato}"/>
-                                <TextBlock Text="Cessati" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Cessati" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Grid>
 

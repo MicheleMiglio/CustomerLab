@@ -68,6 +68,7 @@ namespace CLab.ViewModels
                 OnPropertyChanged(nameof(MostraAvvisoClienteNonAttivo));
                 OnPropertyChanged(nameof(TestoAvvisoClienteNonAttivo));
                 OnPropertyChanged(nameof(AvvisoClienteCessato));
+                OnPropertyChanged(nameof(AvvisoClienteAttivo));
 
                 // Ogni cambio di cliente reale (anche verso "nessuno") riparte da una
                 // vista pulita: niente ricerche, filtri o modalità ereditate dal cliente
@@ -86,9 +87,10 @@ namespace CLab.ViewModels
             }
         }
 
-        public bool MostraAvvisoClienteNonAttivo => ClienteSelezionato != null && ClienteSelezionato.Stato != StatoCliente.Attivo;
+        public bool MostraAvvisoClienteNonAttivo => ClienteSelezionato != null;
 
         public bool AvvisoClienteCessato => ClienteSelezionato?.Stato == StatoCliente.Cessato;
+        public bool AvvisoClienteAttivo => ClienteSelezionato?.Stato == StatoCliente.Attivo;
 
         public string TestoAvvisoClienteNonAttivo
         {
@@ -97,8 +99,9 @@ namespace CLab.ViewModels
                 if (ClienteSelezionato == null) return "";
                 return ClienteSelezionato.Stato switch
                 {
-                    StatoCliente.StandBy => "Cliente in stand-by. Puoi comunque lavorare lo scadenzario.",
-                    StatoCliente.Cessato => "Cliente cessato. Stai consultando lo storico; i dati restano disponibili e puoi comunque lavorare lo scadenzario.",
+                    StatoCliente.StandBy => "Cliente in stand-by. I dati restano disponibili e puoi comunque lavorare lo scadenzario.",
+                    StatoCliente.Attivo => "Cliente Attivo.",
+                    StatoCliente.Cessato => "Cliente cessato. I dati restano disponibili e puoi comunque lavorare lo scadenzario.",
                     _ => $"Questo cliente risulta \"{ClienteSelezionato.Stato}\". Vai su Clienti per riattivarlo, se necessario."
                 };
             }
@@ -645,6 +648,7 @@ namespace CLab.ViewModels
                 OnPropertyChanged(nameof(MostraAvvisoClienteNonAttivo));
                 OnPropertyChanged(nameof(TestoAvvisoClienteNonAttivo));
                 OnPropertyChanged(nameof(AvvisoClienteCessato));
+                OnPropertyChanged(nameof(AvvisoClienteAttivo));
             }
 
             // Il filtro stato/referente cambia l'elenco clienti visibili anche quando
@@ -741,6 +745,12 @@ namespace CLab.ViewModels
                     {
                         AttivitaId = attivita.Id,
                         Periodo = periodo,
+                        Titolo = attivita.Periodicita switch
+                        {
+                            Periodicita.Mensile => $"{NomiMesiEsteso[periodo - 1]} {AnnoSelezionato}",
+                            Periodicita.Trimestrale => $"{EtichettaPeriodo(attivita.Periodicita, periodo)} {AnnoSelezionato}",
+                            _ => $"Anno {AnnoSelezionato}"
+                        },
                         TipoCampo = attivita.TipoCampo,
                         TendinaRichiedeImporto = attivita.TendinaRichiedeImporto,
                         EImporto = attivita.NumeroEImporto,
@@ -774,6 +784,12 @@ namespace CLab.ViewModels
                             ? (attivita.Periodicita == Periodicita.Trimestrale ? $"Q{c.Periodo}" : EtichettaPeriodo(attivita.Periodicita, c.Periodo))
                             : "ANNO",
                         StatoColore = c.Stato,
+                        Dettaglio = attivita.Periodicita switch
+                        {
+                            Periodicita.Trimestrale => $"{NomeMese((c.Periodo - 1) * 3 + 1)}-{NomeMese((c.Periodo - 1) * 3 + 3)}",
+                            Periodicita.Annuale => AnnoSelezionato.ToString(),
+                            _ => string.Empty
+                        },
                         SelezionaCommand = riga.SelezionaPeriodoCommand,
                         MostraToggleRapido = attivita.TipoCampo == TipoCampoAttivita.SiNo
                     };
@@ -892,6 +908,12 @@ namespace CLab.ViewModels
             Periodicita.Mensile => NomeMese(periodo),
             Periodicita.Trimestrale => $"Q{periodo} · {NomeMese((periodo - 1) * 3 + 1)}-{NomeMese((periodo - 1) * 3 + 3)}",
             _ => ""
+        };
+
+        private static readonly string[] NomiMesiEsteso =
+{
+            "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+            "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
         };
 
         private static string NomeMese(int numero) => numero switch
@@ -1541,6 +1563,8 @@ namespace CLab.ViewModels
         public int Indice { get; set; }
         public string Etichetta { get; set; } = string.Empty;
 
+        public string Dettaglio { get; set; } = string.Empty;
+
         private string _statoColore = "Futuro";
         public string StatoColore { get => _statoColore; set { _statoColore = value; OnPropertyChanged(); } }
 
@@ -1559,6 +1583,8 @@ namespace CLab.ViewModels
     {
         public int AttivitaId { get; set; }
         public int Periodo { get; set; }
+        /// <summary>Titolo leggibile del periodo, es. "Settembre 2026".</summary>
+        public string Titolo { get; set; } = string.Empty;
         public TipoCampoAttivita TipoCampo { get; set; }
         public bool TendinaRichiedeImporto { get; set; }
         public bool EImporto { get; set; }

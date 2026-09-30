@@ -15,6 +15,9 @@ namespace CLab.Models
         /// <summary>Id fisso = 1: la tabella contiene al massimo una riga.</summary>
         public int Id { get; set; }
 
+        /// <summary>Valore esplicito dell'unica riga di configurazione.</summary>
+        public const int IdSingleton = 1;
+
         /// <summary>Salt PBKDF2 della Master Password (16 byte casuali).</summary>
         public byte[] MasterSalt { get; set; } = Array.Empty<byte>();
 

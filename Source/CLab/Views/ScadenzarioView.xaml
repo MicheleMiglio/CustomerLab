@@ -154,6 +154,24 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="ChipFiltroNoHover"
+       TargetType="Button"
+       BasedOn="{StaticResource ChipFiltro}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="5"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="ChipStatoAttivi" TargetType="Button" BasedOn="{StaticResource ChipFiltro}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding FiltroStatoCliente}" Value="Attivi">
@@ -506,6 +524,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Background="{StaticResource BrushSfondoFine}"
@@ -522,31 +541,39 @@
                 </StackPanel>
             </Border>
 
-            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="Referente" Style="{StaticResource FieldLabel}"
-                           VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <ComboBox Width="180" Height="32" Margin="0,0,16,0"
-                          IsTextSearchEnabled="True" TextSearch.TextPath="Nome"
-                          ItemsSource="{Binding ReferentiFiltro}"
-                          SelectedItem="{Binding ReferenteFiltro}"
-                          mah:TextBoxHelper.Watermark="Tutti i referenti"/>
-                <TextBlock Text="Cliente" Style="{StaticResource FieldLabel}"
-                           VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <ComboBox Width="240" Height="32" Margin="0,0,10,0"
-                          IsTextSearchEnabled="True"
-                          TextSearch.TextPath="RagioneSociale"
-                          ItemsSource="{Binding ClientiDisponibili}"
-                          SelectedItem="{Binding ClienteSelezionato}"
-                          mah:TextBoxHelper.Watermark="Seleziona un cliente"/>
+            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                <TextBlock Text="Studio"
+               Style="{StaticResource FieldLabel}"
+               Margin="0,0,0,4"/>
+
+                <ComboBox Width="180" Height="32"
+              IsTextSearchEnabled="True"
+              TextSearch.TextPath="Nome" Margin="0,0,10,0"
+              ItemsSource="{Binding ReferentiFiltro}"
+              SelectedItem="{Binding ReferenteFiltro}"
+              mah:TextBoxHelper.Watermark="Tutti i referenti"/>
             </StackPanel>
+
+            <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                <TextBlock Text="Cliente"
+               Style="{StaticResource FieldLabel}"
+               Margin="0,0,0,4"/>
+
+                <ComboBox Width="240" Height="32"
+              IsTextSearchEnabled="True"
+              TextSearch.TextPath="RagioneSociale"
+              ItemsSource="{Binding ClientiDisponibili}"
+              SelectedItem="{Binding ClienteSelezionato}"
+              mah:TextBoxHelper.Watermark="Seleziona un cliente"/>
+            </StackPanel>
+
         </Grid>
 
-        <Border Grid.Row="1" Margin="28,10,28,0" Padding="14,8" CornerRadius="{StaticResource RadiusSmall}"
-                Background="{StaticResource BrushSidebarSelectedBadge}"
+        <Border Grid.Row="1" Margin="28,0,28,0" Padding="14,0" CornerRadius="{StaticResource RadiusSmall}"
+                Background="{StaticResource BrushInfoLight}"
                 Visibility="{Binding NessunClienteSelezionato, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
@@ -554,61 +581,72 @@
                 <TextBlock Grid.Column="0" Text="{Binding ClienteSelezionato.RagioneSociale}"
                            FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource BrushTestoPrimario}"
                            VerticalAlignment="Center"/>
-                <local:StatusBadgeControl Grid.Column="1" Stato="{Binding ClienteSelezionato.Stato}"
-                    VerticalAlignment="Center" Margin="10,0,0,0"/>
-                <Button Grid.Column="3" Command="{Binding EsciDalClienteCommand}"
-                        Style="{StaticResource ChipFiltro}" ToolTip="Torna alla vista generale, su tutti i clienti">
+
+
+                <Border Grid.Column="1" Padding="10,8,28,8"
+                Visibility="{Binding MostraAvvisoClienteNonAttivo, Converter={StaticResource BoolToVisibility}}">
+                    <Border CornerRadius="{StaticResource RadiusLarge}" Padding="12,8">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding AvvisoClienteCessato}" Value="True">
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconBootstrapIcons Kind="InfoCircle" Width="12" Height="12"
+                        Margin="0,0,8,0" VerticalAlignment="Center">
+                                <iconPacks:PackIconBootstrapIcons.Style>
+                                    <Style TargetType="iconPacks:PackIconBootstrapIcons">
+                                        <Setter Property="Foreground" Value="{StaticResource BrushStatoStandBy}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AvvisoClienteCessato}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushStatoCessato}"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding AvvisoClienteAttivo}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushStatoAttivo}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </iconPacks:PackIconBootstrapIcons.Style>
+                            </iconPacks:PackIconBootstrapIcons>
+                            <TextBlock Text="{Binding TestoAvvisoClienteNonAttivo}" FontSize="12">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{StaticResource BrushStatoStandBy}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AvvisoClienteCessato}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushStatoCessato}"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding AvvisoClienteAttivo}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushStatoAttivo}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </Border>
+
+                <Button Grid.Column="3"
+        Command="{Binding EsciDalClienteCommand}"
+        Style="{StaticResource ChipFiltroNoHover}"
+        ToolTip="Torna alla vista generale, su tutti i clienti">
                     <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconBootstrapIcons Kind="ArrowLeft" Width="11" Height="11"
-                            Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="Cambia cliente" VerticalAlignment="Center"/>
+                        <iconPacks:PackIconBootstrapIcons Kind="ArrowLeft"
+            Width="11"
+            Height="11"
+            Margin="0,0,6,0"
+            VerticalAlignment="Center"/>
+                        <TextBlock Text="Cambia cliente"
+                   VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </Grid>
         </Border>
 
-        <Border Grid.Row="2" Padding="28,8,28,8"
-                Visibility="{Binding MostraAvvisoClienteNonAttivo, Converter={StaticResource BoolToVisibility}}">
-            <Border CornerRadius="{StaticResource RadiusSmall}" Padding="12,8">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Background" Value="{StaticResource BrushStatoStandByLight}"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding AvvisoClienteCessato}" Value="True">
-                                <Setter Property="Background" Value="{StaticResource BrushStatoCessatoLight}"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <StackPanel Orientation="Horizontal">
-                    <iconPacks:PackIconBootstrapIcons Kind="InfoCircle" Width="12" Height="12"
-                        Margin="0,0,8,0" VerticalAlignment="Center">
-                        <iconPacks:PackIconBootstrapIcons.Style>
-                            <Style TargetType="iconPacks:PackIconBootstrapIcons">
-                                <Setter Property="Foreground" Value="{StaticResource BrushStatoStandBy}"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding AvvisoClienteCessato}" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource BrushStatoCessato}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </iconPacks:PackIconBootstrapIcons.Style>
-                    </iconPacks:PackIconBootstrapIcons>
-                    <TextBlock Text="{Binding TestoAvvisoClienteNonAttivo}" FontSize="12">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{StaticResource BrushStatoStandBy}"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding AvvisoClienteCessato}" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource BrushStatoCessato}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </StackPanel>
-            </Border>
-        </Border>
 
         <!-- VISTA GENERALE — landing operativa quando nessun cliente è selezionato.
              Sostituisce concettualmente i tre vecchi placeholder "Seleziona un cliente":
@@ -621,7 +659,7 @@
             </Grid.RowDefinitions>
 
             <!-- Riepilogo flat, stile Home: numeri, non caselle colorate -->
-            <Grid Grid.Row="0" Margin="28,18,28,10">
+            <Grid Grid.Row="0" Margin="28,25,28,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="1"/>
@@ -630,24 +668,24 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0">
-                    <TextBlock Text="{Binding GeneraleInRitardo}" Style="{StaticResource KpiNumberStyle}"
+                    <TextBlock Text="{Binding GeneraleInRitardo}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"
                                Foreground="{StaticResource BrushStatoCessato}"/>
-                    <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                    <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                 </StackPanel>
                 <Rectangle Grid.Column="1" Fill="{StaticResource BrushBordoLeggero}" Margin="0,4"/>
                 <StackPanel Grid.Column="2">
-                    <TextBlock Text="{Binding GeneraleInScadenzaOggi}" Style="{StaticResource KpiNumberStyle}"/>
-                    <TextBlock Text="Da fare adesso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                    <TextBlock Text="{Binding GeneraleInScadenzaOggi}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Da fare adesso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                 </StackPanel>
                 <Rectangle Grid.Column="3" Fill="{StaticResource BrushBordoLeggero}" Margin="0,4"/>
                 <StackPanel Grid.Column="4">
-                    <TextBlock Text="{Binding GeneraleRitenuteDaVersare}" Style="{StaticResource KpiNumberStyle}"/>
-                    <TextBlock Text="Ritenute da versare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                    <TextBlock Text="{Binding GeneraleRitenuteDaVersare}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Ritenute da versare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Grid>
 
             <!-- Empty state: tutto in regola sui clienti filtrati -->
-            <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,50"
                     Visibility="{Binding HaVisteGenerali, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
                 <iconPacks:PackIconBootstrapIcons Kind="CheckCircle" Width="34" Height="34"
                     Foreground="{StaticResource BrushStatoAttivo}" HorizontalAlignment="Center"/>
@@ -663,7 +701,7 @@
                     <ItemsControl ItemsSource="{Binding VisteGenerali}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Style="{StaticResource RigaCliccabileGenerale}" Margin="0,0,0,2"
+                                <Button Style="{StaticResource RigaCliccabileGenerale}" Margin="0,0,10,2"
                                     Command="{Binding DataContext.SelezionaVoceGeneraleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}">
                                     <Grid>
@@ -689,8 +727,6 @@
                                             <TextBlock Text="{Binding Dettaglio}" FontSize="12"
                                                 Foreground="{StaticResource BrushTestoTerziario}" Margin="0,1,0,0"/>
                                         </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="{Binding Tipo}" FontSize="11" FontWeight="SemiBold"
-                                            Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                         <iconPacks:PackIconBootstrapIcons Grid.Column="3" Kind="ChevronRight" Width="11" Height="11"
                                             Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center"/>
                                     </Grid>
@@ -750,9 +786,9 @@
                         <Button Grid.Column="0" Style="{StaticResource KpiButton}"
                                 Command="{Binding MostraAdempimentiCommand}" ToolTip="Apri Adempimenti">
                             <StackPanel>
-                                <TextBlock Text="{Binding TotaleCompletateAdOggi}" Style="{StaticResource KpiNumberStyle}"
+                                <TextBlock Text="{Binding TotaleCompletateAdOggi}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"
                                            Foreground="{StaticResource BrushStatoAttivo}"/>
-                                <TextBlock Text="Completate ad oggi" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Completate ad oggi" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
@@ -761,8 +797,8 @@
                         <Button Grid.Column="2" Style="{StaticResource KpiButton}"
                                 Command="{Binding MostraAdempimentiCommand}" ToolTip="Apri Adempimenti">
                             <StackPanel>
-                                <TextBlock Text="{Binding TotaleInCorso}" Style="{StaticResource KpiNumberStyle}"/>
-                                <TextBlock Text="Da fare adesso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding TotaleInCorso}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Da fare adesso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
@@ -771,9 +807,9 @@
                         <Button Grid.Column="4" Style="{StaticResource KpiButton}"
                                 Command="{Binding MostraAdempimentiCommand}" ToolTip="Apri Adempimenti">
                             <StackPanel>
-                                <TextBlock Text="{Binding TotaleInRitardo}" Style="{StaticResource KpiNumberStyle}"
+                                <TextBlock Text="{Binding TotaleInRitardo}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"
                                            Foreground="{StaticResource BrushStatoCessato}"/>
-                                <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
@@ -782,8 +818,8 @@
                         <Button Grid.Column="6" Style="{StaticResource KpiButton}"
                                 Command="{Binding MostraRitenuteCommand}" ToolTip="Apri Ritenute d'acconto">
                             <StackPanel>
-                                <TextBlock Text="{Binding RitenuteDaVersare}" Style="{StaticResource KpiNumberStyle}"/>
-                                <TextBlock Text="Ritenute da versare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding RitenuteDaVersare}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Ritenute da versare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -822,18 +858,18 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="{Binding TortaMensili.Completate}" Style="{StaticResource ContatoreSecondario}"
+                                        <TextBlock Text="{Binding TortaMensili.Completate}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                                    Foreground="{StaticResource BrushStatoAttivo}"/>
-                                        <TextBlock Text="Completate" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="Completate" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1">
-                                        <TextBlock Text="{Binding TortaMensili.InCorso}" Style="{StaticResource ContatoreSecondario}"/>
-                                        <TextBlock Text="In corso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{Binding TortaMensili.InCorso}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="In corso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
-                                        <TextBlock Text="{Binding TortaMensili.InRitardo}" Style="{StaticResource ContatoreSecondario}"
+                                        <TextBlock Text="{Binding TortaMensili.InRitardo}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                                    Foreground="{StaticResource BrushStatoCessato}"/>
-                                        <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </Grid>
 
@@ -865,18 +901,18 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="{Binding TortaTrimestrali.Completate}" Style="{StaticResource ContatoreSecondario}"
+                                        <TextBlock Text="{Binding TortaTrimestrali.Completate}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                                    Foreground="{StaticResource BrushStatoAttivo}"/>
-                                        <TextBlock Text="Completate" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="Completate" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1">
-                                        <TextBlock Text="{Binding TortaTrimestrali.InCorso}" Style="{StaticResource ContatoreSecondario}"/>
-                                        <TextBlock Text="In corso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{Binding TortaTrimestrali.InCorso}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="In corso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
-                                        <TextBlock Text="{Binding TortaTrimestrali.InRitardo}" Style="{StaticResource ContatoreSecondario}"
+                                        <TextBlock Text="{Binding TortaTrimestrali.InRitardo}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                                    Foreground="{StaticResource BrushStatoCessato}"/>
-                                        <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </Grid>
 
@@ -908,18 +944,18 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="{Binding TortaAnnuali.Completate}" Style="{StaticResource ContatoreSecondario}"
+                                        <TextBlock Text="{Binding TortaAnnuali.Completate}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                                    Foreground="{StaticResource BrushStatoAttivo}"/>
-                                        <TextBlock Text="Completate" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="Completate" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1">
-                                        <TextBlock Text="{Binding TortaAnnuali.InCorso}" Style="{StaticResource ContatoreSecondario}"/>
-                                        <TextBlock Text="In corso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{Binding TortaAnnuali.InCorso}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="In corso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
-                                        <TextBlock Text="{Binding TortaAnnuali.InRitardo}" Style="{StaticResource ContatoreSecondario}"
+                                        <TextBlock Text="{Binding TortaAnnuali.InRitardo}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                                    Foreground="{StaticResource BrushStatoCessato}"/>
-                                        <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </Grid>
 
@@ -936,9 +972,9 @@
                          Ritenute; qui è solo lo stato d'insieme. -->
                     <Border Style="{StaticResource CardGenerale}">
                         <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                                 <TextBlock Text="Ritenute d'acconto" Style="{StaticResource SectionTitleTextStyle}"/>
-                                <TextBlock Style="{StaticResource CaptionSezione}" Margin="10,1,0,0">
+                                <TextBlock Style="{StaticResource CaptionSezione}" Margin="10,1,0,0" VerticalAlignment="Bottom">
                                     <Run Text="· Totale"/>
                                     <Run Text="{Binding TotaleRitenuteTesto, Mode=OneWay}"/>
                                     <Run Text=" · Versato"/>
@@ -957,26 +993,31 @@
                                 <Rectangle Grid.Column="2" Fill="{StaticResource BrushStatoCessato}" Height="6" RadiusX="3" RadiusY="3"/>
                             </Grid>
 
-                            <Grid Margin="0,12,0,0" Visibility="{Binding TortaRitenute.Vuoto, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                            <Grid Margin="0,20,0,0" Visibility="{Binding TortaRitenute.Vuoto, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding RitenuteVersate}" Style="{StaticResource ContatoreSecondario}"
+                                    <TextBlock Text="{Binding RitenuteVersate}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                                Foreground="{StaticResource BrushStatoAttivo}"/>
-                                    <TextBlock Text="Versate" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                    <TextBlock Text="Versate" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{Binding RitenuteDaVersare}" Style="{StaticResource ContatoreSecondario}"
+                                    <TextBlock Text="{Binding RitenuteDaVersare}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                                Foreground="{StaticResource BrushStatoStandBy}"/>
-                                    <TextBlock Text="Da versare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                    <TextBlock Text="Da versare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2">
-                                    <TextBlock Text="{Binding RitenuteAnomalie}" Style="{StaticResource ContatoreSecondario}"
+                                    <TextBlock Text="{Binding RitenuteAnomalie}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"
                                                Foreground="{StaticResource BrushStatoCessato}"/>
-                                    <TextBlock Text="Anomalie" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0"/>
+                                    <TextBlock Text="Anomalie" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="3">
+                                    <TextBlock Text="{Binding RitenuteNoRavv}" Style="{StaticResource ContatoreSecondario}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Senza ravvedimento" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
 
@@ -991,7 +1032,30 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Note generali -->
+                    <!-- Note generali -->
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="110"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+               Text="NOTE GENERALI SUL CLIENTE"
+               Style="{StaticResource FieldLabel}"
+               Margin="0,25,0,0"/>
+
+                        <TextBox Grid.Row="1"
+             Text="{Binding NotaCliente, UpdateSourceTrigger=LostFocus}"
+             AcceptsReturn="True"
+             TextWrapping="Wrap"
+             Height="100"
+             HorizontalAlignment="Stretch"
+             VerticalContentAlignment="Top"
+             Margin="0,4,0,0"/>
+                    </Grid>
                 </StackPanel>
+
             </ScrollViewer>
         </Grid>
 
@@ -1025,155 +1089,58 @@
             </StackPanel>
 
             <Grid Visibility="{Binding HaAttivitaConfigurate, Converter={StaticResource BoolToVisibility}}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24,20,24,24">
 
-                <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="28,32,24,24">
-
-                        <!-- Via il doppio Griglia/Elenco: un solo modo di guardare gli
-                             adempimenti, e la ricerca lavora su nome, mese e stato invece
-                             che sul solo nome — non serve più un secondo modo di vedere
-                             gli stessi dati solo per trovarli più in fretta. -->
-                        <Grid Margin="0,0,0,16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.Column="0" MaxWidth="320" HorizontalAlignment="Left" Background="White"
-                                BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6" Height="34">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <iconPacks:PackIconBootstrapIcons Grid.Column="0"
-                                        Kind="Search" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"
-                                        Margin="10,0,6,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1"
-                                         Text="{Binding FiltroAttivitaTesto, UpdateSourceTrigger=PropertyChanged}"
-                                         BorderThickness="0" Background="Transparent"
-                                         FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
-                                         VerticalContentAlignment="Center" Height="32"
-                                         mah:TextBoxHelper.Watermark="Cerca per attività, mese o stato…"/>
-                                </Grid>
-                            </Border>
-
-                            <!-- Chip on/off diretto su SoloRitardi (proprietà già pubblica
-                                 con setter): niente comando nuovo, un ToggleButton basta. -->
-                            <ToggleButton Grid.Column="1" VerticalAlignment="Center" Cursor="Hand" Margin="10,0,0,0"
-                                IsChecked="{Binding SoloRitardi}" Padding="10,5">
-                                <ToggleButton.Template>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Border x:Name="bd" Background="{StaticResource BrushSfondoFine}" CornerRadius="10" Padding="{TemplateBinding Padding}">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="Solo da fare" FontSize="11" FontWeight="Medium"
-                                                    Foreground="{StaticResource BrushTestoPrimario}" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsChecked" Value="True">
-                                                <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushAccentSelected}"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </ToggleButton.Template>
-                            </ToggleButton>
-                        </Grid>
+                        <!-- Ricerca (nome, mese o stato) -->
+                        <Border MaxWidth="360" HorizontalAlignment="Left" Background="White" Margin="0,0,0,18"
+                            BorderBrush="{StaticResource BrushBordo}" BorderThickness="1" CornerRadius="6" Height="34">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <iconPacks:PackIconBootstrapIcons Grid.Column="0"
+                                    Kind="Search" Width="13" Height="13" Foreground="{StaticResource BrushTestoSecondario}"
+                                    Margin="10,0,6,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1"
+                                     Text="{Binding FiltroAttivitaTesto, UpdateSourceTrigger=PropertyChanged}"
+                                     BorderThickness="0" Background="Transparent"
+                                     FontSize="13" Foreground="{StaticResource BrushTestoPrimario}"
+                                     VerticalContentAlignment="Center" Height="32" Width="250"
+                                     mah:TextBoxHelper.Watermark="  Cerca per attività, mese o stato…"/>
+                            </Grid>
+                        </Border>
 
                         <!-- MENSILI -->
-                        <StackPanel Visibility="{Binding HaRigheMensili, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,8">
-                            <Button Command="{Binding ToggleSezioneMensiliCommand}" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" HorizontalAlignment="Left">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                            <iconPacks:PackIconBootstrapIcons Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,6,0" VerticalAlignment="Center">
-                                                <iconPacks:PackIconBootstrapIcons.Style>
-                                                    <Style TargetType="iconPacks:PackIconBootstrapIcons" BasedOn="{StaticResource ChevronSezioneStyle}">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding SezioneMensiliEspansa}" Value="True">
-                                                                <Setter Property="Kind" Value="ChevronDown"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </iconPacks:PackIconBootstrapIcons.Style>
-                                            </iconPacks:PackIconBootstrapIcons>
-                                            <TextBlock Text="MENSILI" FontSize="9" FontWeight="Bold" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
-                                            <Ellipse Width="7" Height="7" Margin="8,0,0,0" VerticalAlignment="Center" Fill="{Binding StatoSezioneMensili, Converter={StaticResource StatoAColore}}"/>
-                                        </StackPanel>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                            <ItemsControl ItemsSource="{Binding RigheMensiliFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
-                                      Visibility="{Binding SezioneMensiliEspansa, Converter={StaticResource BoolToVisibility}}"/>
+                        <StackPanel Visibility="{Binding HaRigheMensili, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,20">
+                            <ToggleButton Style="{StaticResource AdpSezioneHeader}" Content="MENSILI"
+                                  IsChecked="{Binding SezioneMensiliEspansa}"
+                                  BorderBrush="{Binding StatoSezioneMensili, Converter={StaticResource StatoAColore}}"/>
+                            <ItemsControl ItemsSource="{Binding RigheMensiliFiltrate}"
+                                          ItemTemplate="{StaticResource RigaAttivitaTemplateV2}"
+                                          Visibility="{Binding SezioneMensiliEspansa, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
 
                         <!-- TRIMESTRALI -->
-                        <StackPanel Visibility="{Binding HaRigheTrimestrali, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,8">
-                            <Button Command="{Binding ToggleSezioneTrimestraliCommand}" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" HorizontalAlignment="Left">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                            <iconPacks:PackIconBootstrapIcons Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,6,0" VerticalAlignment="Center">
-                                                <iconPacks:PackIconBootstrapIcons.Style>
-                                                    <Style TargetType="iconPacks:PackIconBootstrapIcons" BasedOn="{StaticResource ChevronSezioneStyle}">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding SezioneTrimestraliEspansa}" Value="True">
-                                                                <Setter Property="Kind" Value="ChevronDown"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </iconPacks:PackIconBootstrapIcons.Style>
-                                            </iconPacks:PackIconBootstrapIcons>
-                                            <TextBlock Text="TRIMESTRALI" FontSize="9" FontWeight="Bold" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
-                                            <Ellipse Width="7" Height="7" Margin="8,0,0,0" VerticalAlignment="Center" Fill="{Binding StatoSezioneTrimestrali, Converter={StaticResource StatoAColore}}"/>
-                                        </StackPanel>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                            <ItemsControl ItemsSource="{Binding RigheTrimestraliFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
-                                      Visibility="{Binding SezioneTrimestraliEspansa, Converter={StaticResource BoolToVisibility}}"/>
+                        <StackPanel Visibility="{Binding HaRigheTrimestrali, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,20">
+                            <ToggleButton Style="{StaticResource AdpSezioneHeader}" Content="TRIMESTRALI"
+                                  IsChecked="{Binding SezioneTrimestraliEspansa}"
+                                  BorderBrush="{Binding StatoSezioneTrimestrali, Converter={StaticResource StatoAColore}}"/>
+                            <ItemsControl ItemsSource="{Binding RigheTrimestraliFiltrate}"
+                                          ItemTemplate="{StaticResource RigaAttivitaTemplateV2}"
+                                          Visibility="{Binding SezioneTrimestraliEspansa, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
 
                         <!-- ANNUALI -->
-                        <StackPanel Visibility="{Binding HaRigheAnnuali, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,20">
-                            <Button Command="{Binding ToggleSezioneAnnualiCommand}" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" HorizontalAlignment="Left">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                            <iconPacks:PackIconBootstrapIcons Width="10" Height="10" Foreground="{StaticResource BrushTestoSecondario}" Margin="0,0,6,0" VerticalAlignment="Center">
-                                                <iconPacks:PackIconBootstrapIcons.Style>
-                                                    <Style TargetType="iconPacks:PackIconBootstrapIcons" BasedOn="{StaticResource ChevronSezioneStyle}">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding SezioneAnnualiEspansa}" Value="True">
-                                                                <Setter Property="Kind" Value="ChevronDown"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </iconPacks:PackIconBootstrapIcons.Style>
-                                            </iconPacks:PackIconBootstrapIcons>
-                                            <TextBlock Text="ANNUALI" FontSize="9" FontWeight="Bold" Foreground="{StaticResource BrushTestoSecondario}" VerticalAlignment="Center"/>
-                                            <Ellipse Width="7" Height="7" Margin="8,0,0,0" VerticalAlignment="Center" Fill="{Binding StatoSezioneAnnuali, Converter={StaticResource StatoAColore}}"/>
-                                        </StackPanel>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                            <ItemsControl ItemsSource="{Binding RigheAnnualiFiltrate}" ItemTemplate="{StaticResource RigaAttivitaTemplate}"
-                                      Visibility="{Binding SezioneAnnualiEspansa, Converter={StaticResource BoolToVisibility}}"/>
+                        <StackPanel Visibility="{Binding HaRigheAnnuali, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,24">
+                            <ToggleButton Style="{StaticResource AdpSezioneHeader}" Content="ANNUALI"
+                                  IsChecked="{Binding SezioneAnnualiEspansa}"
+                                  BorderBrush="{Binding StatoSezioneAnnuali, Converter={StaticResource StatoAColore}}"/>
+                            <ItemsControl ItemsSource="{Binding RigheAnnualiFiltrate}"
+                                          ItemTemplate="{StaticResource RigaAttivitaTemplateV2}"
+                                          Visibility="{Binding SezioneAnnualiEspansa, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
-
-                        <Grid HorizontalAlignment="Left">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="NOTE GENERALI SUL CLIENTE" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Grid.Row="1" Text="{Binding NotaCliente, UpdateSourceTrigger=LostFocus}"
-                                 AcceptsReturn="True" TextWrapping="Wrap" Width="540" Height="120"
-                                 VerticalContentAlignment="Top" Margin="0,4,0,0"/>
-                        </Grid>
 
                     </StackPanel>
                 </ScrollViewer>
@@ -1408,7 +1375,7 @@
                                               IsChecked="{Binding Ravvedimento, Mode=OneWay}"
                                               Command="{Binding DataContext.ToggleRavvedimentoRitenutaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                               CommandParameter="{Binding}"
-                                              ToolTip="Ravvedimento operoso"/>
+                                              ToolTip="Ravvedimento"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -1471,7 +1438,6 @@
                 LarghezzaExtra="720">
                 <local:ModalDialogControl.Contenuto>
                     <StackPanel>
-                        <TextBlock Text="DATI FATTURA" Style="{StaticResource SectionTitle}"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -1512,15 +1478,14 @@
                                 <DatePicker SelectedDate="{Binding FormDataPagamentoFattura}" Margin="0,4,0,0"/>
                             </StackPanel>
                         </Grid>
-
-                        <TextBlock Text="DATI RITENUTA" Style="{StaticResource SectionTitle}" Margin="0,22,0,10"/>
-                        <Grid>
+                        <Grid Margin="0,14,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="14"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
@@ -1605,16 +1570,21 @@
                                 </Grid>
                             </StackPanel>
 
-                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,14,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="RAVVEDIMENTO" Style="{StaticResource FieldLabel}"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                    <CheckBox Style="{StaticResource ModuleCheckBoxStyle}"
-                                              IsChecked="{Binding FormRavvedimento}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Versamento con ravvedimento operoso" Margin="8,0,0,0"
-                                               Foreground="{StaticResource BrushTestoPrimario}" FontSize="13" VerticalAlignment="Center"
-                                               TextWrapping="Wrap"/>
-                                </StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="0"
+            Orientation="Horizontal"
+            Margin="0,24,0,0"
+            VerticalAlignment="Center">
+
+                                <CheckBox Style="{StaticResource ModuleCheckBoxStyle}"
+              IsChecked="{Binding FormRavvedimento}"
+              VerticalAlignment="Center" Margin="0,0,8,4"/>
+ 
+                                <TextBlock Text="RAVVEDIMENTO"
+               Style="{StaticResource FieldLabel}"
+               VerticalAlignment="Center"/>
+               
                             </StackPanel>
+
                         </Grid>
                     </StackPanel>
                 </local:ModalDialogControl.Contenuto>

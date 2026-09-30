@@ -45,6 +45,10 @@
                 <views:ToDoView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type vm:PasswordViewModel}">
+                <views:PasswordView/>
+            </DataTemplate>
+
             <DataTemplate DataType="{x:Type vm:ImpostazioniViewModel}">
                 <views:ImpostazioniView/>
             </DataTemplate>
@@ -86,6 +90,11 @@
                 <!-- Pattern di layout condivisi: overlay, pannelli laterali,
                      header pannello, tab-switch (dipende da Colors/ModulePage) -->
                 <ResourceDictionary Source="Theme/Panels.xaml"/>
+
+                <!-- Adempimenti dello Scadenzario: palette, stili chip/intestazioni
+                     e RigaAttivitaTemplateV2 (usa BrushBordo, BrushTestoPrimario,
+                     BrushTestoSecondario di Colors.xaml) -->
+                <ResourceDictionary Source="Theme/AdempimentiStyles.xaml"/>
 
                 <!-- Override brush MahApps per la titlebar chiara (dipende da
                      Colors.xaml; deve venire dopo i dictionary del Theme) -->

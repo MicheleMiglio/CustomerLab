@@ -133,6 +133,7 @@ namespace CLab.ViewModels
         // query (conteggio pre-take), nessuna nuova interrogazione.
         public int TotaleClientiInRitardo { get; private set; }
         public int TotaleStudiDaIncassare { get; private set; }
+        public int TotaleStudi { get; private set; }
 
         // --- Clienti: composizione per stato (Attivo/StandBy/Cessato).
         // Riusa Cliente.Stato, già esistente: nessuna logica nuova, solo un
@@ -378,6 +379,7 @@ namespace CLab.ViewModels
 
             var attivitaCatalogo = db.Attivita.AsNoTracking().ToDictionary(a => a.Id, a => a);
             var assegnazioni = db.ClientiAttivita.AsNoTracking().ToList();
+            var statiClienti = db.Clienti.AsNoTracking().ToDictionary(c => c.Id, c => c.Stato);
             var compilazioni = db.Compilazioni.AsNoTracking().Where(c => c.Anno == anno).ToList();
 
             var ritardoPerCliente = new Dictionary<int, int>();
@@ -385,6 +387,7 @@ namespace CLab.ViewModels
 
             foreach (var assegnazione in assegnazioni)
             {
+                if (!statiClienti.TryGetValue(assegnazione.ClienteId, out var stato) || stato != StatoCliente.Attivo) continue;
                 if (!attivitaCatalogo.TryGetValue(assegnazione.AttivitaId, out var attivita)) continue;
                 if (attivita.TipoCampo == TipoCampoAttivita.TestoLibero) continue;
 
@@ -397,7 +400,7 @@ namespace CLab.ViewModels
 
                 for (int periodo = 1; periodo <= numeroPeriodi; periodo++)
                 {
-                    var singola = compilazioni.FirstOrDefault(c =>
+                    var singola = compilazioni.FirstOrDefault(c => 
                         c.ClienteId == assegnazione.ClienteId && c.AttivitaId == assegnazione.AttivitaId && c.Periodo == periodo);
 
                     bool compilato = singola != null && attivita.TipoCampo switch
@@ -490,6 +493,8 @@ namespace CLab.ViewModels
                 .Select(f => new { f.ReferenteId, f.Importo, f.DataScadenza })
                 .ToList();
 
+            TotaleStudi = db.Referenti.AsNoTracking().Count(x => x.Attivo);
+
             var righe = db.Referenti.AsNoTracking()
                 .Select(r => new { r.Id, r.Nome })
                 .ToList()
@@ -505,6 +510,7 @@ namespace CLab.ViewModels
                 .ToList();
 
             TotaleStudiDaIncassare = righe.Count(x => x.DaIncassare > 0);
+
             foreach (var r in righe.Where(x => x.DaIncassare > 0)
                                     .OrderByDescending(x => x.DaIncassare)
                                     .ThenByDescending(x => x.Scaduto)

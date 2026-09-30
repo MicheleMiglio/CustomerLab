@@ -468,6 +468,7 @@ namespace CLab.ViewModels
             using var db = new ClabDbContext();
 
             _clientiConfigurazioneCompleti = db.Clienti
+                .Where(x => x.Stato == StatoCliente.Attivo)
                 .AsNoTracking()
                 .OrderBy(x => x.RagioneSociale)
                 .ToList();

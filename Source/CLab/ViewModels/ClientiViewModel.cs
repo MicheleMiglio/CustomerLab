@@ -398,7 +398,7 @@ namespace CLab.ViewModels
         private void CaricaClienti()
         {
             using var db = new ClabDbContext();
-            var lista = db.Clienti.Include(c => c.Contatti).ToList();
+            var lista = db.Clienti.Include(c => c.Contatti).OrderBy(c => c.Stato).ToList();
 
             var nomiReferenti = db.Referenti.AsNoTracking().ToDictionary(r => r.Id, r => r.Nome);
             foreach (var c in lista)
@@ -515,7 +515,7 @@ namespace CLab.ViewModels
 
             if (Dettaglio.FormReferente == null)
             {
-                MessageBox.Show("Il referente è obbligatorio.", "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Specificare lo studio di riferimento.", "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 

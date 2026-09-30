@@ -75,6 +75,7 @@ namespace CLab.ViewModels
         public ICommand EliminaVoceCommand { get; }
         public ICommand ModificaVoceCommand { get; }
         public ICommand CopiaCampoCommand { get; }
+        public ICommand CopiaRecoveryCodeCommand { get; }
 
         public PasswordViewModel()
         {
@@ -94,9 +95,15 @@ namespace CLab.ViewModels
             EliminaVoceCommand = new RelayCommand<PasswordVoceViewModel>(EliminaConConferma);
             ModificaVoceCommand = new RelayCommand<PasswordVoceViewModel>(ModificaVoce);
             CopiaCampoCommand = new RelayCommand<string>(CopiaCampo);
+            CopiaRecoveryCodeCommand = new RelayCommand(CopiaRecoveryCode);
             ChiudiRecoveryCodeCommand = new RelayCommand(() => RecoveryCodeMonouso = null);
 
             AggiornaStato();
+
+            // Sessione ancora aperta (es. rientro nel modulo entro i 15 minuti):
+            // la lista si riapre subito, senza richiedere di nuovo la password.
+            if (IsConfigurato && Sessione.SessioneValida())
+                CaricaVoci();
         }
 
         /// <summary>Notifica lo stato corrente (chiamato dal timer UI).</summary>
@@ -299,10 +306,16 @@ namespace CLab.ViewModels
         public void ChiudiPannello()
         {
             PannelloAperto = false;
-            HaModifiche = false;
             PasswordFormVisibile = false;
             PulisciPasswordForm();
             VoceFeedback = string.Empty;
+            FeedbackCopia = string.Empty;
+            FeedbackGeneratore = string.Empty;
+            FeedbackClipboard = string.Empty;
+
+            // Ultimo: la pulizia dei campi scatena il PasswordChanged della
+            // PasswordBox e non deve risultare una modifica non salvata.
+            HaModifiche = false;
         }
 
         public bool ProvaSalvaVoce(string nome, string sito, string username, string password, string note)
@@ -507,7 +520,17 @@ namespace CLab.ViewModels
             FeedbackCopia = copiata
                 ? "Copiato — se è una password verrà cancellata dagli appunti tra 30 secondi."
                 : "Sessione bloccata o scaduta: sblocca il modulo per copiare.";
-            return;
+        }
+
+        /// <summary>Copia il codice di recupero mostrato una sola volta: passa
+        /// dallo stesso servizio appunti del modulo, quindi anche questo valore
+        /// viene cancellato dagli appunti dopo 30 secondi.</summary>
+        private void CopiaRecoveryCode()
+        {
+            if (string.IsNullOrEmpty(_recoveryCodeMonouso))
+                return;
+
+            PasswordClipboardService.IstanzaApplicativo.Copia(_recoveryCodeMonouso);
         }
 
         private string _generata = string.Empty;
@@ -541,11 +564,34 @@ namespace CLab.ViewModels
         }
 
         private int _lunghezza = PasswordGeneratorService.LunghezzaDefault;
-        public int Lunghezza { get => _lunghezza; set { _lunghezza = value; OnPropertyChanged(); } }
-        public bool UsaMaiuscole { get; set; } = true;
-        public bool UsaMinuscole { get; set; } = true;
-        public bool UsaNumeri { get; set; } = true;
-        public bool UsaSimboli { get; set; } = true;
+
+        /// <summary>Lunghezza della password generata (8-64, default 20).</summary>
+        public int Lunghezza
+        {
+            get => _lunghezza;
+            set
+            {
+                _lunghezza = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(LunghezzaTesto));
+            }
+        }
+
+        /// <summary>Testo accanto allo slider della lunghezza.</summary>
+        public string LunghezzaTesto =>
+            $"{_lunghezza} caratteri (da {PasswordGeneratorService.LunghezzaMinima} a {PasswordGeneratorService.LunghezzaMassima})";
+
+        private bool _usaMaiuscole = true;
+        public bool UsaMaiuscole { get => _usaMaiuscole; set { _usaMaiuscole = value; OnPropertyChanged(); } }
+
+        private bool _usaMinuscole = true;
+        public bool UsaMinuscole { get => _usaMinuscole; set { _usaMinuscole = value; OnPropertyChanged(); } }
+
+        private bool _usaNumeri = true;
+        public bool UsaNumeri { get => _usaNumeri; set { _usaNumeri = value; OnPropertyChanged(); } }
+
+        private bool _usaSimboli = true;
+        public bool UsaSimboli { get => _usaSimboli; set { _usaSimboli = value; OnPropertyChanged(); } }
 
         public bool ProvaGenera(int lunghezza, bool maiuscole, bool minuscole, bool numeri, bool simboli, out string? generata)
         {
@@ -775,7 +821,6 @@ namespace CLab.ViewModels
                 PasswordSessionService.Istanza.Lock();
 
                 PannelloAperto = false;
-                HaModifiche = false;
                 PasswordFormVisibile = false;
                 PulisciPasswordForm();
                 _voceInModificaId = 0;
@@ -788,6 +833,9 @@ namespace CLab.ViewModels
                 FeedbackGeneratore = string.Empty;
                 FeedbackClipboard = string.Empty;
                 Generata = string.Empty;
+                // Il codice di recupero è un segreto come gli altri: al lock
+                // sparisce anche dalla schermata che lo mostra una sola volta.
+                RecoveryCodeMonouso = null;
                 _vociComplete.Clear();
                 Voci.Clear();
                 if (!string.IsNullOrEmpty(_filtroTesto))
@@ -798,6 +846,11 @@ namespace CLab.ViewModels
                 ModuloConfiguratoEAperto = false;
                 PulisciPasswordBoxAccesso();
                 Stato = "Bloccato";
+
+                // Ultimo: la pulizia dei campi segna "modificato" (segna che
+                // l'utente ha toccato i valori), quindi al lock lo stato delle
+                // modifiche non salvate deve restare pulito.
+                HaModifiche = false;
             }
             finally
             {

@@ -404,7 +404,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="REFERENTE" Binding="{Binding ReferenteNome}" Width="1.1*">
+                    <DataGridTextColumn Header="STUDIO" Binding="{Binding ReferenteNome}" Width="1.1*">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontSize" Value="12"/>
@@ -633,7 +633,7 @@ Visibility="{Binding NessunClienteVisibile, Converter={StaticResource BoolToVisi
                                             </StackPanel>
 
                                             <StackPanel Margin="0,0,0,16">
-                                                <TextBlock Text="REFERENTE"
+                                                <TextBlock Text="STUDIO"
                            Style="{StaticResource FieldLabel}"/>
                                                 <TextBlock Text="{Binding Dettaglio.FormReferente}"
                            Style="{StaticResource FieldValue}"/>
@@ -1201,7 +1201,7 @@ Visibility="{Binding NessunClienteVisibile, Converter={StaticResource BoolToVisi
                                                 <!-- No Ravvedimento -->
                                                 <StackPanel Grid.Column="4">
 
-                                                    <TextBlock Text="NO RAVVEDIMENTO"
+                                                    <TextBlock Text="SENZA RAVVEDIMENTO"
                                                                VerticalAlignment="Center"
                                                                HorizontalAlignment="Center"
                                Style="{StaticResource FieldLabel}"/>
@@ -1401,7 +1401,7 @@ Visibility="{Binding NessunClienteVisibile, Converter={StaticResource BoolToVisi
                           DisplayMemberPath="Nome"
                           SelectedItem="{Binding Dettaglio.FormReferente}"/>
                                             <Button Grid.Column="1" Style="{StaticResource BtnIcon}" Padding="6" Margin="4,0,0,0"
-                        Command="{Binding ApriGestioneReferentiCommand}" ToolTip="Gestisci referenti">
+                        Command="{Binding ApriGestioneReferentiCommand}" ToolTip="Gestisci studi">
                                                 <iconPacks:PackIconBootstrapIcons Kind="Gear" Width="12" Height="12" Foreground="{StaticResource BrushTestoSecondario}"/>
                                             </Button>
                                         </Grid>
@@ -1629,7 +1629,7 @@ Visibility="{Binding NessunClienteVisibile, Converter={StaticResource BoolToVisi
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Gestisci referenti" Style="{StaticResource ModuleTitleStyle}"/>
+                        <TextBlock Grid.Column="0" Text="Gestisci studi" Style="{StaticResource ModuleTitleStyle}"/>
                         <Button Grid.Column="1" Style="{StaticResource BtnIconGhost}" Command="{Binding ChiudiGestioneReferentiCommand}" VerticalAlignment="Top">
                             <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="14" Height="14" Foreground="{StaticResource BrushTestoSecondario}"/>
                         </Button>
@@ -1644,7 +1644,7 @@ Visibility="{Binding NessunClienteVisibile, Converter={StaticResource BoolToVisi
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Text="{Binding NuovoReferenteTesto, UpdateSourceTrigger=PropertyChanged}"
-                                 mah:TextBoxHelper.Watermark="  Nuovo referente…"/>
+                                 mah:TextBoxHelper.Watermark="  Nuovo studio…"/>
                             <Button Grid.Column="1" Style="{StaticResource BtnPrimary}" Margin="5,0,0,0" Height="30" Width="35" Padding="12,3" Command="{Binding AggiungiReferenteCommand}">
                                 <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="10" Height="10" Foreground="White"/>
                             </Button>

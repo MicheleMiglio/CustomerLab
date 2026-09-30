@@ -38,7 +38,12 @@ namespace CLab.Services
         private byte[]? _dek;
         private long _tickUltimoAccesso;
 
-        /// <summary>Evento sollevato quando la sessione termina (timeout o lock manuale).</summary>
+        /// <summary>
+        /// Sollevato a ogni transizione da sessione aperta a sessione chiusa:
+        /// lock manuale, scadenza rilevata da VerificaTimeout oppure da una
+        /// operazione sensibile (TryGetDek). IsUnlocked e SessioneValida sono
+        /// solo letture e non lo sollevano.
+        /// </summary>
         public event Action? SessioneTerminata;
 
         /// <summary>Costruttore di produzione (durata fissa 15 minuti).</summary>
@@ -109,17 +114,31 @@ namespace CLab.Services
         /// </summary>
         public byte[]? TryGetDek()
         {
+            bool terminata;
+            byte[]? copia;
+
             lock (_lock)
             {
                 if (!SessioneValidaInterna())
                 {
+                    terminata = _dek != null;
                     EseguiLockInterno();
-                    return null;
+                    copia = null;
                 }
-
-                _tickUltimoAccesso = _cronometro.ElapsedTicks; // Touch implicito
-                return (byte[])_dek!.Clone();
+                else
+                {
+                    terminata = false;
+                    _tickUltimoAccesso = _cronometro.ElapsedTicks; // Touch implicito
+                    copia = (byte[])_dek!.Clone();
+                }
             }
+
+            // L'evento esce dal lock: chi lo riceve può richiamare il servizio
+            // senza rischi (la seconda volta la sessione risulta già bloccata).
+            if (terminata)
+                SessioneTerminata?.Invoke();
+
+            return copia;
         }
 
         /// <summary>Verifica la validità della sessione senza esporre la DEK.</summary>
@@ -144,14 +163,21 @@ namespace CLab.Services
         /// <summary>Verifica il timeout: se scaduto esegue il lock. True se ancora valida.</summary>
         public bool VerificaTimeout()
         {
+            bool terminata;
+
             lock (_lock)
             {
                 if (SessioneValidaInterna())
                     return true;
 
+                terminata = _dek != null;
                 EseguiLockInterno();
-                return false;
             }
+
+            if (terminata)
+                SessioneTerminata?.Invoke();
+
+            return false;
         }
 
         /// <summary>

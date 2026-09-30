@@ -135,6 +135,7 @@ namespace CLab.Services
 
                     var config = new PasswordConfig
                     {
+                        Id = PasswordConfig.IdSingleton,
                         MasterSalt = masterSalt,
                         RecoverySalt = recoverySalt,
                         DekCifrataMaster = cifrataMaster,

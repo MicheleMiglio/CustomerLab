@@ -1,0 +1,419 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+                    xmlns:views="clr-namespace:CLab.Views">
+
+    <!--
+        ADEMPIMENTI - stili e template della riga (versione 4)
+
+        RigaAttivitaCompilazione: Nome, TipoCampo, Espansa, Pillole, CellaSelezionata,
+                                  TestoRiepilogo, StatoRiepilogo
+        CellaCompilazione:        Titolo (NUOVA, es. "Settembre 2026")
+        PeriodoPill:              Indice, Etichetta, Dettaglio, StatoColore, Selezionato,
+                                  SelezionaCommand, MostraToggleRapido, ToggleRapidoCommand
+        StatoColore:              "Compilato" | "InCorso" | "Ritardo" | "Futuro"
+
+        Le intestazioni di sezione ora sono ToggleButton legati direttamente a SezioneXEspansa.
+        Chiavi del tema usate (DynamicResource): BrushBordo, BrushTestoPrimario, BrushTestoSecondario
+    -->
+
+    <!-- ===================== PALETTE ===================== -->
+    <SolidColorBrush x:Key="AdpOkBg"           Color="#E8F5EE"/>
+    <SolidColorBrush x:Key="AdpOkFg"           Color="#1B6B43"/>
+    <SolidColorBrush x:Key="AdpLateBg"         Color="#FCECEA"/>
+    <SolidColorBrush x:Key="AdpLateFg"         Color="#B42318"/>
+    <SolidColorBrush x:Key="AdpFutureBg"       Color="#F3F4F6"/>
+    <SolidColorBrush x:Key="AdpFutureFg"       Color="#6B7280"/>
+    <SolidColorBrush x:Key="AdpSezioneBg"      Color="#F1F3F6"/>
+    <SolidColorBrush x:Key="AdpSezioneBgHover" Color="#E8EBF0"/>
+    <SolidColorBrush x:Key="AdpRigaAperta"     Color="#F7F8FB"/>
+    <SolidColorBrush x:Key="AdpTag"            Color="#EEF0F4"/>
+    <SolidColorBrush x:Key="AdpCheckFuturo"    Color="#B4BAC4"/>
+    <SolidColorBrush x:Key="AdpCheckCorso"     Color="#7B8494"/>
+
+    <!-- Testo del tipo di campo ("Sì / No", "Testo libero", ...) ricavato da TipoCampo della riga -->
+    <Style x:Key="AdpTipoTextStyle" TargetType="TextBlock">
+        <Setter Property="Text" Value="{Binding TipoCampo}"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding TipoCampo}" Value="SiNo">
+                <Setter Property="Text" Value="Sì / No"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding TipoCampo}" Value="TestoLibero">
+                <Setter Property="Text" Value="Testo libero"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ===================== INTESTAZIONE DI SEZIONE =====================
+         ToggleButton: IsChecked = SezioneXEspansa (chevron e stato restano sempre allineati).
+         Content     = titolo (MENSILI / TRIMESTRALI / ANNUALI)
+         BorderBrush = colore del pallino di stato di sezione (solo "trasporto" del Brush)
+    -->
+    <Style x:Key="AdpSezioneHeader" TargetType="ToggleButton">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Bd" Height="34" Margin="0,0,0,6" Padding="12,0" CornerRadius="6"
+                            Background="{StaticResource AdpSezioneBg}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <iconPacks:PackIconBootstrapIcons x:Name="Chevron" Kind="ChevronRight"
+                                Width="10" Height="10" Margin="0,0,9,0" VerticalAlignment="Center"
+                                Foreground="{DynamicResource BrushTestoSecondario}"/>
+                            <ContentPresenter Grid.Column="1" VerticalAlignment="Center"
+                                TextElement.FontSize="12" TextElement.FontWeight="Bold"
+                                TextElement.Foreground="{DynamicResource BrushTestoPrimario}"/>
+                            <Ellipse Grid.Column="2" Width="8" Height="8" Margin="10,0,0,0"
+                                VerticalAlignment="Center" Fill="{TemplateBinding BorderBrush}"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Chevron" Property="Kind" Value="ChevronDown"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource AdpSezioneBgHover}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===================== NOME RIGA (apre/chiude il pannello) ===================== -->
+    <Style x:Key="AdpNomeRigaToggle" TargetType="ToggleButton">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Grid Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <iconPacks:PackIconBootstrapIcons x:Name="Chevron" Kind="ChevronRight"
+                            Width="9" Height="9" Margin="2,0,9,0" VerticalAlignment="Center"
+                            Foreground="{DynamicResource BrushTestoSecondario}"/>
+                        <TextBlock Grid.Column="1" Text="{TemplateBinding Content}"
+                            FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
+                            TextTrimming="CharacterEllipsis"
+                            Foreground="{DynamicResource BrushTestoPrimario}"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Chevron" Property="Kind" Value="ChevronDown"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Bottone "chiudi" del pannello (IsChecked = Espansa) -->
+    <Style x:Key="AdpCloseToggle" TargetType="ToggleButton">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Width" Value="26"/>
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="ToolTip" Value="Chiudi"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Bd" CornerRadius="6" Background="Transparent">
+                        <iconPacks:PackIconBootstrapIcons Kind="XLg" Width="10" Height="10"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Foreground="{DynamicResource BrushTestoSecondario}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource AdpTag}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Contenitore cliccabile della checkbox rapida dentro il chip -->
+    <Style x:Key="AdpChipRapidoStyle" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" CornerRadius="5" Padding="2" Background="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#14000000"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===================== CHIP PERIODO (PeriodoPill) =====================
+         Stato = colore. Sui Sì/No una checkbox arrotondata: vuota = da fare, piena verde con spunta bianca = fatto.
+         Sugli altri tipi una spunta o un "!" indicano lo stato.
+         Selezionato (a riga aperta) = bordo scuro + linguetta che aggancia il pannello.
+    -->
+    <Style x:Key="AdpChipStyle" TargetType="Button">
+        <Setter Property="MinWidth" Value="56"/>
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="Margin" Value="0,2,3,2"/>
+        <Setter Property="Padding" Value="5,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border x:Name="Chip" CornerRadius="5" BorderThickness="1.5" SnapsToDevicePixels="True"
+                                Background="{StaticResource AdpFutureBg}"
+                                BorderBrush="{StaticResource AdpFutureBg}"
+                                TextElement.Foreground="{StaticResource AdpFutureFg}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        Margin="{TemplateBinding Padding}">
+                                <TextBlock Text="{Binding Etichetta}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="Dettaglio" Text="{Binding Dettaglio}" FontSize="9" Opacity="0.8"
+                                           Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                <iconPacks:PackIconBootstrapIcons x:Name="Glifo" Kind="Check2" Width="10" Height="10"
+                                    Margin="4,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                <Button x:Name="Rapido" Style="{StaticResource AdpChipRapidoStyle}"
+                                        Command="{Binding ToggleRapidoCommand}"
+                                        ToolTip="Segna come completato / non completato"
+                                        Margin="3,0,-3,0" Visibility="Collapsed">
+                                    <Grid Width="13" Height="13">
+                                        <Border x:Name="RapidoBox" CornerRadius="4" BorderThickness="1.5"
+                                                Background="White" BorderBrush="{StaticResource AdpCheckFuturo}"/>
+                                        <Path x:Name="RapidoTick" Data="M 3.3,6.9 L 5.6,9.1 L 9.7,4.3"
+                                              Stroke="White" StrokeThickness="1.8"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                              Visibility="Collapsed"/>
+                                    </Grid>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                        <!-- Copre tutto il chip (bordo compreso) -->
+                        <Border x:Name="Hover" Visibility="Collapsed" IsHitTestVisible="False"
+                                CornerRadius="5" Background="#0D000000"/>
+                        <!-- Linguetta verso il pannello: base sul bordo alto del pannello (8px sotto il chip) -->
+                        <Grid x:Name="Caret" Width="14" Height="7" IsHitTestVisible="False"
+                              HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,-9"
+                              Visibility="Collapsed">
+                            <Polygon Points="0,7 7,0 14,7" Fill="White"/>
+                            <Polyline Points="0.5,7 7,0.6 13.5,7" Stroke="{DynamicResource BrushBordo}"
+                                      StrokeThickness="1" StrokeLineJoin="Round"/>
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Dettaglio}" Value="">
+                            <Setter TargetName="Dettaglio" Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Dettaglio}" Value="{x:Null}">
+                            <Setter TargetName="Dettaglio" Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding StatoColore}" Value="InCorso">
+                            <Setter TargetName="Chip" Property="Background" Value="White"/>
+                            <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource BrushBordo}"/>
+                            <Setter TargetName="Chip" Property="TextElement.Foreground" Value="{DynamicResource BrushTestoPrimario}"/>
+                            <Setter TargetName="RapidoBox" Property="BorderBrush" Value="{StaticResource AdpCheckCorso}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding StatoColore}" Value="Compilato">
+                            <Setter TargetName="Chip" Property="Background" Value="{StaticResource AdpOkBg}"/>
+                            <Setter TargetName="Chip" Property="BorderBrush" Value="{StaticResource AdpOkBg}"/>
+                            <Setter TargetName="Chip" Property="TextElement.Foreground" Value="{StaticResource AdpOkFg}"/>
+                            <Setter TargetName="Glifo" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="RapidoBox" Property="Background" Value="{StaticResource AdpOkFg}"/>
+                            <Setter TargetName="RapidoBox" Property="BorderBrush" Value="{StaticResource AdpOkFg}"/>
+                            <Setter TargetName="RapidoTick" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding StatoColore}" Value="Ritardo">
+                            <Setter TargetName="Chip" Property="Background" Value="{StaticResource AdpLateBg}"/>
+                            <Setter TargetName="Chip" Property="BorderBrush" Value="{StaticResource AdpLateBg}"/>
+                            <Setter TargetName="Chip" Property="TextElement.Foreground" Value="{StaticResource AdpLateFg}"/>
+                            <Setter TargetName="Glifo" Property="Kind" Value="Exclamation"/>
+                            <Setter TargetName="Glifo" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="RapidoBox" Property="BorderBrush" Value="{StaticResource AdpLateFg}"/>
+                        </DataTrigger>
+                        <!-- Sì/No: niente icona di stato, resta solo la checkbox (deve stare dopo gli stati) -->
+                        <DataTrigger Binding="{Binding MostraToggleRapido}" Value="True">
+                            <Setter TargetName="Glifo" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="Rapido" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Selezionato}" Value="True"/>
+                                <Condition Binding="{Binding DataContext.Espansa, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource BrushTestoPrimario}"/>
+                            <Setter TargetName="Caret" Property="Visibility" Value="Visible"/>
+                        </MultiDataTrigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource BrushTestoPrimario}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Hover" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===================== RIGA ADEMPIMENTO (V4) =====================
+         Riga piatta: filetto sotto. Aperta = sfondo leggero + barra a sinistra + pannello bianco
+         (bordo sottile, ombra morbida) agganciato al chip selezionato dalla linguetta.
+    -->
+    <DataTemplate x:Key="RigaAttivitaTemplateV2">
+        <Border BorderThickness="0,0,0,1">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource BrushBordo}"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Espansa}" Value="True">
+                            <Setter Property="Background" Value="{StaticResource AdpRigaAperta}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Barra di "riga attiva" a sinistra, su tutta l'altezza -->
+                <Rectangle Grid.RowSpan="2" Width="3" HorizontalAlignment="Left"
+                           Fill="{DynamicResource BrushTestoPrimario}">
+                    <Rectangle.Style>
+                        <Style TargetType="Rectangle">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Espansa}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Rectangle.Style>
+                </Rectangle>
+
+                <!-- Riga principale: nome | chip | riepilogo.
+                     ZIndex 1: la linguetta dei chip deve stare sopra il bordo del pannello. -->
+                <Grid Grid.Row="0" Margin="10,6,14,6" Panel.ZIndex="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="176"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" MinWidth="48"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ToggleButton Grid.Column="0" Style="{StaticResource AdpNomeRigaToggle}"
+                                  Margin="0,0,12,0" VerticalAlignment="Center"
+                                  IsChecked="{Binding Espansa}" Content="{Binding Nome}">
+                        <ToggleButton.ToolTip>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Nome}" FontWeight="SemiBold"/>
+                                <TextBlock Style="{StaticResource AdpTipoTextStyle}"/>
+                            </StackPanel>
+                        </ToggleButton.ToolTip>
+                    </ToggleButton>
+
+                    <ItemsControl Grid.Column="1" ItemsSource="{Binding Pillole}"
+                                  VerticalAlignment="Center" Focusable="False">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource AdpChipStyle}"
+                                        Command="{Binding SelezionaCommand}"
+                                        CommandParameter="{Binding Indice}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Grid.Column="2" Text="{Binding TestoRiepilogo}"
+                               FontSize="12" FontWeight="SemiBold" TextAlignment="Right"
+                               VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{DynamicResource BrushTestoSecondario}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding StatoRiepilogo}" Value="Ritardo">
+                                        <Setter Property="Foreground" Value="{StaticResource AdpLateFg}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+
+                <!-- Pannello di compilazione: superficie bianca a tutta larghezza di contenuto,
+                     titolo del periodo + tipo in alto, campi sotto, chiudi a destra -->
+                <Border Grid.Row="1" Margin="10,0,14,12" CornerRadius="8" BorderThickness="1"
+                        Background="White" BorderBrush="{DynamicResource BrushBordo}">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="14" ShadowDepth="2" Direction="270"
+                                          Opacity="0.08" Color="#1F2A44"/>
+                    </Border.Effect>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Espansa}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="16,8,8,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding CellaSelezionata.Titolo}" FontSize="12" FontWeight="SemiBold"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource BrushTestoPrimario}"/>
+                                <Border Margin="10,0,0,0" Padding="7,1" CornerRadius="9"
+                                        Background="{StaticResource AdpTag}" VerticalAlignment="Center">
+                                    <TextBlock Style="{StaticResource AdpTipoTextStyle}" FontSize="10" FontWeight="Medium"
+                                               Foreground="{DynamicResource BrushTestoSecondario}"/>
+                                </Border>
+                            </StackPanel>
+                            <ToggleButton Style="{StaticResource AdpCloseToggle}" HorizontalAlignment="Right"
+                                          IsChecked="{Binding Espansa}"/>
+                        </Grid>
+
+                        <views:CellaCompilazioneControl Grid.Row="1" Margin="16,6,16,14"
+                                                        DataContext="{Binding CellaSelezionata}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </DataTemplate>
+
+</ResourceDictionary>

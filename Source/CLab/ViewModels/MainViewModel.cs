@@ -22,6 +22,7 @@ namespace CLab.ViewModels
         private MenuItemModel? _scadenzarioMenu;
         private MenuItemModel? _fattureMenu;
         private MenuItemModel? _todoMenu;
+        private MenuItemModel? _passwordMenu;
         private MenuItemModel? _studiMenu;
         private MenuItemModel? _impostazioniMenu;
 
@@ -98,9 +99,10 @@ namespace CLab.ViewModels
         private void CreaMenu()
         {
             // FASE 4: struttura flat unica — Home, Scadenzario, Studi, Clienti,
-            // Attività, ToDo, Fatture, Promemoria; Impostazioni resta nel footer
-            // (separatore visivo già garantito dalla zona footer della sidebar).
-            // Nessun gruppo, nessuna intestazione: solo voci cliccabili.
+            // Attività, ToDo, Fatture, Password, Promemoria; Impostazioni resta
+            // nel footer (separatore visivo già garantito dalla zona footer
+            // della sidebar). Nessun gruppo, nessuna intestazione: solo voci
+            // cliccabili.
             _dashboardMenu = new MenuItemModel
             {
                 Titolo = "Home",
@@ -156,6 +158,14 @@ namespace CLab.ViewModels
                 Comando = new RelayCommand<MenuItemModel>(ApriFatture)
             };
             MenuPrincipale.Add(_fattureMenu);
+
+            _passwordMenu = new MenuItemModel
+            {
+                Titolo = "Password",
+                Icona = "Key",
+                Comando = new RelayCommand<MenuItemModel>(ApriPassword)
+            };
+            MenuPrincipale.Add(_passwordMenu);
 
             _promemoriaMenu = new MenuItemModel
             {
@@ -305,6 +315,19 @@ namespace CLab.ViewModels
         {
             SelezionaMenu(menu);
             VistaCorrente = new ImpostazioniViewModel();
+        }
+
+        private void ApriPassword(MenuItemModel? menu) => ApriPassword();
+
+        /// <summary>
+        /// Modulo Password: archivio locale di credenziali, protetto da una
+        /// password principale e da una sessione a tempo (15 minuti).
+        /// </summary>
+        public void ApriPassword()
+        {
+            SelezionaMenu(_passwordMenu);
+
+            VistaCorrente = new PasswordViewModel();
         }
 
         private void ApriConfigurazioneAttivitaPerCliente(int clienteId)

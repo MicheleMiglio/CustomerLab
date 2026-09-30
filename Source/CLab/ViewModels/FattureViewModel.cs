@@ -192,7 +192,7 @@ namespace CLab.ViewModels
         {
             using var db = new ClabDbContext();
             ReferentiDisponibili.Clear();
-            foreach (var c in db.Referenti.AsNoTracking().OrderBy(x => x.Nome).ToList())
+            foreach (var c in db.Referenti.AsNoTracking().Where(x => x.Attivo).OrderBy(x => x.Nome).ToList())
                 ReferentiDisponibili.Add(c);
         }
 

@@ -96,5 +96,15 @@ namespace CLab.Services
                 db.SaveChanges();
             });
         }
+
+        public static void ResetConfigurazionePerTest()
+        {
+            using var db = new ClabDbContext();
+
+            db.Passwords.RemoveRange(db.Passwords);
+            db.PasswordConfig.RemoveRange(db.PasswordConfig);
+
+            db.SaveChanges();
+        }
     }
 }

@@ -2,7 +2,6 @@
 using CLab.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -14,28 +13,16 @@ namespace CLab.ViewModels
         private readonly Action? _aggiornaBadge;
         private int _promemoriaInModificaId;
 
-        public ObservableCollection<Promemoria> Promemoria { get; set; } = new();
-
-        private bool _ordinamentoPerPriorita;
-        public bool OrdinamentoPerPriorita
-        {
-            get => _ordinamentoPerPriorita;
-            set
-            {
-                if (_ordinamentoPerPriorita == value) return;
-                _ordinamentoPerPriorita = value;
-                OnPropertyChanged();
-                Ordina();
-            }
-        }
+        // Tre colonne fisse, una per priorità. Più recenti in alto.
+        public ObservableCollection<Promemoria> PromemoriaAlta { get; } = new();
+        public ObservableCollection<Promemoria> PromemoriaMedia { get; } = new();
+        public ObservableCollection<Promemoria> PromemoriaBassa { get; } = new();
 
         // --- Pannello nuovo/modifica ---
 
         private bool _pannelloAperto;
         public bool PannelloAperto { get => _pannelloAperto; set { _pannelloAperto = value; OnPropertyChanged(); } }
 
-        // FASE 3: modifiche non salvate, per la conferma di chiusura del
-        // SidePanelControl. Azzerato a ogni apertura del form (Nuovo/Modifica).
         private bool _haModifiche;
         public bool HaModifiche { get => _haModifiche; set { _haModifiche = value; OnPropertyChanged(); } }
         private void SegnaModificato() => HaModifiche = true;
@@ -52,8 +39,6 @@ namespace CLab.ViewModels
         private PrioritaPromemoria _formPriorita = PrioritaPromemoria.Media;
         public PrioritaPromemoria FormPriorita { get => _formPriorita; set { _formPriorita = value; OnPropertyChanged(); SegnaModificato(); } }
 
-        public ICommand MostraPerDataCommand { get; }
-        public ICommand MostraPerPrioritaCommand { get; }
         public ICommand NuovoCommand { get; }
         public ICommand ModificaCommand { get; }
         public ICommand SalvaCommand { get; }
@@ -64,8 +49,6 @@ namespace CLab.ViewModels
         {
             _aggiornaBadge = aggiornaBadge;
 
-            MostraPerDataCommand = new RelayCommand(() => OrdinamentoPerPriorita = false);
-            MostraPerPrioritaCommand = new RelayCommand(() => OrdinamentoPerPriorita = true);
             NuovoCommand = new RelayCommand(Nuovo);
             ModificaCommand = new RelayCommand<Promemoria>(Modifica);
             SalvaCommand = new RelayCommand(Salva, () => !string.IsNullOrWhiteSpace(FormTitolo));
@@ -81,26 +64,20 @@ namespace CLab.ViewModels
         private void Carica()
         {
             using var db = new ClabDbContext();
-            var elenco = db.Promemoria.AsNoTracking().ToList();
+            var elenco = db.Promemoria.AsNoTracking().ToList()
+                           .OrderByDescending(p => p.DataCreazione)
+                           .ToList();
 
-            Promemoria.Clear();
-            foreach (var p in Ordinati(elenco))
-                Promemoria.Add(p);
+            Riempi(PromemoriaAlta, elenco.Where(p => p.Priorita == PrioritaPromemoria.Alta));
+            Riempi(PromemoriaMedia, elenco.Where(p => p.Priorita == PrioritaPromemoria.Media));
+            Riempi(PromemoriaBassa, elenco.Where(p => p.Priorita == PrioritaPromemoria.Bassa));
         }
 
-        private IEnumerable<Promemoria> Ordinati(IEnumerable<Promemoria> elenco)
+        private static void Riempi(ObservableCollection<Promemoria> colonna, System.Collections.Generic.IEnumerable<Promemoria> elementi)
         {
-            return OrdinamentoPerPriorita
-                ? elenco.OrderByDescending(p => p.Priorita).ThenByDescending(p => p.DataCreazione)
-                : elenco.OrderByDescending(p => p.DataCreazione);
-        }
-
-        private void Ordina()
-        {
-            var ordinati = Ordinati(Promemoria.ToList()).ToList();
-            Promemoria.Clear();
-            foreach (var p in ordinati)
-                Promemoria.Add(p);
+            colonna.Clear();
+            foreach (var p in elementi)
+                colonna.Add(p);
         }
 
         private void Nuovo()
@@ -110,7 +87,7 @@ namespace CLab.ViewModels
             FormTitolo = string.Empty;
             FormDescrizione = string.Empty;
             FormPriorita = PrioritaPromemoria.Media;
-            HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
+            HaModifiche = false;
             PannelloAperto = true;
         }
 
@@ -123,7 +100,7 @@ namespace CLab.ViewModels
             FormTitolo = p.Titolo;
             FormDescrizione = p.Descrizione ?? string.Empty;
             FormPriorita = p.Priorita;
-            HaModifiche = false; // FASE 3: il caricamento non è una modifica dell'utente
+            HaModifiche = false;
             PannelloAperto = true;
         }
 
@@ -152,15 +129,11 @@ namespace CLab.ViewModels
             db.SaveChanges();
 
             PannelloAperto = false;
-            Carica();
+            Carica(); // se la priorità cambia, il post-it passa da solo alla nuova colonna
             _aggiornaBadge?.Invoke();
         }
 
-        /// <summary>
-        /// Cancellazione vera e propria. Chiamata dalla view a fade-out
-        /// dell'animazione già concluso: qui il post-it sparisce anche
-        /// dai dati, non solo dallo schermo.
-        /// </summary>
+        /// <summary>Cancellazione vera, chiamata a fade-out concluso.</summary>
         public void RimuoviDefinitivamente(Promemoria? p)
         {
             if (p == null) return;
@@ -173,7 +146,9 @@ namespace CLab.ViewModels
                 db.SaveChanges();
             }
 
-            Promemoria.Remove(p);
+            PromemoriaAlta.Remove(p);
+            PromemoriaMedia.Remove(p);
+            PromemoriaBassa.Remove(p);
             _aggiornaBadge?.Invoke();
         }
     }

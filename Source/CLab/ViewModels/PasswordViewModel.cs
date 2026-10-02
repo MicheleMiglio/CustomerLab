@@ -9,6 +9,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace CLab.ViewModels
 {
@@ -76,6 +77,10 @@ namespace CLab.ViewModels
         public ICommand ModificaVoceCommand { get; }
         public ICommand CopiaCampoCommand { get; }
         public ICommand CopiaRecoveryCodeCommand { get; }
+        public ICommand CancellaRicercaCommand { get; }
+        public ICommand CopiaUsernameRigaCommand { get; }
+        public ICommand CopiaPasswordRigaCommand { get; }
+        public ICommand MostraPasswordRigaCommand { get; }
 
         public PasswordViewModel()
         {
@@ -97,6 +102,11 @@ namespace CLab.ViewModels
             CopiaCampoCommand = new RelayCommand<string>(CopiaCampo);
             CopiaRecoveryCodeCommand = new RelayCommand(CopiaRecoveryCode);
             ChiudiRecoveryCodeCommand = new RelayCommand(() => RecoveryCodeMonouso = null);
+
+            CancellaRicercaCommand = new RelayCommand(() => FiltroTesto = string.Empty);
+            CopiaUsernameRigaCommand = new RelayCommand<PasswordVoceViewModel>(CopiaUsernameRiga);
+            CopiaPasswordRigaCommand = new RelayCommand<PasswordVoceViewModel>(CopiaPasswordRiga);
+            MostraPasswordRigaCommand = new RelayCommand<PasswordVoceViewModel>(MostraPasswordRiga);
 
             AggiornaStato();
 
@@ -518,7 +528,7 @@ namespace CLab.ViewModels
 
             var copiata = PasswordClipboardService.IstanzaApplicativo.Copia(testo);
             FeedbackCopia = copiata
-                ? "Copiato — se è una password verrà cancellata dagli appunti tra 30 secondi."
+                ? "Copiato — verrà cancellato dagli appunti tra 30 secondi."
                 : "Sessione bloccata o scaduta: sblocca il modulo per copiare.";
         }
 
@@ -532,6 +542,151 @@ namespace CLab.ViewModels
 
             PasswordClipboardService.IstanzaApplicativo.Copia(_recoveryCodeMonouso);
         }
+
+        // ---------------------------------------------------------------
+        // AZIONI INLINE SULLA RIGA (copia username/password, mostra password)
+        // La password non è mai una proprietà della lista: viene decifrata
+        // al momento dell'azione e, se mostrata, resta in chiaro solo per
+        // pochi secondi (una sola riga alla volta).
+        // ---------------------------------------------------------------
+
+        private const int SecondiPasswordMostrata = 10;
+        private const int SecondiFeedbackLista = 5;
+
+        private PasswordVoceViewModel? _voceMostrata;
+        private DispatcherTimer? _timerNascondi;
+        private DispatcherTimer? _timerFeedbackLista;
+
+        private string _feedbackLista = string.Empty;
+        public string FeedbackLista
+        {
+            get => _feedbackLista;
+            private set { _feedbackLista = value; OnPropertyChanged(); }
+        }
+
+        private void MostraFeedbackLista(string testo)
+        {
+            FeedbackLista = testo;
+
+            _timerFeedbackLista ??= new DispatcherTimer { Interval = TimeSpan.FromSeconds(SecondiFeedbackLista) };
+            _timerFeedbackLista.Tick -= TimerFeedbackLista_Tick;
+            _timerFeedbackLista.Tick += TimerFeedbackLista_Tick;
+            _timerFeedbackLista.Stop();
+            _timerFeedbackLista.Start();
+        }
+
+        private void TimerFeedbackLista_Tick(object? sender, EventArgs e)
+        {
+            _timerFeedbackLista?.Stop();
+            FeedbackLista = string.Empty;
+        }
+
+        private void NascondiPassword()
+        {
+            _timerNascondi?.Stop();
+            _voceMostrata?.NascondiPassword();
+            _voceMostrata = null;
+        }
+
+        /// <summary>Decifra al volo la sola password della voce richiesta.</summary>
+        private string? LeggiPasswordVoce(PasswordVoceViewModel voce)
+        {
+            var dek = PasswordSessionService.Istanza.TryGetDek();
+            if (dek == null) { SvuotaDatiSensibili(); return null; }
+
+            try
+            {
+                using var db = new ClabDbContext();
+                var riga = db.Passwords.AsNoTracking().FirstOrDefault(p => p.Id == voce.Id);
+                if (riga == null)
+                    return null;
+
+                var payload = PasswordCryptoService.DecifraPayload(riga.PayloadCifrato, dek, riga.Nonce, riga.Tag);
+                return payload.Password;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                PasswordCryptoService.Azzera(dek);
+            }
+        }
+
+        private void CopiaUsernameRiga(PasswordVoceViewModel? voce)
+        {
+            if (voce == null) return;
+            if (!Sessione.SessioneValida()) { SvuotaDatiSensibili(); return; }
+
+            if (string.IsNullOrEmpty(voce.Username))
+            {
+                MostraFeedbackLista("Nessuno username da copiare.");
+                return;
+            }
+
+            var copiata = PasswordClipboardService.IstanzaApplicativo.Copia(voce.Username);
+            MostraFeedbackLista(copiata
+                ? $"Username copiato — verrà cancellato dagli appunti tra {PasswordClipboardService.SecondiAutoCancellazione} secondi."
+                : "Sessione bloccata o scaduta: sblocca il modulo per copiare.");
+        }
+
+        private void CopiaPasswordRiga(PasswordVoceViewModel? voce)
+        {
+            if (voce == null) return;
+            if (!Sessione.SessioneValida()) { SvuotaDatiSensibili(); return; }
+
+            var password = LeggiPasswordVoce(voce);
+            if (password == null)
+            {
+                MostraFeedbackLista("Impossibile leggere la password.");
+                return;
+            }
+
+            if (password.Length == 0)
+            {
+                MostraFeedbackLista("Nessuna password salvata per questa voce.");
+                return;
+            }
+
+            var copiata = PasswordClipboardService.IstanzaApplicativo.Copia(password);
+            MostraFeedbackLista(copiata
+                ? $"Password copiata — verrà cancellata dagli appunti tra {PasswordClipboardService.SecondiAutoCancellazione} secondi."
+                : "Sessione bloccata o scaduta: sblocca il modulo per copiare.");
+        }
+
+        private void MostraPasswordRiga(PasswordVoceViewModel? voce)
+        {
+            if (voce == null) return;
+            if (!Sessione.SessioneValida()) { SvuotaDatiSensibili(); return; }
+
+            // Secondo click sulla stessa riga: nasconde.
+            if (ReferenceEquals(voce, _voceMostrata))
+            {
+                NascondiPassword();
+                return;
+            }
+
+            NascondiPassword();
+
+            var password = LeggiPasswordVoce(voce);
+            if (password == null)
+            {
+                MostraFeedbackLista("Impossibile leggere la password.");
+                return;
+            }
+
+            voce.ImpostaPasswordMostrata(password);
+            _voceMostrata = voce;
+
+            _timerNascondi ??= new DispatcherTimer { Interval = TimeSpan.FromSeconds(SecondiPasswordMostrata) };
+            _timerNascondi.Tick -= TimerNascondi_Tick;
+            _timerNascondi.Tick += TimerNascondi_Tick;
+            _timerNascondi.Stop();
+            _timerNascondi.Start();
+        }
+
+        private void TimerNascondi_Tick(object? sender, EventArgs e) => NascondiPassword();
 
         private string _generata = string.Empty;
         public string Generata
@@ -736,6 +891,10 @@ namespace CLab.ViewModels
 
         public bool ElencoVuoto => Voci.Count == 0;
 
+        /// <summary>Totale reale delle password salvate (non filtrato):
+        /// alimenta il contatore e la distinzione archivio vuoto / nessun risultato.</summary>
+        public int TotaleVoci => _vociComplete.Count;
+
         public string EmptyStateTesto =>
             string.IsNullOrWhiteSpace(FiltroTesto)
                 ? "Nessuna password salvata."
@@ -749,6 +908,8 @@ namespace CLab.ViewModels
                 SvuotaDatiSensibili();
                 return;
             }
+
+            NascondiPassword();
 
             try
             {
@@ -808,6 +969,7 @@ namespace CLab.ViewModels
 
             OnPropertyChanged(nameof(ElencoVuoto));
             OnPropertyChanged(nameof(EmptyStateTesto));
+            OnPropertyChanged(nameof(TotaleVoci));
         }
 
         public void SvuotaDatiSensibili()
@@ -833,6 +995,8 @@ namespace CLab.ViewModels
                 FeedbackGeneratore = string.Empty;
                 FeedbackClipboard = string.Empty;
                 Generata = string.Empty;
+                NascondiPassword();
+                FeedbackLista = string.Empty;
                 // Il codice di recupero è un segreto come gli altri: al lock
                 // sparisce anche dalla schermata che lo mostra una sola volta.
                 RecoveryCodeMonouso = null;

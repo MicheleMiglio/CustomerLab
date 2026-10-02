@@ -43,23 +43,24 @@
          è l'unico punto in cui il blu si fa pieno: nessun riempimento massiccio
          altrove. -->
     <Style x:Key="BtnPrimary" TargetType="Button">
-        <Setter Property="Background"      Value="{StaticResource BrushPrimary}"/>
-        <Setter Property="Foreground"      Value="White"/>
-        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background"      Value="{StaticResource BrushInfoLight}"/>
+        <Setter Property="Foreground"      Value="{StaticResource BrushPrimary}"/>
+        <Setter Property="BorderThickness" Value="0.3"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushPrimary}"/>
         <Setter Property="Padding"         Value="16,9"/>
         <Setter Property="Cursor"          Value="Hand"/>
-        <Setter Property="FontSize"        Value="13"/>
-        <Setter Property="FontWeight"      Value="Medium"/>
+        <Setter Property="FontSize"        Value="12"/>
+        <Setter Property="FontWeight"      Value="Normal"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="bd" Background="{TemplateBinding Background}"
-                            CornerRadius="{StaticResource RadiusSmall}" Padding="{TemplateBinding Padding}">
+                            CornerRadius="{StaticResource RadiusSmall}" Padding="{TemplateBinding Padding}" BorderBrush="{StaticResource BrushPrimary}" BorderThickness="0.3">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushPrimaryHover}"/>
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushSidebarHover}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45"/>
@@ -223,6 +224,47 @@
                         </Trigger>
                         <Trigger Property="Text" Value="">
                             <Setter TargetName="segnaposto" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- PasswordBox implicita (si applica a tutte le PasswordBox) -->
+    <Style TargetType="PasswordBox">
+        <Setter Property="Height"          Value="34"/>
+        <Setter Property="Padding"         Value="5,0"/>
+        <Setter Property="FontSize"        Value="13"/>
+        <Setter Property="Foreground"      Value="{StaticResource BrushTestoPrimario}"/>
+        <Setter Property="BorderBrush"     Value="{StaticResource BrushBordo}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="PasswordBox">
+                    <Border x:Name="bd"
+                            Background="White"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource RadiusSmall}">
+                        <Grid>
+                            <TextBlock x:Name="segnaposto"
+                                   Text="{TemplateBinding mah:TextBoxHelper.Watermark}"
+                                   Foreground="{StaticResource BrushTestoTerziario}"
+                                   FontSize="{TemplateBinding FontSize}"
+                                   Margin="{TemplateBinding Padding}"
+                                   VerticalAlignment="Center"
+                                   IsHitTestVisible="False"
+                                   Visibility="Collapsed"/>
+                            <ScrollViewer x:Name="PART_ContentHost"
+              Margin="{TemplateBinding Padding}"
+              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BrushPrimary}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

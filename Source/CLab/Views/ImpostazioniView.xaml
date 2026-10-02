@@ -1,60 +1,130 @@
-﻿<UserControl x:Class="CLab.Views.ImpostazioniView"
+﻿ <UserControl x:Class="CLab.Views.ImpostazioniView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
 
     <UserControl.Resources>
-        
-        <Style x:Key="CardImpostazioni" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{StaticResource RadiusMedium}"/>
-            <Setter Property="Padding" Value="18"/>
+
+        <!-- ============================================================ -->
+        <!-- CARD                                                          -->
+        <!-- ============================================================ -->
+
+        <Style x:Key="CardImpostazioni"
+               TargetType="Border">
+
+            <Setter Property="Background"
+                    Value="White"/>
+
+            <Setter Property="BorderBrush"
+                    Value="{StaticResource BrushBordoLeggero}"/>
+
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+
+            <Setter Property="CornerRadius"
+                    Value="{StaticResource RadiusMedium}"/>
+
+            <Setter Property="Padding"
+                    Value="18"/>
+
         </Style>
 
-        <!-- Titolo interno alle sezioni -->
+
+        <!-- ============================================================ -->
+        <!-- TITOLO SEZIONE                                                -->
+        <!-- ============================================================ -->
+
         <Style x:Key="TitoloSezioneImpostazioni"
                TargetType="TextBlock"
                BasedOn="{StaticResource SectionTitleTextStyle}">
-            <Setter Property="Margin" Value="0,0,0,12"/>
+
+            <Setter Property="Margin"
+                    Value="0,0,0,12"/>
+
         </Style>
 
-        <!-- Testo descrittivo secondario -->
-        <Style x:Key="DescrizioneImpostazioni" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
+
+        <!-- ============================================================ -->
+        <!-- DESCRIZIONE                                                    -->
+        <!-- ============================================================ -->
+
+        <Style x:Key="DescrizioneImpostazioni"
+               TargetType="TextBlock">
+
+            <Setter Property="FontSize"
+                    Value="12"/>
+
+            <Setter Property="Foreground"
+                    Value="{StaticResource BrushTestoSecondario}"/>
+
+            <Setter Property="TextWrapping"
+                    Value="Wrap"/>
+
         </Style>
 
-        <!-- Bottone rosso: rimane esclusivo dell'azione distruttiva -->
-        <Style x:Key="BtnDanger" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource BrushDanger}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="16,9"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Medium"/>
+
+        <!-- ============================================================ -->
+        <!-- AZIONE DISTRUTTIVA                                            -->
+        <!-- ============================================================ -->
+
+        <Style x:Key="BtnDanger"
+               TargetType="Button">
+
+            <Setter Property="Background"
+                    Value="{StaticResource BrushDangerLight}"/>
+
+            <Setter Property="Foreground"
+                    Value="{StaticResource BrushDanger}"/>
+
+            <Setter Property="Padding"
+                    Value="16,9"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+
+            <Setter Property="FontSize"
+                    Value="13"/>
+
+            <Setter Property="FontWeight"
+                    Value="Medium"/>
+
             <Setter Property="Template">
+
                 <Setter.Value>
+
                     <ControlTemplate TargetType="Button">
+
                         <Border x:Name="bd"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="{StaticResource RadiusSmall}"
-                                Padding="{TemplateBinding Padding}">
+        Background="{TemplateBinding Background}"
+        BorderBrush="{StaticResource BrushDanger}"
+        BorderThickness="0.3"
+        CornerRadius="{StaticResource RadiusSmall}"
+        Padding="{TemplateBinding Padding}">
+
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"/>
+
                         </Border>
 
+
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.4"/>
+
+                            <Trigger Property="IsEnabled"
+                                     Value="False">
+
+                                <Setter Property="Opacity"
+                                        Value="0.4"/>
+
                             </Trigger>
+
                         </ControlTemplate.Triggers>
+
                     </ControlTemplate>
+
                 </Setter.Value>
+
             </Setter>
+
         </Style>
 
     </UserControl.Resources>
@@ -65,52 +135,40 @@
     <!-- ============================================================ -->
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
-                  HorizontalScrollBarVisibility="Disabled">        
+              HorizontalScrollBarVisibility="Disabled">
+
         <Grid MaxWidth="1400"
-      HorizontalAlignment="Stretch"
-      Margin="28,20,28,28">
+          HorizontalAlignment="Stretch"
+          Margin="28,20,28,28">
 
             <Grid.RowDefinitions>
-                <!-- Titolo -->
                 <RowDefinition Height="Auto"/>
-
-                <!-- Applicazione + Manutenzione -->
                 <RowDefinition Height="Auto"/>
-
-                <!-- Sicurezza: modulo Password -->
-                <RowDefinition Height="Auto"/>
-
-                <!-- Zona pericolosa -->
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
 
             <!-- ============================================================ -->
-            <!-- HEADER                                                        -->
+            <!-- TITOLO                                                        -->
             <!-- ============================================================ -->
 
             <TextBlock Grid.Row="0"
-               Text="Impostazioni"
-               Style="{StaticResource ModuleTitleStyle}"
-               Margin="0,0,0,20"/>
+                   Text="Impostazioni"
+                   Style="{StaticResource ModuleTitleStyle}"
+                   Margin="0,0,0,20"/>
 
 
             <!-- ============================================================ -->
-            <!-- APPLICAZIONE + MANUTENZIONE                                   -->
+            <!-- APPLICAZIONE + BACKUP + ELIMINA                               -->
             <!-- ============================================================ -->
 
             <Grid Grid.Row="1"
-          Margin="0,0,0,16">
+              Margin="0,0,0,16">
 
                 <Grid.ColumnDefinitions>
-                    <!-- Applicazione: più spazio perché contiene il percorso -->
-                    <ColumnDefinition Width="2*"/>
-
-                    <!-- Spaziatura -->
+                    <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="16"/>
-
-                    <!-- Manutenzione -->
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
 
 
@@ -119,93 +177,152 @@
                 <!-- ======================================================== -->
 
                 <Border Grid.Column="0"
-                Style="{StaticResource CardImpostazioni}">
+                    Style="{StaticResource CardImpostazioni}">
 
                     <Grid>
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
 
                         <!-- Titolo -->
+
                         <TextBlock Grid.Row="0"
-                           Text="Applicazione"
-                           Style="{StaticResource TitoloSezioneImpostazioni}"/>
+                               Text="Applicazione"
+                               Style="{StaticResource TitoloSezioneImpostazioni}"/>
 
 
-                        <!-- Contenuto -->
-                        <Grid Grid.Row="1">
+                        <!-- Descrizione -->
+
+                        <TextBlock Grid.Row="1"
+                               Style="{StaticResource DescrizioneImpostazioni}"
+                               Margin="0,0,0,18"
+                               TextWrapping="Wrap">
+
+                        Informazioni sulla versione dell'applicazione e sulla
+                        posizione dei dati locali di CLab.
+
+                        </TextBlock>
+
+
+                        <!-- ================================================= -->
+                        <!-- INFORMAZIONI GENERALI                               -->
+                        <!-- ================================================= -->
+
+                        <Grid Grid.Row="2"
+                          Margin="0,0,0,18">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+
+                            <!-- Versione -->
+
+                            <Border Grid.Column="0"
+                                Background="{StaticResource BrushBordoLeggero}"
+                                BorderThickness="0"
+                                CornerRadius="{StaticResource RadiusSmall}"
+                                Padding="12,10">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="VERSIONE"
+                                           Style="{StaticResource FieldLabel}"/>
+
+                                    <TextBlock Text="{Binding Versione}"
+                                           Style="{StaticResource FieldValue}"
+                                           Margin="0,4,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+
+                            <!-- Dimensione -->
+
+                            <Border Grid.Column="2"
+                                Background="{StaticResource BrushBordoLeggero}"
+                                BorderThickness="0"
+                                CornerRadius="{StaticResource RadiusSmall}"
+                                Padding="12,10">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="DIMENSIONE DATABASE"
+                                           Style="{StaticResource FieldLabel}"/>
+
+                                    <TextBlock Text="{Binding DimensioneDatabaseTesto}"
+                                           Style="{StaticResource FieldValue}"
+                                           Margin="0,4,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                        </Grid>
+
+
+                        <!-- ================================================= -->
+                        <!-- POSIZIONE ARCHIVIO                                   -->
+                        <!-- ================================================= -->
+
+                        <Grid Grid.Row="3">
 
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
 
-                            <!-- VERSIONE -->
-                            <StackPanel Grid.Row="0"
-                                Margin="0,0,0,18">
-
-                                <TextBlock Text="VERSIONE APPLICAZIONE"
+                            <TextBlock Grid.Row="1"
+                                   Text="POSIZIONE ARCHIVIO"
                                    Style="{StaticResource FieldLabel}"/>
 
-                                <TextBlock Text="{Binding Versione}"
+
+                            <TextBlock Grid.Row="2"
+                                   Text="{Binding PercorsoDatabase}"
                                    Style="{StaticResource FieldValue}"
+                                   Margin="0,5,0,0"
                                    TextWrapping="Wrap"/>
 
-                            </StackPanel>
 
-
-                            <!-- POSIZIONE ARCHIVIO -->
-                            <StackPanel Grid.Row="1"
-                                Margin="0,0,0,18">
-
-                                <TextBlock Text="POSIZIONE ARCHIVIO"
-                                   Style="{StaticResource FieldLabel}"/>
-
-                                <TextBlock Text="{Binding PercorsoDatabase}"
-                                   Style="{StaticResource FieldValue}"
-                                   TextWrapping="Wrap"/>
-
-                                <Button Content="Apri cartella"
-                                Style="{StaticResource BtnOutline}"
-                                Margin="0,10,0,0"
+                            <Button Grid.Row="3"
                                 Command="{Binding ApriCartellaDatiCommand}"
                                 HorizontalAlignment="Left"
-                                Width="120"/>
+                                Margin="0,14,0,0">
 
-                            </StackPanel>
+                                <Button.Style>
+                                    <Style TargetType="Button"
+                                       BasedOn="{StaticResource BtnOutline}">
+                                        <Setter Property="Padding"
+                                            Value="14,7"/>
+                                    </Style>
+                                </Button.Style>
 
+                                <StackPanel Orientation="Horizontal">
 
-                            <!-- DIMENSIONE DATABASE -->
-                            <StackPanel Grid.Row="2"
-                                Margin="0,0,0,18">
+                                    <iconPacks:PackIconBootstrapIcons
+                                    Kind="Folder2Open"
+                                    Width="12"
+                                    Height="12"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,7,0"/>
 
-                                <TextBlock Text="DIMENSIONE DATABASE"
-                                   Style="{StaticResource FieldLabel}"/>
+                                    <TextBlock Text="Apri cartella"
+                                           VerticalAlignment="Center"/>
 
-                                <TextBlock Text="{Binding DimensioneDatabaseTesto}"
-                                   Style="{StaticResource FieldValue}"
-                                   TextWrapping="Wrap"/>
+                                </StackPanel>
 
-                            </StackPanel>
-
-
-                            <!-- INFORMAZIONE BACKUP -->
-                            <TextBlock Grid.Row="3"
-                               TextWrapping="Wrap"
-                               FontSize="12"
-                               Foreground="{StaticResource BrushTestoSecondario}">
-                        Tutti i dati sono salvati in questo unico file, sul computer.
-                        Non esiste un backup automatico: per essere al sicuro, crea
-                        periodicamente un backup di questo file (es. su una chiavetta
-                        o su un cloud come Google Drive/OneDrive), specialmente prima
-                        di aggiornare il programma.
-                            </TextBlock>
+                            </Button>
 
                         </Grid>
 
@@ -215,249 +332,526 @@
 
 
                 <!-- ======================================================== -->
-                <!-- MANUTENZIONE                                               -->
+                <!-- COLONNA DESTRA                                             -->
                 <!-- ======================================================== -->
 
-                <Border Grid.Column="2"
-                Style="{StaticResource CardImpostazioni}">
+                <Grid Grid.Column="2">
 
-                    <StackPanel>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                        <TextBlock Text="Backup database"
-                           Style="{StaticResource TitoloSezioneImpostazioni}"/>
 
-                        <TextBlock TextWrapping="Wrap"
-                           Style="{StaticResource DescrizioneImpostazioni}"
-                           Margin="0,0,0,14">
-                    Crea una copia completa e sicura del database CLab in una
-                    cartella a tua scelta. Il backup non modifica i dati correnti.
-                        </TextBlock>
+                    <!-- ==================================================== -->
+                    <!-- BACKUP                                                   -->
+                    <!-- ==================================================== -->
 
-                        <Button Command="{Binding EseguiBackupCommand}" MaxWidth="140" HorizontalAlignment="Left">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource BtnPrimary}">
-                                    <Setter Property="Padding" Value="14,7"/>
-                                </Style>
-                            </Button.Style>
-                            <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconBootstrapIcons Kind="Download" Width="12" Height="12"
-VerticalAlignment="Center" Margin="0,0,7,0"/>
-                                <TextBlock Text="Esegui backup" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-
-                    </StackPanel>
-
-                </Border>
-
-            </Grid>
-
-            <!-- ============================================================ -->
-            <!-- SICUREZZA: MODULO PASSWORD                                    -->
-            <!-- ============================================================ -->
-
-            <Border Grid.Row="2"
-                    Style="{StaticResource CardImpostazioni}"
-                    Margin="0,0,0,16">
-
-                <StackPanel>
-
-                    <TextBlock Text="Modulo Password"
-                               Style="{StaticResource TitoloSezioneImpostazioni}"/>
-
-                    <TextBlock Style="{StaticResource DescrizioneImpostazioni}"
-                               Margin="0,0,0,14">
-                        L'archivio delle credenziali è protetto da una password principale:
-                        il database contiene solo dati cifrati (AES-256-GCM) e la chiave resta
-                        in memoria unicamente a sessione aperta, per 15 minuti dall'ultima attività.
-                    </TextBlock>
-
-                    <TextBlock Text="STATO"
-                               Style="{StaticResource FieldLabel}"/>
-
-                    <TextBlock Text="{Binding PasswordStato}"
-                               Style="{StaticResource FieldValue}"
-                               Margin="0,0,0,14"/>
-
-                    <Button Command="{Binding BloccaPasswordCommand}"
-                            HorizontalAlignment="Left"
-                            Visibility="{Binding PasswordSbloccato, Converter={StaticResource BoolToVisibility}}">
-
-                        <Button.Style>
-                            <Style TargetType="Button"
-                                   BasedOn="{StaticResource BtnOutline}">
-                                <Setter Property="Padding" Value="14,7"/>
-                            </Style>
-                        </Button.Style>
-
-                        <StackPanel Orientation="Horizontal">
-
-                            <iconPacks:PackIconBootstrapIcons
-                                Kind="Lock"
-                                Width="12"
-                                Height="12"
-                                VerticalAlignment="Center"
-                                Margin="0,0,7,0"/>
-
-                            <TextBlock Text="Blocca ora"
-                                       VerticalAlignment="Center"/>
-
-                        </StackPanel>
-
-                    </Button>
-
-                    <!-- Recupero: solo se il modulo è già configurato -->
-                    <StackPanel Visibility="{Binding PasswordConfigurato, Converter={StaticResource BoolToVisibility}}"
-                                Margin="0,18,0,0">
-
-                        <TextBlock Text="Reimposta la password principale"
-                                   FontWeight="Medium"
-                                   Foreground="{StaticResource BrushTestoPrimario}"/>
-
-                        <TextBlock Style="{StaticResource DescrizioneImpostazioni}"
-                                   Margin="0,4,0,12">
-                            Con il codice di recupero mostrato alla prima configurazione puoi
-                            impostare una nuova password principale: le credenziali salvate
-                            restano invariate e il codice resta valido.
-                        </TextBlock>
+                    <Border Grid.Row="0"
+                        Style="{StaticResource CardImpostazioni}">
 
                         <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="CODICE DI RECUPERO"
-                                           Style="{StaticResource FieldLabel}"/>
-                                <TextBox AutomationProperties.AutomationId="RecoveryCodeImpostazioni"
-                                         Margin="0,4,0,0"
-                                         ToolTip="Formato XXXX-XXXX-XXXX-XXXX"/>
-                            </StackPanel>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="NUOVA PASSWORD PRINCIPALE"
-                                           Style="{StaticResource FieldLabel}"/>
-                                <PasswordBox AutomationProperties.AutomationId="NuovaMasterImpostazioni"
-                                             Margin="0,4,0,0"/>
-                            </StackPanel>
-                        </Grid>
 
-                        <TextBlock Text="CONFERMA NUOVA PASSWORD PRINCIPALE"
-                                   Style="{StaticResource FieldLabel}"
-                                   Margin="0,12,0,0"/>
+                            <TextBlock Grid.Row="0"
+                                   Text="Backup database"
+                                   Style="{StaticResource TitoloSezioneImpostazioni}"/>
 
-                        <PasswordBox AutomationProperties.AutomationId="NuovaMasterConfermaImpostazioni"
-                                     Margin="0,4,0,12"
-                                     MaxWidth="360"
-                                     HorizontalAlignment="Left"/>
 
-                        <Button Command="{Binding ReimpostaPasswordCommand}"
-                                HorizontalAlignment="Left"
-                                ToolTip="Reimposta la password principale del modulo Password">
+                            <TextBlock Grid.Row="1"
+                                   TextWrapping="Wrap"
+                                   Style="{StaticResource DescrizioneImpostazioni}"
+                                   Margin="0,0,0,14">
 
-                            <Button.Style>
-                                <Style TargetType="Button"
-                                       BasedOn="{StaticResource BtnOutline}">
-                                    <Setter Property="Padding" Value="14,7"/>
-                                </Style>
-                            </Button.Style>
+                            Crea una copia completa e sicura del database CLab
+                            in una cartella a tua scelta. Il backup non modifica
+                            i dati correnti.
 
-                            <StackPanel Orientation="Horizontal">
+                            </TextBlock>
 
-                                <iconPacks:PackIconBootstrapIcons
-                                    Kind="ArrowCounterclockwise"
+
+                            <Button Grid.Row="2"
+                                Command="{Binding EseguiBackupCommand}"
+                                HorizontalAlignment="Left">
+
+                                <Button.Style>
+                                    <Style TargetType="Button"
+                                       BasedOn="{StaticResource BtnPrimary}">
+                                        <Setter Property="Padding"
+                                            Value="14,7"/>
+                                    </Style>
+                                </Button.Style>
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <iconPacks:PackIconBootstrapIcons
+                                    Kind="Download"
                                     Width="12"
                                     Height="12"
                                     VerticalAlignment="Center"
                                     Margin="0,0,7,0"/>
 
-                                <TextBlock Text="Reimposta password principale"
+                                    <TextBlock Text="Esegui backup"
                                            VerticalAlignment="Center"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                        </Grid>
+
+                    </Border>
+
+
+                    <!-- ==================================================== -->
+                    <!-- ELIMINA DATI                                            -->
+                    <!-- ==================================================== -->
+
+                    <Border Grid.Row="1"
+                        Style="{StaticResource CardImpostazioni}"
+                        Margin="0,16,0,0">
+
+                        <Grid>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+
+                            <TextBlock Grid.Row="0"
+                                   Text="Elimina tutti i dati"
+                                   Style="{StaticResource TitoloSezioneImpostazioni}"/>
+
+
+                            <TextBlock Grid.Row="1"
+                                   TextWrapping="Wrap"
+                                   FontSize="12"
+                                   Foreground="{StaticResource BrushTestoSecondario}"
+                                   Margin="0,0,0,14">
+
+                            Cancella definitivamente clienti, referenti,
+                            programmi, attività, scadenze e fatture.
+                            L'operazione non può essere annullata.
+
+                            </TextBlock>
+
+
+                            <Grid Grid.Row="2">
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+
+                                <TextBlock Grid.Row="0"
+                                       Style="{StaticResource FieldLabel}"
+                                       Foreground="{StaticResource BrushTestoSecondario}">
+
+                                Per confermare, scrivi
+                                <Run Text="ELIMINA"
+                                     Foreground="{StaticResource BrushDanger}"
+                                     FontWeight="SemiBold"/>
+
+                                </TextBlock>
+
+
+                                <Grid Grid.Row="1"
+                                  Margin="0,5,0,0">
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+
+                                    <TextBox Grid.Column="0"
+                                         Text="{Binding TestoConferma,
+                                                UpdateSourceTrigger=PropertyChanged}"
+                                         Padding="5,1"
+                                         Margin="0,0,10,0"
+                                         VerticalAlignment="Center"/>
+
+
+                                    <Button Grid.Column="1"
+                                        Style="{StaticResource BtnDanger}"
+                                        Command="{Binding EliminaDatiCommand}"
+                                        VerticalAlignment="Center">
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <iconPacks:PackIconBootstrapIcons
+                                            Kind="Trash"
+                                            Width="12"
+                                            Height="12"
+                                            VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Elimina dati"
+                                                   Margin="7,0,0,0"
+                                                   VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </Button>
+
+                                </Grid>
+
+                            </Grid>
+
+                        </Grid>
+
+                    </Border>
+
+                </Grid>
+
+            </Grid>
+
+
+            <!-- ============================================================ -->
+            <!-- MODULO PASSWORD                                               -->
+            <!-- ============================================================ -->
+
+            <Border Grid.Row="2" Style="{StaticResource CardImpostazioni}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <!-- ==================================================== -->
+                    <!-- HEADER PASSWORD -->
+                    <!-- ==================================================== -->
+                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Titolo -->
+                        <TextBlock Grid.Column="0" Text="Modulo Password" Style="{StaticResource TitoloSezioneImpostazioni}" Margin="0"/>
+                        <!-- Stato -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="STATO" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                            <TextBlock Text="{Binding PasswordStato}" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,7,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <!-- Separatore -->
+                        <Border Grid.Column="2" Width="1" Height="20" Background="{StaticResource BrushBordoLeggero}" VerticalAlignment="Center"/>
+                        <!-- Blocca -->
+                        <Button Grid.Column="3" Command="{Binding BloccaPasswordCommand}" VerticalAlignment="Center" Visibility="{Binding PasswordSbloccato, Converter={StaticResource BoolToVisibility}}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource BtnOutline}">
+                                    <Setter Property="Padding" Value="14,7"/>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconBootstrapIcons Kind="Lock" Width="12" Height="12" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                                <TextBlock Text="Blocca ora" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                    <!-- ==================================================== -->
+                    <!-- DESCRIZIONE -->
+                    <!-- ==================================================== -->
+                    <TextBlock Grid.Row="1" Style="{StaticResource DescrizioneImpostazioni}" Margin="0,15,0,18" HorizontalAlignment="Left" TextWrapping="Wrap"> Le credenziali del modulo Password sono protette da una password principale e archiviate in forma cifrata tramite AES-256-GCM. I dati sono accessibili solo a modulo sbloccato e il modulo si blocca automaticamente dopo 15 minuti di inattività.</TextBlock>
+                    <!-- ==================================================== -->
+                    <!-- AREA RECUPERO -->
+                    <!-- ==================================================== -->
+                    <Border Grid.Row="2" Visibility="{Binding PasswordConfigurato, Converter={StaticResource BoolToVisibility}}" Padding="0,18,0,0" BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="0,1,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <!-- ================================================= -->
+                            <!-- TITOLO -->
+                            <!-- ================================================= -->
+                            <TextBlock Grid.Row="0" Text="Reimposta la password principale" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}" Margin="0,0,0,4"/>
+                            <!-- ================================================= -->
+                            <!-- DESCRIZIONE -->
+                            <!-- ================================================= -->
+                            <TextBlock Grid.Row="1" Style="{StaticResource DescrizioneImpostazioni}" Margin="0,0,0,16" TextWrapping="Wrap"> Hai dimenticato la password principale? Con il codice di recupero mostrato alla prima configurazione ne imposti una nuova: le credenziali salvate restano invariate e il codice resta valido.</TextBlock>
+                            <!-- ================================================= -->
+                            <!-- CODICE + NUOVA PASSWORD + CONFERMA + PULSANTE -->
+                            <!-- ================================================= -->
+                            <Grid Grid.Row="2">
+                                <Grid.ColumnDefinitions>
+                                    <!-- Codice di recupero -->
+                                    <ColumnDefinition Width="*"/>
+                                    <!-- Spazio -->
+                                    <ColumnDefinition Width="16"/>
+                                    <!-- Nuova password -->
+                                    <ColumnDefinition Width="*"/>
+                                    <!-- Spazio -->
+                                    <ColumnDefinition Width="16"/>
+                                    <!-- Conferma -->
+                                    <ColumnDefinition Width="*"/>
+                                    <!-- Spazio -->
+                                    <ColumnDefinition Width="16"/>
+                                    <!-- Pulsante -->
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <!-- ================================================= -->
+                                <!-- CODICE DI RECUPERO -->
+                                <!-- ================================================= -->
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="CODICE DI RECUPERO" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox AutomationProperties.AutomationId="RecoveryCodeImpostazioni" Height="32" Margin="0,5,0,0" ToolTip="Formato XXXX-XXXX-XXXX-XXXX"/>
+                                </StackPanel>
+                                <!-- ================================================= -->
+                                <!-- NUOVA PASSWORD -->
+                                <!-- ================================================= -->
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="NUOVA PASSWORD PRINCIPALE" Style="{StaticResource FieldLabel}"/>
+                                    <PasswordBox AutomationProperties.AutomationId="NuovaMasterImpostazioni" Height="32" Margin="0,5,0,0"/>
+                                </StackPanel>
+                                <!-- ================================================= -->
+                                <!-- CONFERMA PASSWORD -->
+                                <!-- ================================================= -->
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="CONFERMA NUOVA PASSWORD" Style="{StaticResource FieldLabel}"/>
+                                    <PasswordBox AutomationProperties.AutomationId="NuovaMasterConfermaImpostazioni" Height="32" Margin="0,5,0,0"/>
+                                </StackPanel>
+                                <!-- ================================================= -->
+                                <!-- PULSANTE -->
+                                <!-- ================================================= -->
+                                <Button Grid.Column="6" Command="{Binding ReimpostaPasswordCommand}" VerticalAlignment="Bottom" ToolTip="Reimposta la password principale del modulo Password">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource BtnOutline}">
+                                            <Setter Property="Padding" Value="14,7"/>
+                                        </Style>
+                                    </Button.Style>
+                                    <StackPanel Orientation="Horizontal">
+                                        <iconPacks:PackIconBootstrapIcons Kind="ArrowCounterclockwise" Width="12" Height="12" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                                        <TextBlock Text="Reimposta password principale" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                    <!-- ==================================================== -->
+                    <!-- MESSAGGIO -->
+                    <!-- ==================================================== -->
+                    <Border Grid.Row="3"
+        Margin="0,16,0,0"
+        Padding="14,11"
+        BorderThickness="0.3"
+        CornerRadius="4"
+        Visibility="{Binding PasswordMessaggio, Converter={StaticResource BoolToVisibility}}">
+
+                        <Border.Style>
+                            <Style TargetType="Border">
+
+                                <!-- ERRORE: default -->
+                                <Setter Property="Background"
+                    Value="{StaticResource BrushDangerLight}"/>
+
+                                <Setter Property="BorderBrush"
+                    Value="{StaticResource BrushDanger}"/>
+
+                                <Style.Triggers>
+
+                                    <!-- SUCCESSO -->
+                                    <DataTrigger Binding="{Binding PasswordMessaggioTipo}"
+                             Value="Successo">
+
+                                        <Setter Property="Background"
+                            Value="{StaticResource BrushSuccessLight}"/>
+
+                                        <Setter Property="BorderBrush"
+                            Value="{StaticResource BrushSuccess}"/>
+
+                                    </DataTrigger>
+
+                                    <!-- INFORMAZIONE -->
+                                    <DataTrigger Binding="{Binding PasswordMessaggioTipo}"
+                             Value="Informazione">
+
+                                        <Setter Property="Background"
+                            Value="{StaticResource BrushInfoLight}"/>
+
+                                        <Setter Property="BorderBrush"
+                            Value="{StaticResource BrushPrimary}"/>
+
+                                    </DataTrigger>
+
+                                </Style.Triggers>
+
+                            </Style>
+                        </Border.Style>
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- ICONA -->
+                            <iconPacks:PackIconBootstrapIcons
+            Grid.Column="1"
+            Kind="InfoCircle"
+            Width="14"
+            Height="14"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center">
+
+                                <iconPacks:PackIconBootstrapIcons.Style>
+                                    <Style TargetType="iconPacks:PackIconBootstrapIcons">
+
+                                        <!-- ERRORE -->
+                                        <Setter Property="Foreground"
+                            Value="{StaticResource BrushDanger}"/>
+
+                                        <Style.Triggers>
+
+                                            <!-- SUCCESSO -->
+                                            <DataTrigger Binding="{Binding PasswordMessaggioTipo}"
+                                     Value="Successo">
+
+                                                <Setter Property="Foreground"
+                                    Value="{StaticResource BrushSuccess}"/>
+
+                                            </DataTrigger>
+
+                                            <!-- INFORMAZIONE -->
+                                            <DataTrigger Binding="{Binding PasswordMessaggioTipo}"
+                                     Value="Informazione">
+
+                                                <Setter Property="Foreground"
+                                    Value="{StaticResource BrushPrimary}"/>
+
+                                            </DataTrigger>
+
+                                        </Style.Triggers>
+
+                                    </Style>
+                                </iconPacks:PackIconBootstrapIcons.Style>
+
+                            </iconPacks:PackIconBootstrapIcons>
+
+                            <!-- TESTO -->
+                            <TextBlock Grid.Column="2"
+                   Text="{Binding PasswordMessaggio}"
+                   VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Margin="8,0,0,0">
+
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+
+                                        <!-- ERRORE -->
+                                        <Setter Property="Foreground"
+                            Value="{StaticResource BrushDanger}"/>
+
+                                        <Setter Property="FontSize"
+                            Value="12"/>
+
+                                        <Setter Property="TextWrapping"
+                            Value="Wrap"/>
+
+                                        <Style.Triggers>
+
+                                            <!-- SUCCESSO -->
+                                            <DataTrigger Binding="{Binding PasswordMessaggioTipo}"
+                                     Value="Successo">
+
+                                                <Setter Property="Foreground"
+                                    Value="{StaticResource BrushSuccess}"/>
+
+                                            </DataTrigger>
+
+                                            <!-- INFORMAZIONE -->
+                                            <DataTrigger Binding="{Binding PasswordMessaggioTipo}"
+                                     Value="Informazione">
+
+                                                <Setter Property="Foreground"
+                                    Value="{StaticResource BrushPrimary}"/>
+
+                                            </DataTrigger>
+
+                                        </Style.Triggers>
+
+                                    </Style>
+                                </TextBlock.Style>
+
+                            </TextBlock>
+
+                        </Grid>
+
+                    </Border>
+
+                    <Border Grid.Row="4" 
+        Grid.Column="0"
+        Grid.ColumnSpan="3"
+        Margin="0,26,0,0"
+        Padding="0,15"
+        BorderBrush="{StaticResource BrushDanger}"
+        BorderThickness="0,0.3,0,0"
+        Visibility="{Binding MostraResetConfigurazioneTest, Converter={StaticResource BoolToVisibility}}">
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0"
+                    VerticalAlignment="Center">
+
+                                <TextBlock Text="Reset del modulo password"
+                       FontWeight="SemiBold"/>
+
+                                <TextBlock Text="Azzera configurazione e credenziali salvate del modulo Password. L'operazione non può essere annullata."
+                       Style="{StaticResource SecondaryTextStyle}"
+                       Margin="0,2,0,0"/>
 
                             </StackPanel>
 
-                        </Button>
+                            <Button Grid.Column="1"
+                Command="{Binding ResetConfigurazionePerTestCommand}"
+                                        Style="{StaticResource BtnDanger}"
+                HorizontalAlignment="Right"
+                ToolTip="Elimina configurazione e credenziali di test">
 
-                    </StackPanel>
+                                <StackPanel Orientation="Horizontal">
 
-                    <TextBlock Text="{Binding PasswordMessaggio}"
-                               FontSize="12"
-                               TextWrapping="Wrap"
-                               Foreground="{StaticResource BrushDanger}"
-                               Margin="0,14,0,0"
-                               Visibility="{Binding PasswordMessaggio, Converter={StaticResource BoolToVisibility}}"/>
+                                    <iconPacks:PackIconBootstrapIcons
+                    Kind="ArrowRepeat"
+                    Width="13"
+                    Height="13"
+                    VerticalAlignment="Center"
+                    Margin="0,0,8,0"/>
 
-                </StackPanel>
-
-            </Border>
-
-            <Border Grid.Row="3"
-        Style="{StaticResource CardImpostazioni}">
-
-                <StackPanel>
-
-                    <TextBlock Text="Elimina tutti i dati"
-                           Style="{StaticResource TitoloSezioneImpostazioni}"/>
-
-                    <!-- Descrizione -->
-                    <TextBlock TextWrapping="Wrap"
-                   FontSize="12"
-                   Foreground="{StaticResource BrushTestoSecondario}"
-                   Margin="0,0,0,5">
-            Cancella definitivamente clienti, referenti, programmi,
-            attività, scadenze e fatture. L'operazione non può essere annullata.
-                    </TextBlock>
-                    <TextBlock TextWrapping="Wrap"
-                   FontSize="12"
-                   Foreground="{StaticResource BrushTestoSecondario}"
-                   Margin="0,0,0,20">            
-            Assicurati di avere una copia del database se vuoi conservarne i dati.
-                    </TextBlock>
-
-
-                    <!-- Conferma -->
-                    <TextBlock Style="{StaticResource FieldLabel}"
-                   Foreground="{StaticResource BrushTestoSecondario}">
-            Per confermare, scrivi <Run Text="ELIMINA"
-                                       Foreground="{StaticResource BrushDanger}"
-                                       FontWeight="SemiBold"/>
-                    </TextBlock>
-
-                    <TextBox Text="{Binding TestoConferma, UpdateSourceTrigger=PropertyChanged}"
-                 Width="220"
-                 HorizontalAlignment="Left"
-                 Padding="5,1"
-                 Margin="0,5,0,14"/>
-
-
-                    <!-- Azione distruttiva -->
-                    <Button Style="{StaticResource BtnDanger}"
-                HorizontalAlignment="Left"
-                Command="{Binding EliminaDatiCommand}">
-
-                        <StackPanel Orientation="Horizontal">
-
-                            <iconPacks:PackIconBootstrapIcons Kind="Trash"
-                                                  Width="12"
-                                                  Height="12"
-                                                  VerticalAlignment="Center"/>
-
-                            <TextBlock Text="Elimina dati"
-                           Margin="7,0,0,0"
+                                    <TextBlock Text="Reset"
                            VerticalAlignment="Center"/>
 
-                        </StackPanel>
+                                </StackPanel>
 
-                    </Button>
+                            </Button>
 
-                </StackPanel>
+                        </Grid>
 
+                    </Border>
+
+
+                </Grid>
             </Border>
-
         </Grid>
-        
+
     </ScrollViewer>
 
 </UserControl>

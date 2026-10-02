@@ -688,7 +688,7 @@
             <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,50"
                     Visibility="{Binding HaVisteGenerali, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
                 <iconPacks:PackIconBootstrapIcons Kind="CheckCircle" Width="34" Height="34"
-                    Foreground="{StaticResource BrushStatoAttivo}" HorizontalAlignment="Center"/>
+                    Foreground="{StaticResource BrushPrimary}" HorizontalAlignment="Center"/>
                 <TextBlock Text="Tutto in regola." Style="{StaticResource SectionTitleTextStyle}"
                            HorizontalAlignment="Center" Margin="0,10,0,2"/>
                 <TextBlock Text="Nessun adempimento in ritardo o da fare adesso, nessuna ritenuta da versare, sui clienti filtrati."

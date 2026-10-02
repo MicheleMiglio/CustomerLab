@@ -36,7 +36,17 @@ namespace CLab.Services
         private readonly TimeSpan _durata;
 
         private byte[]? _dek;
-        private long _tickUltimoAccesso;
+        // Istante dell'ultima attività sul cronometro. TimeSpan, non tick: i tick
+        // di Stopwatch dipendono da Stopwatch.Frequency e NON coincidono con i
+        // tick di TimeSpan (100 ns) su tutte le macchine, quindi il timeout
+        // poteva allungarsi o accorciarsi a seconda dell'hardware.
+        private TimeSpan _ultimoAccesso;
+
+        // Sorveglianza indipendente dalla UI: azzera la DEK alla scadenza anche
+        // se l'utente ha lasciato il modulo Password. Riferimento tenuto nel
+        // campo per evitare la raccolta da parte del GC.
+        private System.Threading.Timer? _sorveglianza;
+        private static readonly TimeSpan IntervalloSorveglianza = TimeSpan.FromSeconds(10);
 
         /// <summary>
         /// Sollevato a ogni transizione da sessione aperta a sessione chiusa:
@@ -83,7 +93,7 @@ namespace CLab.Services
                     if (_dek == null)
                         return TimeSpan.Zero;
 
-                    var trascorso = TimeSpan.FromTicks(_cronometro.ElapsedTicks - _tickUltimoAccesso);
+                    var trascorso = _cronometro.Elapsed - _ultimoAccesso;
                     return trascorso >= _durata ? TimeSpan.Zero : _durata - trascorso;
                 }
             }
@@ -102,7 +112,11 @@ namespace CLab.Services
             {
                 AzzeraDekInterna();
                 _dek = (byte[])dek.Clone();
-                _tickUltimoAccesso = _cronometro.ElapsedTicks;
+                _ultimoAccesso = _cronometro.Elapsed;
+
+                _sorveglianza?.Dispose();
+                _sorveglianza = new System.Threading.Timer(
+                    _ => VerificaTimeout(), null, IntervalloSorveglianza, IntervalloSorveglianza);
             }
         }
 
@@ -128,7 +142,7 @@ namespace CLab.Services
                 else
                 {
                     terminata = false;
-                    _tickUltimoAccesso = _cronometro.ElapsedTicks; // Touch implicito
+                    _ultimoAccesso = _cronometro.Elapsed; // Touch implicito
                     copia = (byte[])_dek!.Clone();
                 }
             }
@@ -156,7 +170,7 @@ namespace CLab.Services
             lock (_lock)
             {
                 if (_dek != null)
-                    _tickUltimoAccesso = _cronometro.ElapsedTicks;
+                    _ultimoAccesso = _cronometro.Elapsed;
             }
         }
 
@@ -205,14 +219,16 @@ namespace CLab.Services
             if (_dek == null)
                 return false;
 
-            var trascorso = TimeSpan.FromTicks(_cronometro.ElapsedTicks - _tickUltimoAccesso);
+            var trascorso = _cronometro.Elapsed - _ultimoAccesso;
             return trascorso < _durata;
         }
 
         private void EseguiLockInterno()
         {
+            _sorveglianza?.Dispose();
+            _sorveglianza = null;
             AzzeraDekInterna();
-            _tickUltimoAccesso = 0;
+            _ultimoAccesso = TimeSpan.Zero;
         }
 
         private void AzzeraDekInterna()

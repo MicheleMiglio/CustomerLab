@@ -10,6 +10,13 @@ using System.Windows.Input;
 
 namespace CLab.ViewModels
 {
+    public enum PasswordMessaggioTipo
+    {
+        Errore,
+        Successo,
+        Informazione
+    }
+
     public class ImpostazioniViewModel : ViewModelBase
     {
         private const string TestoConfermaRichiesto = "ELIMINA";
@@ -37,10 +44,12 @@ namespace CLab.ViewModels
         }
 
         public bool PuoEliminare => TestoConferma.Trim().Equals(TestoConfermaRichiesto, StringComparison.Ordinal);
+        public bool MostraResetConfigurazioneTest => true;
 
         public ICommand ApriCartellaDatiCommand { get; }
         public ICommand EseguiBackupCommand { get; }
         public ICommand EliminaDatiCommand { get; }
+        public ICommand ResetConfigurazionePerTestCommand { get; }
 
         public ImpostazioniViewModel()
         {
@@ -59,6 +68,8 @@ namespace CLab.ViewModels
 
             BloccaPasswordCommand = new RelayCommand(BloccaPassword, () => PasswordSbloccato);
             ReimpostaPasswordCommand = new RelayCommand(ReimpostaPassword, () => PasswordConfigurato);
+
+            ResetConfigurazionePerTestCommand = new RelayCommand(ResetConfigurazionePerTest);
 
             AggiornaStatoPassword();
         }
@@ -133,6 +144,24 @@ namespace CLab.ViewModels
             private set { _passwordMessaggio = value; OnPropertyChanged(); }
         }
 
+        private PasswordMessaggioTipo _passwordMessaggioTipo = PasswordMessaggioTipo.Informazione;
+
+        public PasswordMessaggioTipo PasswordMessaggioTipo
+        {
+            get => _passwordMessaggioTipo;
+            private set
+            {
+                _passwordMessaggioTipo = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private void ImpostaPasswordMessaggio(string messaggio, PasswordMessaggioTipo tipo)
+        {
+            PasswordMessaggioTipo = tipo;
+            PasswordMessaggio = messaggio;
+        }
+
         public ICommand BloccaPasswordCommand { get; }
         public ICommand ReimpostaPasswordCommand { get; }
 
@@ -154,8 +183,9 @@ namespace CLab.ViewModels
         private void BloccaPassword()
         {
             PasswordSessionService.Istanza.Lock();
-
-            PasswordMessaggio = "Modulo bloccato: la chiave di sessione è stata cancellata dalla memoria.";
+            ImpostaPasswordMessaggio(
+    "Modulo bloccato.",
+    PasswordMessaggioTipo.Informazione);
             AggiornaStatoPassword();
         }
 
@@ -168,35 +198,48 @@ namespace CLab.ViewModels
         {
             if (!PasswordConfigurato)
             {
-                PasswordMessaggio = "Il modulo Password non è ancora configurato.";
+                ImpostaPasswordMessaggio(
+        "Il modulo Password non è ancora configurato.",
+        PasswordMessaggioTipo.Errore);
+
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(codiceRecupero))
             {
-                PasswordMessaggio = "Inserisci il codice di recupero.";
+                ImpostaPasswordMessaggio(
+        "Inserisci il codice di recupero.",
+        PasswordMessaggioTipo.Errore);
                 return false;
             }
 
             if (string.IsNullOrEmpty(nuovaMaster) || nuovaMaster.Length < 8)
             {
-                PasswordMessaggio = "La nuova password principale deve avere almeno 8 caratteri.";
+                ImpostaPasswordMessaggio(
+        "La nuova password principale deve avere almeno 8 caratteri.",
+        PasswordMessaggioTipo.Errore);
                 return false;
             }
 
             if (nuovaMaster != conferma)
             {
-                PasswordMessaggio = "Le due password non coincidono.";
+                ImpostaPasswordMessaggio(
+    "Le due password non coincidono.",
+    PasswordMessaggioTipo.Errore);
                 return false;
             }
 
             if (!PasswordAccessService.RecuperaConRecovery(codiceRecupero, nuovaMaster))
             {
-                PasswordMessaggio = "Codice di recupero non valido.";
+                ImpostaPasswordMessaggio(
+    "Codice di recupero non valido.",
+    PasswordMessaggioTipo.Errore);
                 return false;
             }
 
-            PasswordMessaggio = "Password principale reimpostata: il modulo Password si sblocca con la nuova password.";
+            ImpostaPasswordMessaggio(
+    "Password principale reimpostata: il modulo Password si sblocca con la nuova password.",
+    PasswordMessaggioTipo.Successo);
             AggiornaStatoPassword();
             return true;
         }
@@ -327,6 +370,23 @@ namespace CLab.ViewModels
                 MessageBoxImage.Information);
 
             Application.Current.Shutdown();
+        }
+
+        private void ResetConfigurazionePerTest()
+        {
+            var esito = MessageBox.Show(
+                "ATTENZIONE: verranno eliminate tutte le credenziali, password e la configurazione del modulo.\n\n" +
+                "L'operazione non è reversibile.\n\n" +
+                "Continuare?",
+                "Reset modulo Password",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
+
+            if (esito != MessageBoxResult.Yes)
+                return;
+
+            PasswordAccessService.ResetConfigurazionePerTest();
         }
 
         private static void EliminaFileSeEsiste(string percorso)

@@ -7,111 +7,122 @@
              xmlns:views="clr-namespace:CLab.Views">
 
     <!-- ============================================================ -->
-    <!-- PROMEMORIA CLab 2.0: bacheca a griglia adattiva di card       -->
-    <!-- SaaS. Gerarchia: titolo → (ordinamento | nuovo) → griglia.    -->
-    <!-- Priorità: UN solo segnale visivo (dot + etichetta nell'header -->
-    <!-- della card), colori semantici invariati. Azioni solo in       -->
-    <!-- hover. Form nel ModalDialogControl condiviso.                 -->
-    <!-- Comandi e binding del ViewModel: invariati.                   -->
+    <!-- PROMEMORIA: bacheca con tre colonne fisse (ALTA|MEDIA|BASSA) -->
+    <!-- e post-it compatti. Comandi e binding del ViewModel invariati -->
+    <!-- tranne l'ordinamento, rimosso.                                -->
     <!-- ============================================================ -->
 
     <UserControl.Resources>
         <conv:StatoSemanticoForeConverter x:Key="PrioritaAColore"/>
 
-        <!-- Card: superficie bianca, bordo sottile, radius del tema,
-             nessuna ombra. Larghezza fissa: il WrapPanel decide le colonne
-             in base alla larghezza della finestra (1 colonna stretta,
-             2-3 medie, 4-5 ampie). -->
-        <Style x:Key="CardPromemoria" TargetType="Border">
-            <Setter Property="Width" Value="300"/>
+        <!-- Post-it: bianco, bordo sottile, lieve rilievo -->
+        <Style x:Key="PostIt" TargetType="Border">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="{StaticResource RadiusMedium}"/>
-            <Setter Property="Padding" Value="16"/>
-            <Setter Property="Margin" Value="0,0,16,16"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Direction="270"
+                                      Opacity="0.07" Color="#0A1628"/>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <!-- Header della card: dot semantico + etichetta priorità.
-             Micro-indicatore: riconoscibile, non dominante. -->
-        <Style x:Key="EtichettaPriorita" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Foreground" Value="{Binding Priorita, Converter={StaticResource PrioritaAColore}}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-
-        <Style x:Key="DotPriorita" TargetType="Ellipse">
-            <Setter Property="Width" Value="7"/>
-            <Setter Property="Height" Value="7"/>
-            <Setter Property="Fill" Value="{Binding Priorita, Converter={StaticResource PrioritaAColore}}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-        </Style>
-
-        <!-- Titolo/descrizione/data della card -->
-        <Style x:Key="TitoloCard" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="Medium"/>
+        <Style x:Key="TitoloPostIt" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
 
-        <Style x:Key="DescrizioneCard" TargetType="TextBlock">
+        <Style x:Key="DescrizionePostIt" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="LineHeight" Value="18"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="MaxHeight" Value="54"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
         </Style>
 
-        <Style x:Key="DataCard" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
+        <Style x:Key="DataPostIt" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10.5"/>
             <Setter Property="Foreground" Value="{StaticResource BrushTestoTerziario}"/>
         </Style>
 
-        <!-- Azioni della card: nascoste fuori hover, discrete dentro.
-             Trigger sull'antenato Border (IsMouseOver): nessuna animazione.
-             Icone "ghost": nessuno sfondo, nessun bordo, nessun rettangolo -
-             solo l'icona grigia con hover leggero (leggero scurimento). -->
-        <Style x:Key="AzioneCard" TargetType="Button">
-            <Setter Property="Opacity" Value="0"/>
-            <Setter Property="IsHitTestVisible" Value="False"/>
-            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+        <!-- Azioni 30x30 sempre visibili, ghost con hover neutro -->
+        <Style x:Key="AzionePostIt" TargetType="Button">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
-                    <Setter Property="Opacity" Value="1"/>
-                    <Setter Property="IsHitTestVisible" Value="True"/>
-                </DataTrigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
 
-        <!-- Elimina: icona neutra come Modifica; il rosso compare solo come
-             feedback di hover, mai come colore permanente. -->
-        <Style x:Key="AzioneCardElimina" TargetType="Button" BasedOn="{StaticResource AzioneCard}">
+        <Style x:Key="AzionePostItElimina" TargetType="Button" BasedOn="{StaticResource AzionePostIt}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
-                    <Setter Property="Opacity" Value="1"/>
-                    <Setter Property="IsHitTestVisible" Value="True"/>
-                </DataTrigger>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Foreground" Value="{StaticResource BrushStatoCessato}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
-        <!-- Segmented control per l'ordinamento: container bianco bordato,
-             segment attivo su superficie neutra. Niente underline ambra. -->
+        <!-- Colonna -->
+        <Style x:Key="ColonnaBacheca" TargetType="Border">
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBordo}"/>
+            <Setter Property="Padding" Value="12"/>
+        </Style>
+
+        <Style x:Key="TitoloColonna" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="DotColonna" TargetType="Ellipse">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Height" Value="8"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Pillola del conteggio -->
+        <Style x:Key="BadgeConteggio" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="8,1"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="ConteggioColonna" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
+        </Style>
+
+        <!-- Segmented control priorità nel form (invariato) -->
         <Style x:Key="SegmentContainer" TargetType="Border">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="{StaticResource BrushBordoLeggero}"/>
@@ -126,7 +137,7 @@
             <Setter Property="Foreground" Value="{StaticResource BrushTestoSecondario}"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="Padding" Value="14,6"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -145,33 +156,7 @@
             </Setter>
         </Style>
 
-        <Style x:Key="SegmentData" TargetType="Button" BasedOn="{StaticResource SegmentButton}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding OrdinamentoPerPriorita}" Value="False">
-                    <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="SegmentPriorita" TargetType="Button" BasedOn="{StaticResource SegmentButton}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding OrdinamentoPerPriorita}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
-                    <Setter Property="Foreground" Value="{StaticResource BrushTestoPrimario}"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-
-        <!-- Segment di priorità nel form: lo stato attivo indica la scelta
-             con lo stesso richiamo cromatico delle card (testo nel colore
-             semantico della priorità, via StatoSemantico), su wash neutro.
-             Segmenti non selezionati: neutri. -->
-        <Style x:Key="SegmentFormBase" TargetType="Button" BasedOn="{StaticResource SegmentButton}">
-            <Setter Property="Padding" Value="14,6"/>
-        </Style>
-
-        <Style x:Key="SegmentFormBassa" TargetType="Button" BasedOn="{StaticResource SegmentFormBase}">
+        <Style x:Key="SegmentFormBassa" TargetType="Button" BasedOn="{StaticResource SegmentButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding FormPriorita}" Value="Bassa">
                     <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
@@ -179,8 +164,7 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-
-        <Style x:Key="SegmentFormMedia" TargetType="Button" BasedOn="{StaticResource SegmentFormBase}">
+        <Style x:Key="SegmentFormMedia" TargetType="Button" BasedOn="{StaticResource SegmentButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding FormPriorita}" Value="Media">
                     <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
@@ -188,8 +172,7 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-
-        <Style x:Key="SegmentFormAlta" TargetType="Button" BasedOn="{StaticResource SegmentFormBase}">
+        <Style x:Key="SegmentFormAlta" TargetType="Button" BasedOn="{StaticResource SegmentButton}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding FormPriorita}" Value="Alta">
                     <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
@@ -197,6 +180,65 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+
+        <!-- Template del post-it, condiviso dalle tre colonne.
+             Il Border "PostIt" è il primo antenato dei bottoni: serve
+             al fade-out del code-behind (BtnElimina_Click). -->
+        <DataTemplate x:Key="PostItTemplate">
+            <Border Style="{StaticResource PostIt}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Accento verticale di priorità -->
+                    <Border Grid.Column="0" CornerRadius="5,0,0,5"
+                            Background="{Binding Priorita, Converter={StaticResource PrioritaAColore}}"/>
+
+                    <StackPanel Grid.Column="1" Margin="14,12,8,6">
+
+                        <TextBlock Text="{Binding Titolo}" Style="{StaticResource TitoloPostIt}"
+                                   Margin="0,0,4,0"/>
+
+                        <TextBlock Text="{Binding Descrizione}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource DescrizionePostIt}">
+                                    <Setter Property="Margin" Value="0,4,4,0"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Descrizione}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Descrizione}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <!-- Footer: data a sinistra, azioni a destra -->
+                        <Grid Margin="0,6,0,0">
+                            <TextBlock Text="{Binding DataCreazione, StringFormat='{}{0:d MMM yyyy}'}"
+                                       Style="{StaticResource DataPostIt}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Left"/>
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Style="{StaticResource AzionePostIt}"
+                                        Command="{Binding DataContext.ModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" ToolTip="Modifica">
+                                    <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="13" Height="13"/>
+                                </Button>
+                                <Button Style="{StaticResource AzionePostItElimina}"
+                                        Click="BtnElimina_Click" ToolTip="Elimina promemoria">
+                                    <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="13" Height="13"/>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
     </UserControl.Resources>
 
     <Grid>
@@ -205,8 +247,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- HEADER: titolo compatto a sinistra; a destra l'ordinamento
-             (segmented control) e l'azione primaria. Niente sottotitoli. -->
+        <!-- HEADER -->
         <Border Grid.Row="0" Style="{StaticResource ModuleHeaderBorderStyle}" Padding="28,0">
             <Grid VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
@@ -216,52 +257,7 @@
 
                 <TextBlock Text="Promemoria" Style="{StaticResource ModuleTitleStyle}" VerticalAlignment="Center"/>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-
-                    <!-- Ordina per: segmented control leggero -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
-                        <TextBlock Text="Ordina per" FontSize="12"
-                                   Foreground="{StaticResource BrushTestoSecondario}"
-                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <Border Style="{StaticResource SegmentContainer}">
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="Data creazione" Style="{StaticResource SegmentData}"
-                                        Command="{Binding MostraPerDataCommand}" ToolTip="Ordina per data di creazione"/>
-                                <Button Content="Priorità" Style="{StaticResource SegmentPriorita}"
-                                        Command="{Binding MostraPerPrioritaCommand}" ToolTip="Ordina per priorità"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-
-                    <!-- Azione primaria: nuovo promemoria -->
-                    <Button Command="{Binding NuovoCommand}" ToolTip="Nuovo promemoria">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource BtnPrimary}">
-                                <Setter Property="Padding" Value="14,7"/>
-                            </Style>
-                        </Button.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconBootstrapIcons Kind="Plus" Width="12" Height="12"
-                                VerticalAlignment="Center" Margin="0,0,7,0"/>
-                            <TextBlock Text="Nuovo promemoria" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- BACHECA -->
-        <Grid Grid.Row="1" Margin="28,16,28,24">
-
-            <!-- Empty state: leggero, centrato, con l'azione primaria -->
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                        Visibility="{Binding Promemoria.Count, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
-                <TextBlock Text="Nessun promemoria" HorizontalAlignment="Center"
-                           Style="{StaticResource SectionTitleTextStyle}"/>
-                <TextBlock Text="I tuoi promemoria appariranno qui." HorizontalAlignment="Center"
-                           Style="{StaticResource SecondaryTextStyle}" Margin="0,6,0,0"/>
-                <Button Command="{Binding NuovoCommand}" HorizontalAlignment="Center" Margin="0,16,0,0"
-                        ToolTip="Nuovo promemoria">
+                <Button Grid.Column="1" Command="{Binding NuovoCommand}" ToolTip="Nuovo promemoria">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource BtnPrimary}">
                             <Setter Property="Padding" Value="14,7"/>
@@ -273,80 +269,107 @@
                         <TextBlock Text="Nuovo promemoria" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-            </StackPanel>
+            </Grid>
+        </Border>
 
-            <!-- Griglia adattiva: il WrapPanel va a capo in base alla larghezza
-                 disponibile, quindi il numero di colonne segue la finestra -->
-            <ScrollViewer VerticalScrollBarVisibility="Auto"
-                          Visibility="{Binding Promemoria.Count, Converter={StaticResource BoolToVisibility}}">
-                <ItemsControl ItemsSource="{Binding Promemoria}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
+        <!-- BACHECA: tre colonne fisse -->
+        <Grid Grid.Row="1">
+            <Grid Margin="28,5,28,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Style="{StaticResource CardPromemoria}">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
+                <!-- ALTA -->
+                <Border Grid.Column="0" Style="{StaticResource ColonnaBacheca}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                                    <!-- Priorità (unico segnale) + azioni solo in hover -->
-                                    <Grid Grid.Row="0" Margin="0,0,0,10">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                            <Ellipse Style="{StaticResource DotPriorita}"/>
-                                            <TextBlock Text="{Binding Priorita}" Style="{StaticResource EtichettaPriorita}"/>
-                                        </StackPanel>
+                        <Border Grid.Row="0" Margin="0,0,0,12" Padding="2,0,0,10"
+                                BorderThickness="0,0,0,1" BorderBrush="{StaticResource BrushDanger}">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Style="{StaticResource DotColonna}" Fill="{StaticResource BrushDanger}"/>
+                                <TextBlock Text="Alta" Style="{StaticResource TitoloColonna}"/>
+                                <Border Style="{StaticResource BadgeConteggio}">
+                                    <TextBlock Text="{Binding PromemoriaAlta.Count}" Style="{StaticResource ConteggioColonna}"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
 
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                            <Button Style="{StaticResource AzioneCard}"
-                                                Command="{Binding DataContext.ModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}" ToolTip="Modifica">
-                                                <iconPacks:PackIconBootstrapIcons Kind="Pencil" Width="13" Height="13"/>
-                                            </Button>
-                                            <Button Style="{StaticResource AzioneCardElimina}" Margin="4,0,0,0"
-                                                Click="BtnElimina_Click" ToolTip="Elimina promemoria">
-                                                <iconPacks:PackIconBootstrapIcons Kind="Trash" Width="13" Height="13"/>
-                                            </Button>
-                                        </StackPanel>
-                                    </Grid>
+                        <TextBlock Grid.Row="1" Text="Nessun promemoria" HorizontalAlignment="Center" Margin="0,24,0,0"
+                                   Style="{StaticResource SecondaryTextStyle}"
+                                   Visibility="{Binding PromemoriaAlta.Count, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding PromemoriaAlta}" ItemTemplate="{StaticResource PostItTemplate}"/>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
 
-                                    <TextBlock Grid.Row="1" Text="{Binding Titolo}" Style="{StaticResource TitoloCard}"/>
+                <!-- MEDIA -->
+                <Border Grid.Column="2" Style="{StaticResource ColonnaBacheca}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                                    <TextBlock Grid.Row="2" Text="{Binding Descrizione}" Margin="0,6,0,0" MaxHeight="72">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock" BasedOn="{StaticResource DescrizioneCard}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Descrizione}" Value="{x:Null}">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Descrizione}" Value="">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
+                        <Border Grid.Row="0" Margin="0,0,0,12" Padding="2,0,0,10"
+                                BorderThickness="0,0,0,1" BorderBrush="{StaticResource BrushStatoStandBy}">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Style="{StaticResource DotColonna}" Fill="{StaticResource BrushStatoStandBy}"/>
+                                <TextBlock Text="Media" Style="{StaticResource TitoloColonna}"/>
+                                <Border Style="{StaticResource BadgeConteggio}">
+                                    <TextBlock Text="{Binding PromemoriaMedia.Count}" Style="{StaticResource ConteggioColonna}"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
 
-                                    <TextBlock Grid.Row="3" Text="{Binding DataCreazione, StringFormat='{}{0:d MMM yyyy}'}"
-                                               Style="{StaticResource DataCard}" Margin="0,10,0,0"/>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+                        <TextBlock Grid.Row="1" Text="Nessun promemoria" HorizontalAlignment="Center" Margin="0,24,0,0"
+                                   Style="{StaticResource SecondaryTextStyle}"
+                                   Visibility="{Binding PromemoriaMedia.Count, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding PromemoriaMedia}" ItemTemplate="{StaticResource PostItTemplate}"/>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+
+                <!-- BASSA -->
+                <Border Grid.Column="4" Style="{StaticResource ColonnaBacheca}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Margin="0,0,0,12" Padding="2,0,0,10"
+                                BorderThickness="0,0,0,1" BorderBrush="{StaticResource BrushPrimary}">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Style="{StaticResource DotColonna}" Fill="{StaticResource BrushPrimary}"/>
+                                <TextBlock Text="Bassa" Style="{StaticResource TitoloColonna}"/>
+                                <Border Style="{StaticResource BadgeConteggio}">
+                                    <TextBlock Text="{Binding PromemoriaBassa.Count}" Style="{StaticResource ConteggioColonna}"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Grid.Row="1" Text="Nessun promemoria" HorizontalAlignment="Center" Margin="0,24,0,0"
+                                   Style="{StaticResource SecondaryTextStyle}"
+                                   Visibility="{Binding PromemoriaBassa.Count, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding PromemoriaBassa}" ItemTemplate="{StaticResource PostItTemplate}"/>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
         </Grid>
 
-        <!-- Form nuovo/modifica nel ModalDialogControl condiviso: stesso
-             contratto del SidePanelControl (PannelloAperto/TitoloPannello/
-             HaModifiche), comandi e logica del ViewModel invariati. -->
+        <!-- Form nuovo/modifica (invariato) -->
         <views:ModalDialogControl Grid.Row="0" Grid.RowSpan="2"
             IsAperto="{Binding PannelloAperto}"
             Titolo="{Binding TitoloPannello}"
@@ -356,7 +379,6 @@
 
             <views:ModalDialogControl.Contenuto>
                 <StackPanel>
-
                     <TextBlock Text="Titolo" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding FormTitolo, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
 
@@ -379,10 +401,8 @@
                                     CommandParameter="{x:Static models:PrioritaPromemoria.Alta}"/>
                         </StackPanel>
                     </Border>
-
                 </StackPanel>
             </views:ModalDialogControl.Contenuto>
         </views:ModalDialogControl>
     </Grid>
 </UserControl>
-

@@ -310,5 +310,10 @@ namespace CLab.Views
 
             return null;
         }
+
+        private void CancellaRicerca_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is PasswordViewModel vm) vm.FiltroTesto = string.Empty;
+        }
     }
 }

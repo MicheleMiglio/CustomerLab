@@ -22,20 +22,39 @@ namespace CLab.Services
     /// occupato da altre applicazioni: mai crash, mai retry aggressivi.</summary>
     public class AppuntiWpf : IAppunti
     {
+        // Il clipboard di Windows richiede un thread STA: il timer di
+        // cancellazione gira su un thread del pool (MTA), quindi ogni accesso
+        // viene marcato sul thread UI. Senza questo, la cancellazione a 30
+        // secondi falliva in silenzio e la password restava negli appunti.
+        private static T Esegui<T>(Func<T> azione, T predefinito)
+        {
+            try
+            {
+                var dispatcher = Application.Current?.Dispatcher;
+                if (dispatcher == null || dispatcher.CheckAccess())
+                    return azione();
+
+                return dispatcher.Invoke(azione);
+            }
+            catch (Exception)
+            {
+                return predefinito; // clipboard occupato o app in chiusura: silenzioso
+            }
+        }
+
         public void ImpostaTesto(string testo)
         {
-            try { Clipboard.SetText(testo); } catch (Exception) { /* clipboard occupato: silenzioso */ }
+            Esegui(() => { Clipboard.SetText(testo); return true; }, false);
         }
 
         public string? LeggiTesto()
         {
-            try { return Clipboard.ContainsText() ? Clipboard.GetText() : null; }
-            catch (Exception) { return null; }
+            return Esegui<string?>(() => Clipboard.ContainsText() ? Clipboard.GetText() : null, null);
         }
 
         public void Svuota()
         {
-            try { Clipboard.Clear(); } catch (Exception) { /* silenzioso */ }
+            Esegui(() => { Clipboard.Clear(); return true; }, false);
         }
     }
 
@@ -60,6 +79,11 @@ namespace CLab.Services
         // Valore copiato in attesa del controllo a 30 secondi (riferimento
         // unico, rilasciato subito dopo il confronto).
         private string? _valoreInAttesa;
+
+        // Riferimento al timer in corso: un System.Threading.Timer senza
+        // riferimenti viene raccolto dal GC e non scatta mai. Una nuova copia
+        // sostituisce la precedente, così i 30 secondi contano dall'ultima copia.
+        private System.Threading.Timer? _timerScadenza;
 
         public PasswordClipboardService() : this(new AppuntiWpf(), CreaTimerProduzione)
         { }
@@ -124,11 +148,12 @@ namespace CLab.Services
             lock (_lock)
             {
                 _valoreInAttesa = testo;
-            }
 
-            // Attesa di 30 secondi, poi VerificaScadenza (timer di thread:
-            // indipendente dalla sessione Password, come da specifica).
-            _creaTimer(TimeSpan.FromSeconds(SecondiAutoCancellazione));
+                // Attesa di 30 secondi dall'ultima copia, poi VerificaScadenza
+                // (timer di thread: indipendente dalla sessione Password).
+                _timerScadenza?.Dispose();
+                _timerScadenza = _creaTimer(TimeSpan.FromSeconds(SecondiAutoCancellazione));
+            }
 
             return true;
         }
@@ -145,6 +170,8 @@ namespace CLab.Services
             {
                 valore = _valoreInAttesa;
                 _valoreInAttesa = null; // rilascio immediato del riferimento
+                _timerScadenza?.Dispose();
+                _timerScadenza = null;
             }
 
             if (valore == null)

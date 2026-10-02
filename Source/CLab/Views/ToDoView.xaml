@@ -193,7 +193,7 @@
                  Completato), zero decorazione, 4px di altezza. -->
             <Style x:Key="PassiBar" TargetType="ProgressBar">
                 <Setter Property="Height" Value="4"/>
-                <Setter Property="Foreground" Value="{StaticResource BrushSuccess}"/>
+                <Setter Property="Foreground" Value="{StaticResource BrushPrimary}"/>
                 <Setter Property="Background" Value="{StaticResource BrushBordoLeggero}"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Template">

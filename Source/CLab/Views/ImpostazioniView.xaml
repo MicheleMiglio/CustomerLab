@@ -137,7 +137,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto"
               HorizontalScrollBarVisibility="Disabled">
 
-        <Grid MaxWidth="1400"
+        <Grid 
           HorizontalAlignment="Stretch"
           Margin="28,20,28,28">
 

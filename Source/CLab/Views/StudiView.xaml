@@ -238,8 +238,8 @@
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- FILTRI: chips stato + contatore + azzeramento (solo quando serve) -->
@@ -311,6 +311,8 @@ Margin="0,0,6,0" VerticalAlignment="Center"/>
             <DataGrid Grid.Row="1" x:Name="gridStudi" ItemsSource="{Binding Studi}"
                   Style="{StaticResource ModuleDataGridStyle}"
                   RowHeight="44" Margin="28,12,28,24"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto"
                   MouseDoubleClick="gridStudi_MouseDoubleClick">
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource StudiColumnHeaderStyle}"/>
@@ -455,7 +457,7 @@ Margin="0,0,6,0" VerticalAlignment="Center"/>
             </DataGrid>
 
             <!-- EMPTY STATE: nessuno studio / nessun risultato (filtri) -->
-            <StackPanel Grid.Row="2" Margin="28,0,28,24" HorizontalAlignment="Center"
+            <StackPanel Grid.Row="1" Margin="28,70,28,24" HorizontalAlignment="Center"
     Visibility="{Binding NessunRisultato, Converter={StaticResource BoolToVisibility}}">
                 <TextBlock Text="{Binding EmptyStateTesto}" FontSize="14"
         Foreground="{StaticResource BrushTestoSecondario}" HorizontalAlignment="Center"/>

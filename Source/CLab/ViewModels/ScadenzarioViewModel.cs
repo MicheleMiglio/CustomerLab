@@ -603,6 +603,14 @@ namespace CLab.ViewModels
             _clientiCompleti = db.Clienti.AsNoTracking().OrderBy(x => x.RagioneSociale).ToList();
 
             ReferentiFiltro.Clear();
+
+            // Opzione vuota
+            ReferentiFiltro.Add(new Referente
+            {
+                Id = 0,
+                Nome = ""
+            });
+
             foreach (var r in db.Referenti.AsNoTracking().Where(r => r.Attivo).OrderBy(r => r.Nome).ToList())
                 ReferentiFiltro.Add(r);
 
@@ -629,6 +637,15 @@ namespace CLab.ViewModels
 
             _aggiornandoListaClienti = true;
             ClientiDisponibili.Clear();
+
+            // Opzione vuota
+            ClientiDisponibili.Add(new Cliente
+            {
+                Id = 0,
+                RagioneSociale = ""
+            });
+
+
             foreach (var c in elenco) ClientiDisponibili.Add(c);
             _aggiornandoListaClienti = false;
 
@@ -686,6 +703,9 @@ namespace CLab.ViewModels
             }
 
             using var db = new ClabDbContext();
+
+            if (ClienteSelezionato.Id == 0)
+                return;
 
             var cliente = db.Clienti.AsNoTracking().First(c => c.Id == ClienteSelezionato.Id);
             _notaCliente = cliente.Note ?? string.Empty;

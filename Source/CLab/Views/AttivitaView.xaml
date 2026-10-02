@@ -264,8 +264,8 @@
         <Grid Grid.Row="1" Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Toolbar: solo per il Catalogo, ricerca posizionata a destra (come Studi) -->
@@ -368,7 +368,7 @@
             </DataGrid>
 
             <!-- EMPTY STATE: solo per il catalogo (nessuna attività / nessun risultato dalla ricerca) -->
-            <StackPanel Grid.Row="2" Margin="28,0,28,24" HorizontalAlignment="Center"
+            <StackPanel Grid.Row="1" Margin="28,70,28,24" HorizontalAlignment="Center"
                 Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
                 <TextBlock Text="{Binding EmptyStateTesto}" FontSize="14"
                     Foreground="{StaticResource BrushTestoSecondario}" HorizontalAlignment="Center"

@@ -116,6 +116,29 @@
             </Setter>
         </Style>
 
+        <!-- KPI della vista generale: evidenziati quando sono il numero selezionato. -->
+        <Style x:Key="KpiGeneraleRitardo" TargetType="Button" BasedOn="{StaticResource KpiButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding FiltroGenerale}" Value="ritardo">
+                    <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="KpiGeneraleDaFare" TargetType="Button" BasedOn="{StaticResource KpiButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding FiltroGenerale}" Value="dafare">
+                    <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="KpiGeneraleRitenute" TargetType="Button" BasedOn="{StaticResource KpiButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding FiltroGenerale}" Value="ritenute">
+                    <Setter Property="Background" Value="{StaticResource BrushSidebarHover}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- Chip filtro (segmented): stesso pattern locale di Fatture/Clienti. -->
         <Style x:Key="ChipFiltro" TargetType="Button">
             <Setter Property="FontSize" Value="12"/>
@@ -546,7 +569,7 @@
                Style="{StaticResource FieldLabel}"
                Margin="0,0,0,4"/>
 
-                <ComboBox Width="180" Height="32"
+                <ComboBox Width="250" Height="32"
               IsTextSearchEnabled="True"
               TextSearch.TextPath="Nome" Margin="0,0,10,0"
               ItemsSource="{Binding ReferentiFiltro}"
@@ -559,7 +582,7 @@
                Style="{StaticResource FieldLabel}"
                Margin="0,0,0,4"/>
 
-                <ComboBox Width="240" Height="32"
+                <ComboBox Width="320" Height="32"
               IsTextSearchEnabled="True"
               TextSearch.TextPath="RagioneSociale"
               ItemsSource="{Binding ClientiDisponibili}"
@@ -647,18 +670,16 @@
             </Grid>
         </Border>
 
-
-        <!-- VISTA GENERALE — landing operativa quando nessun cliente è selezionato.
-             Sostituisce concettualmente i tre vecchi placeholder "Seleziona un cliente":
-             qui, invece, si vede subito e su TUTTI i clienti filtrati cosa c'è da fare,
-             con la riga cliccabile che entra direttamente nel cliente giusto. -->
+        <!-- VISTA GENERALE — landing leggera quando nessun cliente è selezionato.
+             Livello 1: tre numeri cliccabili. Livello 2: clienti interessati dal numero
+             scelto. Livello 3: scadenze del singolo cliente, caricate solo all'apertura. -->
         <Grid Grid.Row="3" Visibility="{Binding NessunClienteSelezionato, Converter={StaticResource BoolToVisibility}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Riepilogo flat, stile Home: numeri, non caselle colorate -->
+            <!-- LIVELLO 1: numeri cliccabili -->
             <Grid Grid.Row="0" Margin="28,25,28,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -667,26 +688,43 @@
                     <ColumnDefinition Width="1"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="{Binding GeneraleInRitardo}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"
-                               Foreground="{StaticResource BrushStatoCessato}"/>
-                    <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
-                </StackPanel>
+
+                <Button Grid.Column="0" Style="{StaticResource KpiGeneraleRitardo}"
+                        Command="{Binding ImpostaFiltroGeneraleCommand}" CommandParameter="ritardo"
+                        HorizontalContentAlignment="Center" ToolTip="Mostra i clienti con adempimenti in ritardo">
+                    <StackPanel>
+                        <TextBlock Text="{Binding GeneraleInRitardo}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"
+                                   Foreground="{StaticResource BrushStatoCessato}"/>
+                        <TextBlock Text="In ritardo" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
                 <Rectangle Grid.Column="1" Fill="{StaticResource BrushBordoLeggero}" Margin="0,4"/>
-                <StackPanel Grid.Column="2">
-                    <TextBlock Text="{Binding GeneraleInScadenzaOggi}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Da fare adesso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
-                </StackPanel>
+
+                <Button Grid.Column="2" Style="{StaticResource KpiGeneraleDaFare}"
+                        Command="{Binding ImpostaFiltroGeneraleCommand}" CommandParameter="dafare"
+                        HorizontalContentAlignment="Center" ToolTip="Mostra i clienti con adempimenti da fare adesso">
+                    <StackPanel>
+                        <TextBlock Text="{Binding GeneraleInScadenzaOggi}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Da fare adesso" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
                 <Rectangle Grid.Column="3" Fill="{StaticResource BrushBordoLeggero}" Margin="0,4"/>
-                <StackPanel Grid.Column="4">
-                    <TextBlock Text="{Binding GeneraleRitenuteDaVersare}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Ritenute da versare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
-                </StackPanel>
+
+                <Button Grid.Column="4" Style="{StaticResource KpiGeneraleRitenute}"
+                        Command="{Binding ImpostaFiltroGeneraleCommand}" CommandParameter="ritenute"
+                        HorizontalContentAlignment="Center" ToolTip="Mostra i clienti con ritenute da versare">
+                    <StackPanel>
+                        <TextBlock Text="{Binding GeneraleRitenuteDaVersare}" Style="{StaticResource KpiNumberStyle}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Ritenute da versare" Style="{StaticResource KpiLabelStyle}" Margin="0,2,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </Grid>
 
-            <!-- Empty state: tutto in regola sui clienti filtrati -->
+            <!-- Tutto in regola sui clienti filtrati -->
             <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,50"
-                    Visibility="{Binding HaVisteGenerali, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
+                    Visibility="{Binding TuttoInRegola, Converter={StaticResource BoolToVisibility}}">
                 <iconPacks:PackIconBootstrapIcons Kind="CheckCircle" Width="34" Height="34"
                     Foreground="{StaticResource BrushPrimary}" HorizontalAlignment="Center"/>
                 <TextBlock Text="Tutto in regola." Style="{StaticResource SectionTitleTextStyle}"
@@ -695,46 +733,140 @@
                            Style="{StaticResource SecondaryTextStyle}" HorizontalAlignment="Center"/>
             </StackPanel>
 
-            <Border Grid.Row="1" Margin="28,4,28,20" Style="{StaticResource CardGenerale}"
-                    Visibility="{Binding HaVisteGenerali, Converter={StaticResource BoolToVisibility}}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding VisteGenerali}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Style="{StaticResource RigaCliccabileGenerale}" Margin="0,0,10,2"
-                                    Command="{Binding DataContext.SelezionaVoceGeneraleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Ellipse Grid.Column="0" Width="7" Height="7" Margin="0,0,10,0" VerticalAlignment="Center"
-                                            Fill="{StaticResource BrushStatoCessato}"
-                                            Visibility="{Binding InRitardo, Converter={StaticResource BoolToVisibility}}"/>
-                                        <Ellipse Grid.Column="0" Width="7" Height="7" Margin="0,0,10,0" VerticalAlignment="Center"
-                                            Fill="{StaticResource BrushStatoAttivo}"
-                                            Visibility="{Binding InRitardo, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock FontSize="13" FontWeight="Medium" Foreground="{StaticResource BrushTestoPrimario}"
-                                                TextTrimming="CharacterEllipsis">
-                                                <Run Text="{Binding ClienteNome, Mode=OneWay}"/>
-                                                <Run Text=" · "/>
-                                                <Run Text="{Binding Descrizione, Mode=OneWay}"/>
-                                            </TextBlock>
-                                            <TextBlock Text="{Binding Dettaglio}" FontSize="12"
-                                                Foreground="{StaticResource BrushTestoTerziario}" Margin="0,1,0,0"/>
+            <!-- Numero selezionato ma nessun cliente -->
+            <TextBlock Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,50"
+                       Text="Nessun cliente da mostrare per questa voce."
+                       Style="{StaticResource SecondaryTextStyle}"
+                       Visibility="{Binding MostraElencoVuotoGenerale, Converter={StaticResource BoolToVisibility}}"/>
+
+            <!-- LIVELLO 2: clienti interessati (la card prende solo lo spazio che serve
+                 e, se troppo alta, scrolla al suo interno) -->
+            <Border Grid.Row="1" Margin="28,4,28,20" VerticalAlignment="Top" Style="{StaticResource CardGenerale}"
+                    Visibility="{Binding HaClientiGenerali, Converter={StaticResource BoolToVisibility}}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="{Binding TitoloElencoGenerale}"
+                               Style="{StaticResource SectionTitleTextStyle}" Margin="0,0,0,10"/>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ClientiGenerali}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="0,0,0,1" Margin="0,0,10,0">
+                                        <StackPanel>
+
+                                            <!-- Riga cliente: click = espandi/comprimi; "Apri" entra nel cliente -->
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Button Grid.Column="0" Style="{StaticResource RigaCliccabileGenerale}" Margin="0,2,4,2"
+                                                    Command="{Binding DataContext.ToggleClienteGeneraleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <iconPacks:PackIconBootstrapIcons Grid.Column="0" Width="11" Height="11"
+                                                            Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center">
+                                                            <iconPacks:PackIconBootstrapIcons.Style>
+                                                                <Style TargetType="iconPacks:PackIconBootstrapIcons">
+                                                                    <Setter Property="Kind" Value="ChevronRight"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Espanso}" Value="True">
+                                                                            <Setter Property="Kind" Value="ChevronDown"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </iconPacks:PackIconBootstrapIcons.Style>
+                                                        </iconPacks:PackIconBootstrapIcons>
+
+                                                        <Ellipse Grid.Column="1" Width="7" Height="7" Margin="10,0,10,0" VerticalAlignment="Center">
+                                                            <Ellipse.Style>
+                                                                <Style TargetType="Ellipse">
+                                                                    <Setter Property="Fill" Value="{StaticResource BrushStatoCessato}"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Categoria}" Value="dafare">
+                                                                            <Setter Property="Fill" Value="{StaticResource BrushPrimary}"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Categoria}" Value="ritenute">
+                                                                            <Setter Property="Fill" Value="{StaticResource BrushStatoStandBy}"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Ellipse.Style>
+                                                        </Ellipse>
+
+                                                        <StackPanel Grid.Column="2">
+                                                            <TextBlock Text="{Binding ClienteNome}" FontSize="13" FontWeight="Medium"
+                                                                Foreground="{StaticResource BrushTestoPrimario}" TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding Riepilogo}" FontSize="12"
+                                                                Foreground="{StaticResource BrushTestoTerziario}" Margin="0,1,0,0"
+                                                                TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+
+                                                        <TextBlock Grid.Column="3" Text="{Binding Valore}" Style="{StaticResource ContatoreSecondario}"
+                                                            VerticalAlignment="Center" Margin="12,0,6,0"/>
+                                                    </Grid>
+                                                </Button>
+
+                                                <Button Grid.Column="1" Style="{StaticResource LinkHome}" Margin="6,0,6,0"
+                                                    VerticalAlignment="Center"
+                                                    Command="{Binding DataContext.ApriClienteGeneraleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" ToolTip="Apri il cliente nello Scadenzario">
+                                                    <TextBlock Text="Apri →"/>
+                                                </Button>
+                                            </Grid>
+
+                                            <!-- LIVELLO 3: scadenze del cliente (caricate alla prima apertura) -->
+                                            <Border BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="2,0,0,0"
+                                                    Margin="22,0,4,8" Padding="6,0,0,0"
+                                                    Visibility="{Binding Espanso, Converter={StaticResource BoolToVisibility}}">
+                                                <ItemsControl ItemsSource="{Binding Voci}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Button Style="{StaticResource RigaCliccabileGenerale}" Margin="0,0,0,1"
+                                                                Command="{Binding DataContext.SelezionaVoceGeneraleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <Ellipse Grid.Column="0" Width="6" Height="6" Margin="0,0,10,0" VerticalAlignment="Center"
+                                                                        Fill="{StaticResource BrushStatoCessato}"
+                                                                        Visibility="{Binding InRitardo, Converter={StaticResource BoolToVisibility}}"/>
+                                                                    <Ellipse Grid.Column="0" Width="6" Height="6" Margin="0,0,10,0" VerticalAlignment="Center"
+                                                                        Fill="{StaticResource BrushStatoAttivo}"
+                                                                        Visibility="{Binding InRitardo, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}"/>
+                                                                    <StackPanel Grid.Column="1">
+                                                                        <TextBlock Text="{Binding Descrizione}" FontSize="12" FontWeight="Medium"
+                                                                            Foreground="{StaticResource BrushTestoPrimario}" TextTrimming="CharacterEllipsis"/>
+                                                                        <TextBlock Text="{Binding Dettaglio}" FontSize="11"
+                                                                            Foreground="{StaticResource BrushTestoTerziario}" Margin="0,1,0,0"/>
+                                                                    </StackPanel>
+                                                                    <iconPacks:PackIconBootstrapIcons Grid.Column="2" Kind="ChevronRight" Width="10" Height="10"
+                                                                        Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Border>
+
                                         </StackPanel>
-                                        <iconPacks:PackIconBootstrapIcons Grid.Column="3" Kind="ChevronRight" Width="11" Height="11"
-                                            Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
             </Border>
         </Grid>
 
@@ -1578,11 +1710,11 @@
                                 <CheckBox Style="{StaticResource ModuleCheckBoxStyle}"
               IsChecked="{Binding FormRavvedimento}"
               VerticalAlignment="Center" Margin="0,0,8,4"/>
- 
+
                                 <TextBlock Text="RAVVEDIMENTO"
                Style="{StaticResource FieldLabel}"
                VerticalAlignment="Center"/>
-               
+
                             </StackPanel>
 
                         </Grid>

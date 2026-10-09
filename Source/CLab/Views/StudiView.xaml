@@ -311,6 +311,7 @@ Margin="0,0,6,0" VerticalAlignment="Center"/>
             <DataGrid Grid.Row="1" x:Name="gridStudi" ItemsSource="{Binding Studi}"
                   Style="{StaticResource ModuleDataGridStyle}"
                   RowHeight="44" Margin="28,12,28,24"
+                  VerticalAlignment="Top"
                       HorizontalScrollBarVisibility="Auto"
                       VerticalScrollBarVisibility="Auto"
                   MouseDoubleClick="gridStudi_MouseDoubleClick">

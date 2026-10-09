@@ -392,6 +392,7 @@ Margin="0,0,6,0" VerticalAlignment="Center"/>
           Style="{StaticResource ModuleDataGridStyle}"
           AlternationCount="2"
           RowHeight="44" Margin="28,12,28,24"
+                  VerticalAlignment="Top"
           MouseDoubleClick="gridFatture_MouseDoubleClick">
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource FattureColumnHeaderStyle}"/>

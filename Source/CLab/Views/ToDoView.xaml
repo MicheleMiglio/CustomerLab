@@ -5,7 +5,8 @@
              xmlns:converters="clr-namespace:CLab.Converters"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
-             xmlns:views="clr-namespace:CLab.Views">
+             xmlns:views="clr-namespace:CLab.Views"
+             xmlns:controls="clr-namespace:CLab.Views.Controls">
 
     <!-- ============================================================ -->
     <!-- TODO CLab 2.0 - revisione conclusiva.                        -->
@@ -296,7 +297,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
             <!-- TOOLBAR: solo Filtri e ricerca. Ordinamento e raggruppamento
@@ -539,92 +540,112 @@
             <Grid Grid.Row="3">
 
                 <!-- CARD LISTA (nascosta quando la lista e' vuota) -->
-                <Border Margin="28,12,28,24" Background="White"
-                    BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMedium}"
-                    Visibility="{Binding ListaVuota, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding Sezioni}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Visibility="{Binding MostraSezione, Converter={StaticResource BoolToVisibility}}">
+                <Border Margin="28,12,28,24" Background="White" VerticalAlignment="Top"
+    BorderBrush="{StaticResource BrushBordoLeggero}" BorderThickness="1"
+    CornerRadius="{StaticResource RadiusMedium}"
+    Visibility="{Binding ListaVuota, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
 
-                                        <!-- TESTATA SEZIONE: tipografia piu' forte delle righe
-                                             (13 SemiBold), dot semantico 8px, conteggio e nota
-                                             in caption. E' un'intestazione di gruppo, non una riga. -->
-                                        <Button Command="{Binding DataContext.ToggleSezioneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}" Cursor="Hand"
-                                            HorizontalContentAlignment="Stretch" Padding="0" FocusVisualStyle="{x:Null}">
-                                            <Button.Template>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border x:Name="bd" Background="{StaticResource BrushSfondoFine}" Padding="14,11,14,8">
-                                                        <ContentPresenter/>
-                                                    </Border>
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
-                                                        </Trigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Button.Template>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <iconPacks:PackIconBootstrapIcons Grid.Column="0" Width="11" Height="11"
-                                                    Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center">
-                                                    <iconPacks:PackIconBootstrapIcons.Style>
-                                                        <Style TargetType="iconPacks:PackIconBootstrapIcons">
-                                                            <Setter Property="Kind" Value="ChevronRight"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Espansa}" Value="True">
-                                                                    <Setter Property="Kind" Value="ChevronDown"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </iconPacks:PackIconBootstrapIcons.Style>
-                                                </iconPacks:PackIconBootstrapIcons>
-                                                <Ellipse Grid.Column="1" Width="8" Height="8" Margin="10,0,8,0" VerticalAlignment="Center">
-                                                    <Ellipse.Style>
-                                                        <Style TargetType="Ellipse">
-                                                            <Setter Property="Fill" Value="{StaticResource BrushTestoTerziario}"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Chiave}" Value="scaduti">
-                                                                    <Setter Property="Fill" Value="{StaticResource BrushDanger}"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Chiave}" Value="programma">
-                                                                    <Setter Property="Fill" Value="{StaticResource BrushPrimary}"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Chiave}" Value="completati">
-                                                                    <Setter Property="Fill" Value="{StaticResource BrushSuccess}"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Ellipse.Style>
-                                                </Ellipse>
-                                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Titolo}" FontSize="13" FontWeight="SemiBold"
-                                                        Foreground="{StaticResource BrushTestoPrimario}"/>
-                                                    <TextBlock Text="{Binding Conteggio, StringFormat=' ({0})'}" FontSize="11"
-                                                        Foreground="{StaticResource BrushTestoTerziario}" Margin="6,1,0,0" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                                <TextBlock Grid.Column="3" Text="{Binding Nota}" FontSize="11"
-                                                    Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center"
-                                                    Visibility="{Binding Nota, Converter={StaticResource BoolToVisibility}}"/>
-                                            </Grid>
-                                        </Button>
+                    <ItemsControl ItemsSource="{Binding Sezioni}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <controls:FitHeightStackPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Visibility="{Binding MostraSezione, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
 
-                                        <!-- placeholder della sezione vuota (es. Scaduti) -->
-                                        <TextBlock Text="Nessun elemento in questa sezione" FontSize="12"
-                                            Foreground="{StaticResource BrushTestoTerziario}" Padding="50,6,14,12"
-                                            Visibility="{Binding MostraVuoto, Converter={StaticResource BoolToVisibility}}"/>
+                                    <!-- TESTATA SEZIONE: tipografia piu' forte delle righe
+                         (13 SemiBold), dot semantico 8px, conteggio e nota
+                         in caption. E' un'intestazione di gruppo, non una riga. -->
+                                    <Button Grid.Row="0" Command="{Binding DataContext.ToggleSezioneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding}" Cursor="Hand"
+                        HorizontalContentAlignment="Stretch" Padding="0" FocusVisualStyle="{x:Null}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="bd" Background="{StaticResource BrushSfondoFine}" Padding="14,11,14,8">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bd" Property="Background" Value="{StaticResource BrushHoverNeutro}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
 
-                                        <!-- RIGHE -->
-                                        <ItemsControl ItemsSource="{Binding Righe}"
-              Visibility="{Binding MostraRighe, Converter={StaticResource BoolToVisibility}}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <iconPacks:PackIconBootstrapIcons Grid.Column="0" Width="11" Height="11"
+                                Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center">
+                                                <iconPacks:PackIconBootstrapIcons.Style>
+                                                    <Style TargetType="iconPacks:PackIconBootstrapIcons">
+                                                        <Setter Property="Kind" Value="ChevronRight"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Espansa}" Value="True">
+                                                                <Setter Property="Kind" Value="ChevronDown"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </iconPacks:PackIconBootstrapIcons.Style>
+                                            </iconPacks:PackIconBootstrapIcons>
+
+                                            <Ellipse Grid.Column="1" Width="8" Height="8" Margin="10,0,8,0" VerticalAlignment="Center">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Setter Property="Fill" Value="{StaticResource BrushTestoTerziario}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Chiave}" Value="scaduti">
+                                                                <Setter Property="Fill" Value="{StaticResource BrushDanger}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Chiave}" Value="programma">
+                                                                <Setter Property="Fill" Value="{StaticResource BrushPrimary}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Chiave}" Value="completati">
+                                                                <Setter Property="Fill" Value="{StaticResource BrushSuccess}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Titolo}" FontSize="13" FontWeight="SemiBold"
+                                    Foreground="{StaticResource BrushTestoPrimario}"/>
+                                                <TextBlock Text="{Binding Conteggio, StringFormat=' ({0})'}" FontSize="11"
+                                    Foreground="{StaticResource BrushTestoTerziario}" Margin="6,1,0,0" VerticalAlignment="Center"/>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="3" Text="{Binding Nota}" FontSize="11"
+                                Foreground="{StaticResource BrushTestoTerziario}" VerticalAlignment="Center"
+                                Visibility="{Binding Nota, Converter={StaticResource BoolToVisibility}}"/>
+                                        </Grid>
+                                    </Button>
+
+                                    <!-- placeholder della sezione vuota (es. Scaduti) -->
+                                    <TextBlock Grid.Row="1" Text="Nessun elemento in questa sezione" FontSize="12"
+                        Foreground="{StaticResource BrushTestoTerziario}" Padding="50,6,14,12"
+                        Visibility="{Binding MostraVuoto, Converter={StaticResource BoolToVisibility}}"/>
+
+                                    <!-- RIGHE -->
+                                    <!-- Scroll indipendente: l'altezza la assegna FitHeightStackPanel -->
+                                    <ScrollViewer Grid.Row="2"
+                        VerticalScrollBarVisibility="Auto"
+    HorizontalScrollBarVisibility="Disabled"
+    Visibility="{Binding MostraRighe, Converter={StaticResource BoolToVisibility}}">
+
+                                        <ItemsControl ItemsSource="{Binding Righe}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
 
@@ -634,7 +655,7 @@
                                                     <!-- sotto-attività restano "dentro" l'attività padre.         -->
                                                     <!-- ========================================================= -->
                                                     <Border BorderBrush="{StaticResource BrushBordoLeggero}"
-                    BorderThickness="0,0,0,1">
+                                        BorderThickness="0,0,0,1">
 
                                                         <Border.Style>
                                                             <Style TargetType="Border">
@@ -655,19 +676,19 @@
                                                             <!-- Padding destro = aria tra icone azioni e bordo lista  -->
                                                             <!-- ===================================================== -->
                                                             <Border MinHeight="44"
-                            Padding="0,8,16,8">
+                                                Padding="0,8,16,8">
 
                                                                 <Border.InputBindings>
                                                                     <MouseBinding
-                                MouseAction="LeftDoubleClick"
-                                Command="{Binding DataContext.ApriModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                CommandParameter="{Binding}"/>
+                                                        MouseAction="LeftDoubleClick"
+                                                        Command="{Binding DataContext.ApriModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"/>
                                                                 </Border.InputBindings>
 
                                                                 <Border.Style>
                                                                     <Style TargetType="Border">
                                                                         <!-- Transparent (non null): l'area vuota della riga
-                                     resta cliccabile per hover e doppio click. -->
+                                                             resta cliccabile per hover e doppio click. -->
                                                                         <Setter Property="Background" Value="Transparent"/>
                                                                         <Setter Property="Cursor" Value="Hand"/>
                                                                         <Style.Triggers>
@@ -703,46 +724,46 @@
 
                                                                     <!-- ============ COMPLETAMENTO INLINE ============ -->
                                                                     <CheckBox
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                IsChecked="{Binding Completato, Mode=OneWay}"
-                                Style="{StaticResource ModuleCheckBoxStyle}"
-                                ToolTip="Segna come completato / da fare">
+                                                        Grid.Row="0"
+                                                        Grid.Column="0"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        IsChecked="{Binding Completato, Mode=OneWay}"
+                                                        Style="{StaticResource ModuleCheckBoxStyle}"
+                                                        ToolTip="Segna come completato / da fare">
 
                                                                         <CheckBox.InputBindings>
                                                                             <MouseBinding
-                                        MouseAction="LeftClick"
-                                        Command="{Binding DataContext.ToggleCompletatoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}"/>
+                                                                MouseAction="LeftClick"
+                                                                Command="{Binding DataContext.ToggleCompletatoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"/>
                                                                         </CheckBox.InputBindings>
                                                                     </CheckBox>
 
                                                                     <!-- ============ PRIORITÀ ============ -->
                                                                     <!-- Nelle completate resta Collapsed, ma la colonna
-                                 fissa mantiene i titoli allineati. -->
+                                                         fissa mantiene i titoli allineati. -->
                                                                     <views:StatusBadgeControl
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                Stato="{Binding Priorita}"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Visibility="{Binding Completato,
-                                    Converter={StaticResource BoolToVisibility},
-                                    ConverterParameter=Inverti}"/>
+                                                        Grid.Row="0"
+                                                        Grid.Column="1"
+                                                        Stato="{Binding Priorita}"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center"
+                                                        Visibility="{Binding Completato,
+                                                            Converter={StaticResource BoolToVisibility},
+                                                            ConverterParameter=Inverti}"/>
 
                                                                     <!-- ============ TITOLO ============ -->
                                                                     <TextBlock
-                                Grid.Row="0"
-                                Grid.Column="2"
-                                Text="{Binding Titolo}"
-                                FontSize="13"
-                                VerticalAlignment="Center"
-                                Margin="0,0,16,0"
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="NoWrap"
-                                ToolTip="{Binding Titolo}">
+                                                        Grid.Row="0"
+                                                        Grid.Column="2"
+                                                        Text="{Binding Titolo}"
+                                                        FontSize="13"
+                                                        VerticalAlignment="Center"
+                                                        Margin="0,0,16,0"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        TextWrapping="NoWrap"
+                                                        ToolTip="{Binding Titolo}">
 
                                                                         <TextBlock.Style>
                                                                             <Style TargetType="TextBlock">
@@ -760,47 +781,47 @@
 
                                                                     <!-- ============ SOTTOTITOLO ============ -->
                                                                     <!-- "Completato il" (se completata) + cliente/referente.
-                                 Parte sempre dallo stesso x, sotto il titolo.
-                                 I margini sono sui TextBlock (non sul DockPanel) così,
-                                 se entrambi sono Collapsed, la riga non occupa altezza. -->
+                                                         Parte sempre dallo stesso x, sotto il titolo.
+                                                         I margini sono sui TextBlock (non sul DockPanel) così,
+                                                         se entrambi sono Collapsed, la riga non occupa altezza. -->
                                                                     <DockPanel
-                                Grid.Row="1"
-                                Grid.Column="2"
-                                Margin="0,0,16,0">
+                                                        Grid.Row="1"
+                                                        Grid.Column="2"
+                                                        Margin="0,0,16,0">
 
                                                                         <TextBlock
-                                    DockPanel.Dock="Left"
-                                    Text="{Binding CompletamentoDisplay, StringFormat='Completato il {0}'}"
-                                    FontSize="11"
-                                    Foreground="{StaticResource BrushSuccess}"
-                                    Margin="0,3,14,0"
-                                    TextWrapping="NoWrap"
-                                    Visibility="{Binding Completato,
-                                        Converter={StaticResource BoolToVisibility}}"/>
+                                                            DockPanel.Dock="Left"
+                                                            Text="{Binding CompletamentoDisplay, StringFormat='Completato il {0}'}"
+                                                            FontSize="11"
+                                                            Foreground="{StaticResource BrushSuccess}"
+                                                            Margin="0,3,14,0"
+                                                            TextWrapping="NoWrap"
+                                                            Visibility="{Binding Completato,
+                                                                Converter={StaticResource BoolToVisibility}}"/>
 
                                                                         <!-- Ultimo figlio del DockPanel = riempie lo spazio rimasto
-                                     (così l'ellipsis funziona) -->
+                                                             (così l'ellipsis funziona) -->
                                                                         <TextBlock
-                                    Text="{Binding CollegamentoDisplay}"
-                                    FontSize="11"
-                                    Foreground="{StaticResource BrushTestoSecondario}"
-                                    Margin="0,3,0,0"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap"
-                                    ToolTip="{Binding CollegamentoDisplay}"
-                                    Visibility="{Binding HasCollegamento,
-                                        Converter={StaticResource BoolToVisibility}}"/>
+                                                            Text="{Binding CollegamentoDisplay}"
+                                                            FontSize="11"
+                                                            Foreground="{StaticResource BrushTestoSecondario}"
+                                                            Margin="0,3,0,0"
+                                                            TextTrimming="CharacterEllipsis"
+                                                            TextWrapping="NoWrap"
+                                                            ToolTip="{Binding CollegamentoDisplay}"
+                                                            Visibility="{Binding HasCollegamento,
+                                                                Converter={StaticResource BoolToVisibility}}"/>
                                                                     </DockPanel>
 
                                                                     <!-- ============ SCADENZA ============ -->
                                                                     <TextBlock
-                                Grid.Row="0"
-                                Grid.Column="3"
-                                Text="{Binding ScadenzaDisplay}"
-                                FontSize="12"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Margin="0,0,12,0">
+                                                        Grid.Row="0"
+                                                        Grid.Column="3"
+                                                        Text="{Binding ScadenzaDisplay}"
+                                                        FontSize="12"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center"
+                                                        Margin="0,0,12,0">
 
                                                                         <TextBlock.Style>
                                                                             <Style TargetType="TextBlock">
@@ -835,46 +856,46 @@
 
                                                                     <!-- ============ AVANZAMENTO SOTTO-ATTIVITÀ ============ -->
                                                                     <StackPanel
-                                Grid.Row="0"
-                                Grid.Column="4"
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Visibility="{Binding HaSottoAttivita,
-                                    Converter={StaticResource BoolToVisibility}}">
+                                                        Grid.Row="0"
+                                                        Grid.Column="4"
+                                                        Orientation="Horizontal"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Visibility="{Binding HaSottoAttivita,
+                                                            Converter={StaticResource BoolToVisibility}}">
 
                                                                         <StackPanel VerticalAlignment="Center" Margin="0,0,6,0">
                                                                             <TextBlock
-                                        Text="{Binding PassiDisplay}"
-                                        FontSize="11"
-                                        FontWeight="Medium"
-                                        Foreground="{StaticResource BrushTestoSecondario}"
-                                        HorizontalAlignment="Center"
-                                        ToolTip="Sotto-attività completate sul totale"/>
+                                                                Text="{Binding PassiDisplay}"
+                                                                FontSize="11"
+                                                                FontWeight="Medium"
+                                                                Foreground="{StaticResource BrushTestoSecondario}"
+                                                                HorizontalAlignment="Center"
+                                                                ToolTip="Sotto-attività completate sul totale"/>
 
                                                                             <ProgressBar
-                                        Style="{StaticResource PassiBar}"
-                                        Width="46"
-                                        Margin="0,3,0,0"
-                                        Maximum="{Binding SottoAttivitaTotali, Mode=OneWay}"
-                                        Value="{Binding SottoAttivitaCompletate, Mode=OneWay}"
-                                        ToolTip="Sotto-attività completate sul totale"/>
+                                                                Style="{StaticResource PassiBar}"
+                                                                Width="46"
+                                                                Margin="0,3,0,0"
+                                                                Maximum="{Binding SottoAttivitaTotali, Mode=OneWay}"
+                                                                Value="{Binding SottoAttivitaCompletate, Mode=OneWay}"
+                                                                ToolTip="Sotto-attività completate sul totale"/>
                                                                         </StackPanel>
 
                                                                         <!-- Espandi / Comprimi -->
                                                                         <Button
-                                    Style="{StaticResource AzioneGriglia}"
-                                    Width="22"
-                                    Height="22"
-                                    VerticalAlignment="Center"
-                                    Command="{Binding DataContext.ToggleEspansoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}"
-                                    ToolTip="Mostra/nascondi sotto-attività">
+                                                            Style="{StaticResource AzioneGriglia}"
+                                                            Width="22"
+                                                            Height="22"
+                                                            VerticalAlignment="Center"
+                                                            Command="{Binding DataContext.ToggleEspansoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            ToolTip="Mostra/nascondi sotto-attività">
 
                                                                             <iconPacks:PackIconBootstrapIcons
-                                        Width="11"
-                                        Height="11"
-                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
+                                                                Width="11"
+                                                                Height="11"
+                                                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
 
                                                                                 <iconPacks:PackIconBootstrapIcons.Style>
                                                                                     <Style TargetType="iconPacks:PackIconBootstrapIcons">
@@ -892,37 +913,37 @@
 
                                                                     <!-- ============ AZIONI: MODIFICA + ELIMINA ============ -->
                                                                     <StackPanel
-                                Grid.Row="0"
-                                Grid.Column="5"
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center">
+                                                        Grid.Row="0"
+                                                        Grid.Column="5"
+                                                        Orientation="Horizontal"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Center">
 
                                                                         <Button
-                                    Style="{StaticResource AzioneGriglia}"
-                                    Command="{Binding DataContext.ApriModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}"
-                                    ToolTip="Modifica">
+                                                            Style="{StaticResource AzioneGriglia}"
+                                                            Command="{Binding DataContext.ApriModificaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            ToolTip="Modifica">
 
                                                                             <iconPacks:PackIconBootstrapIcons
-                                        Kind="Pencil"
-                                        Width="13"
-                                        Height="13"
-                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                                                Kind="Pencil"
+                                                                Width="13"
+                                                                Height="13"
+                                                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                                                                         </Button>
 
                                                                         <Button
-                                    Style="{StaticResource AzioneGrigliaElimina}"
-                                    Margin="4,0,0,0"
-                                    Command="{Binding DataContext.EliminaRigaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}"
-                                    ToolTip="Elimina">
+                                                            Style="{StaticResource AzioneGrigliaElimina}"
+                                                            Margin="4,0,0,0"
+                                                            Command="{Binding DataContext.EliminaRigaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            ToolTip="Elimina">
 
                                                                             <iconPacks:PackIconBootstrapIcons
-                                        Kind="Trash"
-                                        Width="13"
-                                        Height="13"
-                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                                                Kind="Trash"
+                                                                Width="13"
+                                                                Height="13"
+                                                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                                                                         </Button>
                                                                     </StackPanel>
 
@@ -937,12 +958,12 @@
                                                             <!-- "guida" che le lega al padre.                         -->
                                                             <!-- ===================================================== -->
                                                             <Border
-                        BorderBrush="{StaticResource BrushBordoLeggero}"
-                        BorderThickness="2,0,0,0"
-                        Margin="126,0,16,12"
-                        Padding="8,0,0,0"
-                        Visibility="{Binding MostraSottoAttivitaEspanse,
-                            Converter={StaticResource BoolToVisibility}}">
+                                                BorderBrush="{StaticResource BrushBordoLeggero}"
+                                                BorderThickness="2,0,0,0"
+                                                Margin="126,0,16,12"
+                                                Padding="8,0,0,0"
+                                                Visibility="{Binding MostraSottoAttivitaEspanse,
+                                                    Converter={StaticResource BoolToVisibility}}">
 
                                                                 <ItemsControl ItemsSource="{Binding SottoAttivita}">
                                                                     <ItemsControl.ItemTemplate>
@@ -952,26 +973,26 @@
 
                                                                                 <!-- Checkbox sotto-attività -->
                                                                                 <CheckBox
-                                            VerticalAlignment="Center"
-                                            IsChecked="{Binding Completato, Mode=OneWay}"
-                                            Style="{StaticResource ModuleCheckBoxStyle}"
-                                            ToolTip="Segna il passo come completato">
+                                                                    VerticalAlignment="Center"
+                                                                    IsChecked="{Binding Completato, Mode=OneWay}"
+                                                                    Style="{StaticResource ModuleCheckBoxStyle}"
+                                                                    ToolTip="Segna il passo come completato">
 
                                                                                     <CheckBox.InputBindings>
                                                                                         <MouseBinding
-                                                    MouseAction="LeftClick"
-                                                    Command="{Binding DataContext.ToggleSottoAttivitaInlineCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}"/>
+                                                                            MouseAction="LeftClick"
+                                                                            Command="{Binding DataContext.ToggleSottoAttivitaInlineCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                            CommandParameter="{Binding}"/>
                                                                                     </CheckBox.InputBindings>
                                                                                 </CheckBox>
 
                                                                                 <!-- Testo sotto-attività -->
                                                                                 <TextBlock
-                                            Text="{Binding Testo}"
-                                            FontSize="12"
-                                            VerticalAlignment="Center"
-                                            Margin="8,0,0,0"
-                                            TextTrimming="CharacterEllipsis">
+                                                                    Text="{Binding Testo}"
+                                                                    FontSize="12"
+                                                                    VerticalAlignment="Center"
+                                                                    Margin="8,0,0,0"
+                                                                    TextTrimming="CharacterEllipsis">
 
                                                                                     <TextBlock.Style>
                                                                                         <Style TargetType="TextBlock">
@@ -1000,11 +1021,13 @@
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
 
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                                    </ScrollViewer>
+
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
                 </Border>
 
                 <!-- EMPTY STATE: titolo + sottotesto + CTA contestuale (pattern Promemoria) -->
@@ -1064,7 +1087,7 @@
 
                     <TextBlock Text="DESCRIZIONE" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding FormDescrizione, UpdateSourceTrigger=PropertyChanged}"
-                        AcceptsReturn="True" TextWrapping="Wrap" Height="90"
+                        AcceptsReturn="True" TextWrapping="Wrap" Height="70"
                         VerticalContentAlignment="Top" Margin="0,4,0,16"/>
 
                     <!-- Scadenza + priorita' (segmented, pattern Promemoria) -->
@@ -1112,15 +1135,9 @@
                     </Grid>
 
                     <!-- Collegamenti: cliente + referente affiancati -->
-                    <Grid Margin="0,0,0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="16"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="CLIENTE" Style="{StaticResource FieldLabel}"/>
-                            <Grid Margin="0,4,0,0">
+                            <Grid Margin="0,4,0,16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -1166,9 +1183,8 @@
                                 </Button>
                             </Grid>
                         </StackPanel>
-                    </Grid>
 
-                    <TextBlock Text="SOTTO-ATTIVITÀ" Style="{StaticResource SectionTitle}" Margin="0,12,0,6"/>
+                        <TextBlock Text="SOTTO-ATTIVITÀ" Style="{StaticResource SectionTitle}" Margin="0,12,0,6"/>
                     <ItemsControl ItemsSource="{Binding FormSottoAttivita}" Margin="0,0,0,6">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -1214,7 +1230,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBox Grid.Column="0" Height="34"
                             Text="{Binding NuovaSottoAttivitaTesto, UpdateSourceTrigger=PropertyChanged}"
-                            mah:TextBoxHelper.Watermark="Aggiungi un passo…"
+                            mah:TextBoxHelper.Watermark="  Aggiungi un passo…"
                             KeyDown="NuovaSottoAttivita_KeyDown"/>
                         <Button Grid.Column="2" Style="{StaticResource AzioneGriglia}" Width="34" Height="34"
                             Foreground="{StaticResource BrushPrimary}"

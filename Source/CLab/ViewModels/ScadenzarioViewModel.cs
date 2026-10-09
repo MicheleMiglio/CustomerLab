@@ -118,7 +118,7 @@ namespace CLab.ViewModels
         public int AnnoSelezionato
         {
             get => _annoSelezionato;
-            set { _annoSelezionato = value; OnPropertyChanged(); CaricaTuttoPerCliente(); }
+            set { _annoSelezionato = value; OnPropertyChanged(); _cacheGeneraleValida = false; CaricaTuttoPerCliente(); }
         }
 
         // --- Vista generale (nessun cliente selezionato): "cosa devo fare oggi",
@@ -126,14 +126,60 @@ namespace CLab.ViewModels
         //     Sostituisce i vecchi placeholder "Seleziona un cliente" ripetuti
         //     in ogni scheda: è la landing operativa dello Scadenzario. ---
 
-        public ObservableCollection<VoceScadenzaGenerale> VisteGenerali { get; } = new();
-        public bool HaVisteGenerali => VisteGenerali.Count > 0;
+        // Livello 2: clienti interessati dal numero selezionato (costruiti dalla cache, nessuna query).
+        public ObservableCollection<RiepilogoClienteScadenze> ClientiGenerali { get; } = new();
 
         public int GeneraleInRitardo { get; private set; }
         public int GeneraleInScadenzaOggi { get; private set; }
         public int GeneraleRitenuteDaVersare { get; private set; }
 
+        public bool TuttoInRegola =>
+            GeneraleInRitardo + GeneraleInScadenzaOggi + GeneraleRitenuteDaVersare == 0;
+
+        /// <summary>null = nessun numero selezionato; "ritardo" | "dafare" | "ritenute".</summary>
+        private string? _filtroGenerale;
+        public string? FiltroGenerale
+        {
+            get => _filtroGenerale;
+            set
+            {
+                if (_filtroGenerale == value) return;
+                _filtroGenerale = value;
+                OnPropertyChanged();
+                AggiornaElencoGenerale();
+            }
+        }
+
+        public bool HaClientiGenerali => ClientiGenerali.Count > 0;
+        public bool MostraSuggerimentoGenerale => !TuttoInRegola && FiltroGenerale == null;
+        public bool MostraElencoVuotoGenerale => !TuttoInRegola && FiltroGenerale != null && ClientiGenerali.Count == 0;
+
+        public string TitoloElencoGenerale => FiltroGenerale switch
+        {
+            "ritardo" => "Clienti con adempimenti in ritardo",
+            "dafare" => "Clienti con adempimenti da fare adesso",
+            "ritenute" => "Clienti con ritenute da versare",
+            _ => string.Empty
+        };
+
         public ICommand SelezionaVoceGeneraleCommand { get; }
+        public ICommand ImpostaFiltroGeneraleCommand { get; }
+        public ICommand ToggleClienteGeneraleCommand { get; }
+        public ICommand ApriClienteGeneraleCommand { get; }
+
+        // Cache della vista generale: si ricalcola solo se cambiano anno, filtri
+        // stato/referente o i dati (compilazioni, ritenute, assegnazioni).
+        private sealed class ContatoriCliente
+        {
+            public int InRitardo;
+            public int DaFare;
+            public int Ritenute;
+        }
+
+        private readonly Dictionary<int, ContatoriCliente> _contatoriGenerali = new();
+        private Dictionary<int, string> _nomiClientiGenerali = new();
+        private bool _cacheGeneraleValida;
+        private bool _sospendiVistaGenerale;
 
         private bool _haAttivitaConfigurate;
         public bool HaAttivitaConfigurate
@@ -555,6 +601,13 @@ namespace CLab.ViewModels
                 ApriPerCliente(v.ClienteId, v.Scheda, v.InRitardo && v.Tipo == "Adempimento");
             });
 
+            ImpostaFiltroGeneraleCommand = new RelayCommand<string>(f =>
+            {
+                FiltroGenerale = FiltroGenerale == f ? null : f; // secondo click = chiude
+            });
+            ToggleClienteGeneraleCommand = new RelayCommand<RiepilogoClienteScadenze>(ToggleClienteGenerale);
+            ApriClienteGeneraleCommand = new RelayCommand<RiepilogoClienteScadenze>(ApriClienteGenerale);
+
             MostraDashboardCommand = new RelayCommand(() => CambiaScheda(Scheda.Dashboard));
             MostraAdempimentiCommand = new RelayCommand(() => CambiaScheda(Scheda.Adempimenti));
             MostraRitenuteCommand = new RelayCommand(() => CambiaScheda(Scheda.Ritenute));
@@ -619,6 +672,7 @@ namespace CLab.ViewModels
 
         private void ApplicaFiltroCliente()
         {
+            _cacheGeneraleValida = false;
             IEnumerable<Cliente> filtrati = _clientiCompleti;
 
             if (ReferenteFiltro != null)
@@ -902,6 +956,7 @@ namespace CLab.ViewModels
 
             db.SaveChanges();
 
+            _cacheGeneraleValida = false;
             cella.Stato = CalcoloStatoAdempimenti.Calcola(riga.Periodicita, AnnoSelezionato, cella.Periodo, cella.Compilato);
             var pillola = riga.Pillole.FirstOrDefault(p => p.Indice == cella.Periodo - 1);
             if (pillola != null) pillola.StatoColore = cella.Stato;
@@ -1082,125 +1137,304 @@ namespace CLab.ViewModels
             StatoSezioneMensili = StatoSezioneTrimestrali = StatoSezioneAnnuali = "Futuro";
         }
 
-        /// <summary>Vista generale (nessun cliente selezionato): stesso calcolo di
-        /// HomeViewModel.CalcolaAdempimenti (catalogo Attivita + ClientiAttivita +
-        /// Compilazioni, stato tramite CalcoloStatoAdempimenti), ma qui produce righe
-        /// di dettaglio invece di soli conteggi, e vi aggiunge le ritenute da versare
-        /// — perché qui, a differenza della Home, si deve poter lavorare la lista, non
-        /// solo scoprirne l'esistenza. Scope: solo i clienti attualmente in
-        /// ClientiDisponibili, così la vista generale rispetta gli stessi filtri
-        /// (stato/referente) della barra contestuale.</summary>
+        /// <summary>Invalida la cache della vista generale. Da chiamare se le
+        /// assegnazioni attività vengono modificate da un altro modulo mentre
+        /// questo ViewModel resta in vita.</summary>
+        public void InvalidaVistaGenerale()
+        {
+            _cacheGeneraleValida = false;
+            if (ClienteSelezionato == null) CaricaVistaGenerale();
+        }
+
+        /// <summary>Vista generale (nessun cliente selezionato). Livello 1: calcola solo
+        /// i contatori per cliente, senza creare nessuna riga di dettaglio. Ricalcola
+        /// soltanto se la cache è invalida. Scope: i clienti in ClientiDisponibili,
+        /// quindi gli stessi filtri (stato/referente) della barra contestuale.</summary>
         private void CaricaVistaGenerale()
         {
-            VisteGenerali.Clear();
+            if (_sospendiVistaGenerale) return;
+            if (_cacheGeneraleValida) return;
+
+            CalcolaContatoriGenerali();
+            AggiornaElencoGenerale();
+        }
+
+        private void CalcolaContatoriGenerali()
+        {
+            _contatoriGenerali.Clear();
             GeneraleInRitardo = 0;
             GeneraleInScadenzaOggi = 0;
             GeneraleRitenuteDaVersare = 0;
 
-            if (ClientiDisponibili.Count == 0)
+            var clienti = ClientiDisponibili.Where(c => c.Id != 0).ToList();
+            _nomiClientiGenerali = clienti.ToDictionary(c => c.Id, c => c.RagioneSociale);
+
+            if (clienti.Count > 0)
             {
-                NotificaVistaGeneraleCambiata();
-                return;
-            }
+                var idClienti = _nomiClientiGenerali.Keys.ToHashSet();
+                int anno = AnnoSelezionato;
 
-            using var db = new ClabDbContext();
-            var idClienti = ClientiDisponibili.Select(c => c.Id).ToHashSet();
-            var nomiClienti = ClientiDisponibili.ToDictionary(c => c.Id, c => c.RagioneSociale);
-
-            var attivitaCatalogo = db.Attivita.AsNoTracking().ToDictionary(a => a.Id, a => a);
-            var assegnazioni = db.ClientiAttivita.AsNoTracking().Where(ca => idClienti.Contains(ca.ClienteId)).ToList();
-            var compilazioni = db.Compilazioni.AsNoTracking()
-                .Where(c => c.Anno == AnnoSelezionato && idClienti.Contains(c.ClienteId)).ToList();
-
-            var righe = new List<VoceScadenzaGenerale>();
-
-            foreach (var assegnazione in assegnazioni)
-            {
-                if (!attivitaCatalogo.TryGetValue(assegnazione.AttivitaId, out var attivita)) continue;
-                if (attivita.TipoCampo == TipoCampoAttivita.TestoLibero) continue; // FASE: escluso anche in Home
-                if (!nomiClienti.TryGetValue(assegnazione.ClienteId, out var nomeCliente)) continue;
-
-                int numeroPeriodi = attivita.Periodicita switch
+                ContatoriCliente Cont(int clienteId)
                 {
-                    Periodicita.Mensile => 12,
-                    Periodicita.Trimestrale => 4,
-                    _ => 1
-                };
+                    if (!_contatoriGenerali.TryGetValue(clienteId, out var c))
+                        _contatoriGenerali[clienteId] = c = new ContatoriCliente();
+                    return c;
+                }
 
-                for (int periodo = 1; periodo <= numeroPeriodi; periodo++)
+                using var db = new ClabDbContext();
+
+                // Solo le colonne che servono, niente tracking.
+                var attivita = db.Attivita.AsNoTracking()
+                    .Where(a => a.TipoCampo != TipoCampoAttivita.TestoLibero) // escluso anche in Home
+                    .Select(a => new { a.Id, a.Periodicita, a.TipoCampo })
+                    .ToDictionary(a => a.Id);
+
+                var assegnazioni = db.ClientiAttivita.AsNoTracking()
+                    .Where(ca => idClienti.Contains(ca.ClienteId))
+                    .Select(ca => new { ca.ClienteId, ca.AttivitaId })
+                    .ToList();
+
+                var compilazioni = db.Compilazioni.AsNoTracking()
+                    .Where(c => c.Anno == anno && idClienti.Contains(c.ClienteId))
+                    .Select(c => new { c.ClienteId, c.AttivitaId, c.Periodo, c.ValoreBooleano, c.ValoreNumero, c.ValoreTesto })
+                    .ToList();
+
+                // Lookup O(1) al posto di FirstOrDefault dentro il ciclo triplo.
+                var compilati = new HashSet<(int cliente, int attivita, int periodo)>();
+                foreach (var c in compilazioni)
                 {
-                    var singola = compilazioni.FirstOrDefault(c =>
-                        c.ClienteId == assegnazione.ClienteId && c.AttivitaId == assegnazione.AttivitaId && c.Periodo == periodo);
+                    if (!attivita.TryGetValue(c.AttivitaId, out var a)) continue;
+                    if (EsitoCompilato(a.TipoCampo, c.ValoreBooleano, c.ValoreNumero, c.ValoreTesto))
+                        compilati.Add((c.ClienteId, c.AttivitaId, c.Periodo));
+                }
 
-                    bool compilato = singola != null && attivita.TipoCampo switch
+                foreach (var ass in assegnazioni)
+                {
+                    if (!attivita.TryGetValue(ass.AttivitaId, out var a)) continue;
+
+                    int numeroPeriodi = NumeroPeriodi(a.Periodicita);
+                    for (int periodo = 1; periodo <= numeroPeriodi; periodo++)
                     {
-                        TipoCampoAttivita.SiNo => singola.ValoreBooleano == true,
-                        TipoCampoAttivita.Numero => singola.ValoreNumero.HasValue,
-                        TipoCampoAttivita.Tendina => !string.IsNullOrWhiteSpace(singola.ValoreTesto),
-                        _ => false
-                    };
+                        bool compilato = compilati.Contains((ass.ClienteId, ass.AttivitaId, periodo));
+                        string stato = CalcoloStatoAdempimenti.Calcola(a.Periodicita, anno, periodo, compilato);
 
-                    string stato = CalcoloStatoAdempimenti.Calcola(attivita.Periodicita, AnnoSelezionato, periodo, compilato);
-                    if (stato != CalcoloStatoAdempimenti.Ritardo && stato != CalcoloStatoAdempimenti.InCorso) continue;
+                        if (stato == CalcoloStatoAdempimenti.Ritardo)
+                        {
+                            Cont(ass.ClienteId).InRitardo++;
+                            GeneraleInRitardo++;
+                        }
+                        else if (stato == CalcoloStatoAdempimenti.InCorso)
+                        {
+                            Cont(ass.ClienteId).DaFare++;
+                            GeneraleInScadenzaOggi++;
+                        }
+                    }
+                }
 
-                    righe.Add(new VoceScadenzaGenerale
-                    {
-                        ClienteId = assegnazione.ClienteId,
-                        ClienteNome = nomeCliente,
-                        Tipo = "Adempimento",
-                        Descrizione = attivita.Nome,
-                        Dettaglio = numeroPeriodi > 1
-                            ? $"{EtichettaPeriodo(attivita.Periodicita, periodo)} {AnnoSelezionato}"
-                            : $"Anno {AnnoSelezionato}",
-                        InRitardo = stato == CalcoloStatoAdempimenti.Ritardo,
-                        Scheda = "adempimenti"
-                    });
+                // Ritenute: l'anno si filtra in SQL (stessa regola di AnnoRitenuta:
+                // anno del pagamento fattura, oppure anno corrente se NULL).
+                // StatoVersamento è calcolato in C#, quindi il filtro finale resta in memoria,
+                // ma su un insieme già ristretto.
+                int annoCorrente = DateTime.Now.Year;
+                var ritenuteQuery = db.RitenuteAcconto.AsNoTracking()
+                    .Where(r => idClienti.Contains(r.ClienteId));
 
-                    if (stato == CalcoloStatoAdempimenti.Ritardo) GeneraleInRitardo++;
-                    else GeneraleInScadenzaOggi++;
+                ritenuteQuery = anno == annoCorrente
+                    ? ritenuteQuery.Where(r => r.DataPagamentoFattura == null || r.DataPagamentoFattura.Value.Year == anno)
+                    : ritenuteQuery.Where(r => r.DataPagamentoFattura != null && r.DataPagamentoFattura.Value.Year == anno);
+
+                foreach (var r in ritenuteQuery.ToList().Where(r => r.StatoVersamento == "DaVersare"))
+                {
+                    Cont(r.ClienteId).Ritenute++;
+                    GeneraleRitenuteDaVersare++;
                 }
             }
 
-            var ritenuteDaVersare = db.RitenuteAcconto.AsNoTracking()
-                .Where(r => idClienti.Contains(r.ClienteId))
-                .AsEnumerable()
-                .Where(r => AnnoRitenuta(r) == AnnoSelezionato && r.StatoVersamento == "DaVersare")
-                .ToList();
+            _cacheGeneraleValida = true;
+            NotificaVistaGeneraleCambiata();
+        }
 
-            foreach (var r in ritenuteDaVersare)
+        /// <summary>Livello 2: ricostruisce l'elenco dei clienti per il numero selezionato,
+        /// dalla cache (nessuna query). Le righe nascono chiuse e senza dettaglio.</summary>
+        private void AggiornaElencoGenerale()
+        {
+            ClientiGenerali.Clear();
+
+            if (FiltroGenerale != null)
             {
-                if (!nomiClienti.TryGetValue(r.ClienteId, out var nomeCliente)) continue;
+                var interessati = _contatoriGenerali
+                    .Where(k => ValoreFiltro(k.Value, FiltroGenerale) > 0)
+                    .OrderByDescending(k => ValoreFiltro(k.Value, FiltroGenerale))
+                    .ThenBy(k => _nomiClientiGenerali.TryGetValue(k.Key, out var n) ? n : string.Empty);
 
-                bool inRitardo = r.ScadenzaVersamento.HasValue && r.ScadenzaVersamento.Value.Date < DateTime.Now.Date;
-
-                righe.Add(new VoceScadenzaGenerale
+                foreach (var k in interessati)
                 {
-                    ClienteId = r.ClienteId,
-                    ClienteNome = nomeCliente,
-                    Tipo = "Ritenuta",
-                    Descrizione = $"Ritenuta — {r.Intestazione}",
-                    Dettaglio = r.ScadenzaVersamento.HasValue
-                        ? $"Da versare entro {r.ScadenzaVersamento.Value:dd/MM/yyyy}"
-                        : "Da versare (nessuna scadenza indicata)",
-                    InRitardo = inRitardo,
-                    Scheda = "ritenute"
-                });
-
-                GeneraleRitenuteDaVersare++;
+                    ClientiGenerali.Add(new RiepilogoClienteScadenze
+                    {
+                        ClienteId = k.Key,
+                        ClienteNome = _nomiClientiGenerali.TryGetValue(k.Key, out var nome) ? nome : string.Empty,
+                        Categoria = FiltroGenerale,
+                        Valore = ValoreFiltro(k.Value, FiltroGenerale),
+                        Riepilogo = RiepilogoContatori(k.Value)
+                    });
+                }
             }
 
-            foreach (var v in righe.OrderByDescending(v => v.InRitardo).ThenBy(v => v.ClienteNome).ThenBy(v => v.Descrizione))
-                VisteGenerali.Add(v);
+            OnPropertyChanged(nameof(HaClientiGenerali));
+            OnPropertyChanged(nameof(TitoloElencoGenerale));
+            OnPropertyChanged(nameof(MostraSuggerimentoGenerale));
+            OnPropertyChanged(nameof(MostraElencoVuotoGenerale));
+        }
 
-            NotificaVistaGeneraleCambiata();
+        private static int ValoreFiltro(ContatoriCliente c, string filtro) => filtro switch
+        {
+            "ritardo" => c.InRitardo,
+            "dafare" => c.DaFare,
+            _ => c.Ritenute
+        };
+
+        private static string RiepilogoContatori(ContatoriCliente c)
+        {
+            var parti = new List<string>();
+            if (c.InRitardo > 0) parti.Add($"{c.InRitardo} in ritardo");
+            if (c.DaFare > 0) parti.Add($"{c.DaFare} da fare adesso");
+            if (c.Ritenute > 0) parti.Add(c.Ritenute == 1 ? "1 ritenuta da versare" : $"{c.Ritenute} ritenute da versare");
+            return string.Join(" · ", parti);
+        }
+
+        private static int NumeroPeriodi(Periodicita p) => p switch
+        {
+            Periodicita.Mensile => 12,
+            Periodicita.Trimestrale => 4,
+            _ => 1
+        };
+
+        private static bool EsitoCompilato(TipoCampoAttivita tipo, bool? booleano, decimal? numero, string? testo) => tipo switch
+        {
+            TipoCampoAttivita.SiNo => booleano == true,
+            TipoCampoAttivita.Numero => numero.HasValue,
+            TipoCampoAttivita.Tendina => !string.IsNullOrWhiteSpace(testo),
+            _ => false
+        };
+
+        // --- Livello 3: dettaglio di UN cliente, calcolato solo alla prima apertura ---
+
+        private void ToggleClienteGenerale(RiepilogoClienteScadenze? riga)
+        {
+            if (riga == null) return;
+
+            riga.Espanso = !riga.Espanso;
+            if (riga.Espanso && !riga.VociCaricate)
+                CaricaDettaglioCliente(riga);
+        }
+
+        private void ApriClienteGenerale(RiepilogoClienteScadenze? riga)
+        {
+            if (riga == null) return;
+            ApriPerCliente(riga.ClienteId,
+                riga.Categoria == "ritenute" ? "ritenute" : "adempimenti",
+                riga.Categoria == "ritardo");
+        }
+
+        private void CaricaDettaglioCliente(RiepilogoClienteScadenze riga)
+        {
+            int clienteId = riga.ClienteId;
+            int anno = AnnoSelezionato;
+            var voci = new List<VoceScadenzaGenerale>();
+
+            using var db = new ClabDbContext();
+
+            if (riga.Categoria == "ritenute")
+            {
+                var ritenute = db.RitenuteAcconto.AsNoTracking()
+                    .Where(r => r.ClienteId == clienteId)
+                    .ToList()
+                    .Where(r => AnnoRitenuta(r) == anno && r.StatoVersamento == "DaVersare")
+                    .OrderBy(r => r.ScadenzaVersamento ?? DateTime.MaxValue);
+
+                foreach (var r in ritenute)
+                {
+                    bool inRitardo = r.ScadenzaVersamento.HasValue && r.ScadenzaVersamento.Value.Date < DateTime.Now.Date;
+
+                    voci.Add(new VoceScadenzaGenerale
+                    {
+                        ClienteId = clienteId,
+                        ClienteNome = riga.ClienteNome,
+                        Tipo = "Ritenuta",
+                        Descrizione = $"Ritenuta — {r.Intestazione}",
+                        Dettaglio = r.ScadenzaVersamento.HasValue
+                            ? $"Da versare entro {r.ScadenzaVersamento.Value:dd/MM/yyyy}"
+                            : "Da versare (nessuna scadenza indicata)",
+                        InRitardo = inRitardo,
+                        Scheda = "ritenute"
+                    });
+                }
+            }
+            else
+            {
+                string statoCercato = riga.Categoria == "ritardo"
+                    ? CalcoloStatoAdempimenti.Ritardo
+                    : CalcoloStatoAdempimenti.InCorso;
+
+                var idAttivita = db.ClientiAttivita.AsNoTracking()
+                    .Where(ca => ca.ClienteId == clienteId)
+                    .Select(ca => ca.AttivitaId)
+                    .ToList();
+
+                var attivita = db.Attivita.AsNoTracking()
+                    .Where(a => idAttivita.Contains(a.Id) && a.TipoCampo != TipoCampoAttivita.TestoLibero)
+                    .OrderBy(a => a.Nome)
+                    .ToList();
+
+                var perId = attivita.ToDictionary(a => a.Id);
+
+                var compilati = new HashSet<(int attivita, int periodo)>();
+                foreach (var c in db.Compilazioni.AsNoTracking()
+                             .Where(c => c.ClienteId == clienteId && c.Anno == anno).ToList())
+                {
+                    if (!perId.TryGetValue(c.AttivitaId, out var a)) continue;
+                    if (EsitoCompilato(a.TipoCampo, c.ValoreBooleano, c.ValoreNumero, c.ValoreTesto))
+                        compilati.Add((c.AttivitaId, c.Periodo));
+                }
+
+                foreach (var a in attivita)
+                {
+                    int numeroPeriodi = NumeroPeriodi(a.Periodicita);
+                    for (int periodo = 1; periodo <= numeroPeriodi; periodo++)
+                    {
+                        string stato = CalcoloStatoAdempimenti.Calcola(
+                            a.Periodicita, anno, periodo, compilati.Contains((a.Id, periodo)));
+                        if (stato != statoCercato) continue;
+
+                        voci.Add(new VoceScadenzaGenerale
+                        {
+                            ClienteId = clienteId,
+                            ClienteNome = riga.ClienteNome,
+                            Tipo = "Adempimento",
+                            Descrizione = a.Nome,
+                            Dettaglio = numeroPeriodi > 1
+                                ? $"{EtichettaPeriodo(a.Periodicita, periodo)} {anno}"
+                                : $"Anno {anno}",
+                            InRitardo = stato == CalcoloStatoAdempimenti.Ritardo,
+                            Scheda = "adempimenti"
+                        });
+                    }
+                }
+            }
+
+            riga.Voci.Clear();
+            foreach (var v in voci) riga.Voci.Add(v);
+            riga.VociCaricate = true;
         }
 
         private void NotificaVistaGeneraleCambiata()
         {
-            OnPropertyChanged(nameof(HaVisteGenerali));
             OnPropertyChanged(nameof(GeneraleInRitardo));
             OnPropertyChanged(nameof(GeneraleInScadenzaOggi));
             OnPropertyChanged(nameof(GeneraleRitenuteDaVersare));
+            OnPropertyChanged(nameof(TuttoInRegola));
+            OnPropertyChanged(nameof(MostraSuggerimentoGenerale));
+            OnPropertyChanged(nameof(MostraElencoVuotoGenerale));
         }
 
         // --- Duplica da un altro cliente ---
@@ -1263,6 +1497,7 @@ namespace CLab.ViewModels
             db.SaveChanges();
 
             PannelloDuplicaAperto = false;
+            _cacheGeneraleValida = false;
             CaricaTuttoPerCliente();
         }
 
@@ -1305,6 +1540,7 @@ namespace CLab.ViewModels
             entita.ScadenzaVersamento = DateTime.Now;
             db.SaveChanges();
 
+            _cacheGeneraleValida = false;
             CaricaRitenute();
         }
 
@@ -1425,6 +1661,7 @@ namespace CLab.ViewModels
             db.SaveChanges();
 
             PannelloRitenutaAperto = false;
+            _cacheGeneraleValida = false;
             CaricaRitenute();
         }
 
@@ -1441,6 +1678,7 @@ namespace CLab.ViewModels
             db.RitenuteAcconto.Remove(entita);
             db.SaveChanges();
 
+            _cacheGeneraleValida = false;
             CaricaRitenute();
         }
 
@@ -1473,23 +1711,34 @@ namespace CLab.ViewModels
             var cliente = _clientiCompleti.FirstOrDefault(c => c.Id == clienteId);
             if (cliente == null) return;
 
-            // Chip ciclo vita allineato allo stato reale, così un cessato/stand-by
-            // aperto dalla Home resta visibile nella combo (default del modulo: Attivi).
-            FiltroStatoCliente = cliente.Stato switch
+            // Navigazione verso un cliente: la vista generale non serve, quindi non
+            // viene ricalcolata a ogni cambio di chip/referente (la cache resta
+            // invalidata e si ricostruisce quando si torna alla vista generale).
+            _sospendiVistaGenerale = true;
+            try
             {
-                StatoCliente.Attivo => "Attivi",
-                StatoCliente.StandBy => "Stand by",
-                StatoCliente.Cessato => "Cessati",
-                _ => "Tutti"
-            };
+                // Chip ciclo vita allineato allo stato reale, così un cessato/stand-by
+                // aperto dalla Home resta visibile nella combo (default del modulo: Attivi).
+                FiltroStatoCliente = cliente.Stato switch
+                {
+                    StatoCliente.Attivo => "Attivi",
+                    StatoCliente.StandBy => "Stand by",
+                    StatoCliente.Cessato => "Cessati",
+                    _ => "Tutti"
+                };
 
-            // Referente: si azzera solo se nasconderebbe il cliente richiesto.
-            if (ReferenteFiltro != null && cliente.ReferenteId != ReferenteFiltro.Id)
-                ReferenteFiltro = null;
+                // Referente: si azzera solo se nasconderebbe il cliente richiesto.
+                if (ReferenteFiltro != null && cliente.ReferenteId != ReferenteFiltro.Id)
+                    ReferenteFiltro = null;
 
-            // L'assegnazione di ClienteSelezionato resetta la vista (nuovo comportamento):
-            // "solo ritardi"/modalità vanno quindi riapplicati DOPO, non prima.
-            ClienteSelezionato = cliente;
+                // L'assegnazione di ClienteSelezionato resetta la vista (nuovo comportamento):
+                // "solo ritardi"/modalità vanno quindi riapplicati DOPO, non prima.
+                ClienteSelezionato = cliente;
+            }
+            finally
+            {
+                _sospendiVistaGenerale = false;
+            }
 
             SoloRitardi = soloRitardi;
 
@@ -1675,6 +1924,28 @@ namespace CLab.ViewModels
         public string Dettaglio { get; set; } = string.Empty;
         public bool InRitardo { get; set; }
         public string Scheda { get; set; } = string.Empty; // "adempimenti" / "ritenute"
+    }
+
+    /// <summary>Riga cliente della vista generale (livello 2). Il dettaglio (Voci)
+    /// si riempie solo alla prima espansione.</summary>
+    public class RiepilogoClienteScadenze : ViewModelBase
+    {
+        public int ClienteId { get; init; }
+        public string ClienteNome { get; init; } = string.Empty;
+        /// <summary>"ritardo" | "dafare" | "ritenute": il numero da cui si è arrivati qui.</summary>
+        public string Categoria { get; init; } = string.Empty;
+        public int Valore { get; init; }
+        public string Riepilogo { get; init; } = string.Empty;
+
+        private bool _espanso;
+        public bool Espanso
+        {
+            get => _espanso;
+            set { if (_espanso == value) return; _espanso = value; OnPropertyChanged(); }
+        }
+
+        public bool VociCaricate { get; set; }
+        public ObservableCollection<VoceScadenzaGenerale> Voci { get; } = new();
     }
 
     public class GraficoTorta

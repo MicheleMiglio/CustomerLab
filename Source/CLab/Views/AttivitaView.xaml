@@ -302,7 +302,8 @@
                   SelectionMode="Single"
                   Style="{StaticResource ModuleDataGridStyle}"
                   RowHeight="44" HeadersVisibility="Column"
-                  Margin="28,12,28,0"
+                  VerticalAlignment="Top"
+                  Margin="28,12,28,24"
                   MouseDoubleClick="gridAttivita_MouseDoubleClick"
                   Visibility="{Binding ConfigurazioneAttiva, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverti}">
                 <DataGrid.ColumnHeaderStyle>
@@ -413,7 +414,7 @@
                    FontWeight="Medium"
                    Foreground="{StaticResource BrushTestoSecondario}"/>
 
-                            <ComboBox Width="170"
+                            <ComboBox Width="250"
                   Height="34"
                   IsTextSearchEnabled="True"
                   TextSearch.TextPath="Nome"
@@ -430,7 +431,7 @@
                    FontWeight="Medium"
                    Foreground="{StaticResource BrushTestoSecondario}"/>
 
-                            <ComboBox Width="260"
+                            <ComboBox Width="340"
                   Height="34"
                   ItemsSource="{Binding ClientiPerConfigurazione}"
                   TextSearch.TextPath="RagioneSociale"
